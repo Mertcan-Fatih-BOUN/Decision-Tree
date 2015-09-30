@@ -4,6 +4,6 @@
 public class C45 {
 
     public static void main(String[] args){
-        
+
     }
 }
