@@ -57,8 +57,27 @@ public class C45 {
         } else if (checkEmptyAttribute(instances)) {
             return mostFreqClass;
         } else {
-            int attributeNumber = findBestGain(instances);
-            System.out.println(attributeNumber);
+            double bestGain[] = findBestGain(instances);
+            int attributeNumber = (int)bestGain[0];
+            double option = bestGain[1];
+            System.out.println(attributeNumber + " with option less than or equal to " + option);
+            ArrayList<Instance> i1 = new ArrayList<Instance>();
+            ArrayList<Instance> i2 = new ArrayList<Instance>();
+            for(int i = 0; i < instances.size(); i++){
+                if(instances.get(i).attributes.get(attributeNumber) <= option){
+                    i1.add(new Instance(instances.get(i).className, instances.get(i).attributes));
+                    i1.get(i1.size() - 1).attributes.remove(attributeNumber);
+                }else{
+                    i2.add(new Instance(instances.get(i).className, instances.get(i).attributes));
+                    i2.get(i2.size() - 1).attributes.remove(attributeNumber);
+                }
+            }
+//            for(int i = 0; i < i1.size(); i++)
+//                System.out.println(i1.get(i).className + " " + i1.get(i).attributes);
+//            for(int i = 0; i < i2.size(); i++)
+//                System.out.println(i2.get(i).className + " " + i2.get(i).attributes);
+            System.out.println(createDecisionTree(i1));
+            System.out.println(createDecisionTree(i2));
             return formTree();
         }
     }
@@ -86,22 +105,25 @@ public class C45 {
             return false;
     }
 
-    private static int findBestGain(ArrayList<Instance> instances) {
+    private static double[] findBestGain(ArrayList<Instance> instances) {
         double bestGain = 0;
         int bestGainAttribute = -1;
+        double bestGainOption = 0;
         double info = findEntropy(instances);
         for (int i = 0; i < instances.get(0).attributes.size(); i++) {
-            double tempGain = findGain(instances, i, info);
-            System.out.println(tempGain);
+            double temp[] = findGain(instances, i, info);
+            double tempGain = temp[0];
+            double tempBestOption = temp[1];
             if (bestGain <= tempGain) {
                 bestGain = tempGain;
                 bestGainAttribute = i;
+                bestGainOption = tempBestOption;
             }
         }
-        return bestGainAttribute;
+        return new double[]{bestGainAttribute, bestGainOption};
     }
 
-    private static double findGain(ArrayList<Instance> instances, int attributeNumber, double info) {
+    private static double[] findGain(ArrayList<Instance> instances, int attributeNumber, double info) {
         double values[] = new double[instances.size()];
         for (int j = 0; j < values.length; j++) {
             values[j] = instances.get(j).attributes.get(attributeNumber);
@@ -117,8 +139,7 @@ public class C45 {
                 bestOption = values[i];
             }
         }
-        System.out.println(bestOption + "option");
-        return bestGain;
+        return new double[]{bestGain, bestOption};
     }
 
     private static double findGainForLessThan(ArrayList<Instance> instances, double value, int place, int attributeNumber, double info) {
