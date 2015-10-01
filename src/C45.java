@@ -9,7 +9,6 @@ import java.util.HashMap;
 public class C45 {
 
     public static ArrayList<Instance> instances = new ArrayList<>();
-    public static String mostFreqClass;
 
     public static void main(String[] args) {
         try {
@@ -17,8 +16,6 @@ public class C45 {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        mostFreqClass = findMostFreqClass(instances);
-
 
         Node root = createDecisionTree(instances, -1, -1);
 
