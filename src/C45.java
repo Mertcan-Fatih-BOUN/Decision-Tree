@@ -6,9 +6,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
-/**
- * Created by mertcan on 30.9.2015.
- */
 public class C45 {
 
     public static ArrayList<Instance> instances = new ArrayList<Instance>();
@@ -23,112 +20,9 @@ public class C45 {
         }
         mostFreqClass = findMostFreqClass(instances);
 
-        int trues = 0;
-        int falses = 0;
-        for (int i = 0; i < 150; i++) {
-            if (instances.get(i).attributes.get(2) <= 1.9) {
-                if (i < 50) {
-                    System.out.println(1);
-                    trues++;
-                } else {
-                    System.out.println(0);
-                    falses++;
-                }
-            } else {
-                if (instances.get(i).attributes.get(3) <= 1.7) {
-                    if (instances.get(i).attributes.get(1) <= 3.0) {
-                        if (instances.get(i).attributes.get(0) <= 6.8) {
-                            if (i < 50) {
-                                System.out.println(1);
-                                trues++;
-                            } else {
-                                System.out.println(0);
-                                falses++;
-                            }
-                        } else {
-                            if (i > 99) {
-                                System.out.println(1);
-                                trues++;
-                            } else {
-                                System.out.println(0);
-                                falses++;
-                            }
-                        }
-                    } else {
-                        if (i < 100 && i > 49) {
-                            System.out.println(1);
-                            trues++;
-                        } else {
-                            System.out.println(0);
-                            falses++;
-                        }
-                    }
-                } else {
-                    if (instances.get(i).attributes.get(1) <= 3.0) {
-                        if (i > 99) {
-                            System.out.println(1);
-                            trues++;
-                        } else {
-                            System.out.println(0);
-                            falses++;
-                        }
-                    } else {
-                        if (instances.get(i).attributes.get(0) <= 6.2) {
-                            if (i < 50) {
-                                System.out.println(1);
-                                trues++;
-                            } else {
-                                System.out.println(0);
-                                falses++;
-                            }
-                        } else {
-                            if (i > 99) {
-                                System.out.println(1);
-                                trues++;
-                            } else {
-                                System.out.println(0);
-                                falses++;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        System.out.println(trues + " " + falses);
 
-        trues = 0;
-        falses = 0;
-        for (int i = 0; i < 150; i++) {
-            if (instances.get(i).attributes.get(2) <= 1.9) {
-                if (i < 50) {
-                    System.out.println(1);
-                    trues++;
-                } else {
-                    System.out.println(0);
-                    falses++;
-                }
-            } else {
-                if (instances.get(i).attributes.get(3) <= 1.7) {
-                    if (i < 100 && i > 49) {
-                        System.out.println(1);
-                        trues++;
-                    } else {
-                        System.out.println(0);
-                        falses++;
-                    }
-                } else {
-                    if (i > 99) {
-                        System.out.println(1);
-                        trues++;
-                    } else {
-                        System.out.println(0);
-                        falses++;
-                    }
-                }
-            }
-        }
-        System.out.println(trues + " " + falses);
-        System.out.println(createDecisionTree(instances, -1, -1));
+        Node root = createDecisionTree(instances, -1, -1);
+        System.out.print(root.toString(0));
     }
 
     private static String findMostFreqClass(ArrayList<Instance> instances) {
@@ -153,19 +47,19 @@ public class C45 {
         return freqName;
     }
 
-    private static String createDecisionTree(ArrayList<Instance> instances, int attributeNumberPast, double optionPast) {
+    private static Node createDecisionTree(ArrayList<Instance> instances, int attributeNumberPast, double optionPast) {
         if (checkEmptiness(instances)) {
-            return "failure";
+            return new Node("failure");
         } else if (checkAllSame(instances)) {
-            return instances.get(0).className;
+            return new Node(instances.get(0).className);
         } else if (checkEmptyAttribute(instances)) {
-            return mostFreqClass;
+            return new Node(mostFreqClass);
         } else {
             double bestGain[] = findBestGain(instances);
             int attributeNumber = (int) bestGain[0];
             double option = bestGain[1];
             if (attributeNumber == attributeNumberPast && option == optionPast) {
-                return findMostFreqClass(instances);
+                return new Node(findMostFreqClass(instances));
             } else {
                 System.out.println(attributeNumber + " with option less than or equal to " + option);
                 ArrayList<Instance> i1 = new ArrayList<Instance>();
@@ -185,9 +79,10 @@ public class C45 {
 //                    System.out.println(i2.get(i).className + " " + i2.get(i).attributes);
 //            System.out.println(i1.size() + " " + i2.size());
 
-                System.out.println(createDecisionTree(i1, attributeNumber, option) + "left");
-                System.out.println(createDecisionTree(i2, attributeNumber, option) + "right");
-                return formTree();
+                Node ln = createDecisionTree(i1, attributeNumber, option);
+                Node rn = createDecisionTree(i2, attributeNumber, option);
+
+                return new Node(attributeNumber, option, ln, rn);
             }
         }
     }
@@ -336,10 +231,6 @@ public class C45 {
             freqLess = x;
             fregGreater = y;
         }
-    }
-
-    private static String formTree() {
-        return "tree";
     }
 
     private static void readDataSet(String s) throws IOException {
