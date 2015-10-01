@@ -22,6 +22,11 @@ public class C45 {
 
 
         Node root = createDecisionTree(instances, -1, -1);
+
+        boolean cleaned = cleanTree(root);
+        while (cleaned)
+            cleaned = cleanTree(root);
+
         System.out.println(root.toString(0));
 
         int trueC = 0;
@@ -36,6 +41,31 @@ public class C45 {
         System.out.println("Test: " + (double) trueC / (trueC + falseC));
     }
 
+    private static boolean cleanTree(Node node) {
+        if (!node.isLeaf) {
+            if (node.leftNode.isLeaf && node.rightNode.isLeaf){
+                if (node.leftNode.className.equals(node.rightNode.className)) {
+                    node.isLeaf = true;
+                    node.className = node.rightNode.className;
+                    return true;
+                }
+                if (node.leftNode.className.equals("failure")) {
+                    node.isLeaf = true;
+                    node.className = node.rightNode.className;
+                    return true;
+                }
+                else  if (node.rightNode.className.equals("failure")) {
+                    node.isLeaf = true;
+                    node.className = node.leftNode.className;
+                    return true;
+                }
+            }
+            else {
+               return  cleanTree(node.leftNode) || cleanTree(node.rightNode);
+            }
+        }
+        return false;
+    }
     private static boolean test(Node node, Instance instance) {
         if (node.isLeaf) {
             return node.className.equals(instance.className);
