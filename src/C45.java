@@ -1,3 +1,5 @@
+import com.sun.org.apache.xml.internal.security.transforms.implementations.TransformXPath2Filter;
+
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -8,6 +10,13 @@ import java.util.HashMap;
 
 public class C45 {
 
+    public static final int CLASS_COUNT = 3;
+    public static final int ATTRIBUTE_COUNT = 4;
+    public static final String[] CLASS_NAMES = {"Iris-virginica", "Iris-versicolor", "Iris-setosa"};
+
+    //public static final String[] CLASS_NAMES = {"Slight-Right-Turn", "Sharp-Right-Turn", "Move-Forward", "Slight-Left-Turn"};
+
+
     public static ArrayList<Instance> instances = new ArrayList<>();
 
     public static void main(String[] args) {
@@ -17,11 +26,14 @@ public class C45 {
             e.printStackTrace();
         }
 
-        Node root = createDecisionTree(instances, -1, -1);
+        double infoT = info(instances);
 
-        boolean cleaned = cleanTree(root);
-        while (cleaned)
-            cleaned = cleanTree(root);
+
+        Node root = getNode(instances, infoT, -1, -1);
+//
+//        boolean cleaned = cleanTree(root);
+//        while (cleaned)
+//            cleaned = cleanTree(root);
 
         System.out.println(root.toString(0));
 
@@ -64,63 +76,36 @@ public class C45 {
     private static boolean test(Node node, Instance instance) {
         if (node.isLeaf) {
             return node.className.equals(instance.className);
-        } else if (instance.attributes.get(node.attributeNumber) <= node.value)
+        } else if (instance.attributes[node.attributeNumber] <= node.value)
             return test(node.leftNode, instance);
         else
             return test(node.rightNode, instance);
     }
 
     private static String findMostFreqClass(ArrayList<Instance> instances) {
-        HashMap<String, Integer> names = new HashMap<>();
-        String freqName = "";
-        int freq = 0;
+        int[] frequencies = new int[CLASS_COUNT];
+        Arrays.fill(frequencies, 0);
+
         for (Instance instance : instances) {
-            if (names.get(instance.className) == null) {
-                names.put(instance.className, 1);
-                if (freq == 0) {
-                    freqName = instance.className;
-                    freq = 1;
-                }
-            } else {
-                names.put(instance.className, names.get(instance.className) + 1);
-                if (freq < names.get(instance.className)) {
-                    freqName = instance.className;
-                    freq = names.get(instance.className);
+            for (int i = 0; i < CLASS_COUNT; i++) {
+                if (instance.className.equals(CLASS_NAMES[i])) {
+                    frequencies[i]++;
+                    break;
                 }
             }
         }
-        return freqName;
-    }
 
-    private static Node createDecisionTree(ArrayList<Instance> instances, int attributeNumberPast, double optionPast) {
-        if (checkEmptiness(instances)) {
-            return new Node("failure");
-        } else if (checkAllSame(instances)) {
-            return new Node(instances.get(0).className);
-        } else {
-            double bestGain[] = findBestGain(instances);
-            int attributeNumber = (int) bestGain[0];
-            double option = bestGain[1];
-            if (attributeNumber == attributeNumberPast && option == optionPast) {
-                return new Node(findMostFreqClass(instances));
-            } else {
-                ArrayList<Instance> i1 = new ArrayList<>();
-                ArrayList<Instance> i2 = new ArrayList<>();
-                for (Instance instance : instances) {
-                    if (instance.attributes.get(attributeNumber) <= option) {
-                        i1.add(instance);
-                    } else {
-                        i2.add(instance);
-                    }
-                }
-
-                Node ln = createDecisionTree(i1, attributeNumber, option);
-                Node rn = createDecisionTree(i2, attributeNumber, option);
-
-                return new Node(attributeNumber, option, ln, rn);
+        int maxIndex = 0;
+        for (int i = 1; i < frequencies.length; i++) {
+            int tmp = frequencies[i];
+            if ((tmp > frequencies[maxIndex])) {
+                maxIndex = i;
             }
         }
+
+        return CLASS_NAMES[maxIndex];
     }
+
 
     private static boolean checkAllSame(ArrayList<Instance> instances) {
         String temp = instances.get(0).className;
@@ -131,129 +116,100 @@ public class C45 {
         return true;
     }
 
-    private static boolean checkEmptiness(ArrayList<Instance> instances) {
-        return instances.size() <= 0;
-    }
-
-    private static double[] findBestGain(ArrayList<Instance> instances) {
-        double bestGain = 0;
-        int bestGainAttribute = -1;
-        double bestGainOption = 0;
-        double info = findEntropy(instances);
-        for (int i = 0; i < instances.get(0).attributes.size(); i++) {
-            double temp[] = findGain(instances, i, info);
-            double tempGain = temp[0];
-            double tempBestOption = temp[1];
-            if (bestGain <= tempGain) {
-                bestGain = tempGain;
-                bestGainAttribute = i;
-                bestGainOption = tempBestOption;
-            }
-        }
-        return new double[]{bestGainAttribute, bestGainOption};
-    }
-
-    private static double[] findGain(ArrayList<Instance> instances, int attributeNumber, double info) {
-        double values[] = new double[instances.size()];
-        for (int j = 0; j < values.length; j++) {
-            values[j] = instances.get(j).attributes.get(attributeNumber);
-        }
-        Arrays.sort(values);
-
-        double bestOption = values[0];
-        double bestGain = info - findGainForLessThan(instances, values[0], 0, attributeNumber);
-        for (int i = 1; i < values.length - 1; i++) {
-            double tempGain = findGainForLessThan(instances, values[i], i, attributeNumber);
-            if (bestGain <= info - tempGain) {
-                bestGain = info - tempGain;
-                bestOption = values[i];
-            }
-        }
-        return new double[]{bestGain, bestOption};
-    }
-
-    private static double findGainForLessThan(ArrayList<Instance> instances, double value, int place, int attributeNumber) {
-        HashMap<String, Frequencies> map = hashMapOfClassNames(instances, attributeNumber, value);
-        double infoThis;
-        double temp1 = 0;
-        for (String key : map.keySet()) {
-            int temp = map.get(key).freqLess;
-            if (place != 0 && temp != 0)
-                temp1 -= (double) temp / place * log((double) temp / place);
-        }
-        double temp2 = 0;
-        for (String key : map.keySet()) {
-            int temp = map.get(key).freqGreater;
-            if (instances.size() != place && temp != 0)
-                temp2 -= ((double) temp / (instances.size() - place)) * log(((double) temp / (instances.size() - place)));
-
-        }
-        infoThis = (double) place / instances.size() * temp1 + (double) (instances.size() - place) / instances.size() * temp2;
-        return infoThis;
-    }
-
-
-    private static double findEntropy(ArrayList<Instance> instances) {
-        HashMap<String, Integer> classes = hashMapOfClassNames(instances);
-        int frequencies[] = new int[classes.keySet().size()];
-        int i = 0;
-        int total = 0;
-        for (String key : classes.keySet()) {
-            int temp = classes.get(key);
-            frequencies[i++] = temp;
-            total += temp;
-        }
-        double info = 0;
-        for (int frequency : frequencies) {
-            info -= (double) frequency / total * log((double) frequency / total);
-        }
-        return info;
-    }
 
     private static double log(double v) {
         return Math.log(v) / Math.log(2);
     }
 
-    private static HashMap<String, Integer> hashMapOfClassNames(ArrayList<Instance> instances) {
-        HashMap<String, Integer> names = new HashMap<>();
-        for (Instance instance : instances) {
-            if (names.get(instance.className) == null) {
-                names.put(instance.className, 1);
-            } else {
-                names.put(instance.className, names.get(instance.className) + 1);
+
+    private static Node getNode(ArrayList<Instance> T, double infoT, int previousBestAttribute, double previousBestValue) {
+        if (T.size() == 0)
+            return new Node("failure");
+        else if (checkAllSame(T)) {
+            return new Node(T.get(0).className);
+        } else {
+            double bestGain = -1;
+            int bestAttribute = -1;
+            double bestValue = -1;
+
+            ArrayList<Instance> bestT1 = new ArrayList<>();
+            ArrayList<Instance> bestT2 = new ArrayList<>();
+            double bestInfoT1 = -1;
+            double bestInfoT2 = -2;
+
+
+            for (int attribute_id = 0; attribute_id < ATTRIBUTE_COUNT; attribute_id++) {
+
+                double values[] = new double[T.size()];
+                for (int j = 0; j < values.length; j++) {
+                    values[j] = T.get(j).attributes[attribute_id];
+                }
+                Arrays.sort(values);
+
+
+                for (int i = 0; i < values.length - 1; i++) {
+                    ArrayList<Instance> T1 = new ArrayList<>();
+                    ArrayList<Instance> T2 = new ArrayList<>();
+                    for (Instance instance : T) {
+                        if (instance.attributes[attribute_id] <= values[i])
+                            T1.add(instance);
+                        else
+                            T2.add(instance);
+                    }
+
+                    double tmp1 = (double) T1.size() / T.size();
+                    double tmp2 = (double) T2.size() / T.size();
+                    double info1 = info(T1);
+                    double info2 = info(T2);
+                    double infoX = tmp1 * info1 + tmp2 * info2;
+
+                    double gain = infoT - infoX;
+                    if (gain > bestGain) {
+                        bestGain = gain;
+                        bestValue = values[i];
+                        bestAttribute = attribute_id;
+                        bestT1 = T1;
+                        bestT2 = T2;
+                        bestInfoT1 = info1;
+                        bestInfoT2 = info2;
+                    }
+                }
             }
+            if (bestAttribute == previousBestAttribute && bestValue == previousBestValue)
+                return new Node(findMostFreqClass(T));
+
+            Node ln = getNode(bestT1, bestInfoT1, bestAttribute, bestValue);
+            Node rn = getNode(bestT2, bestInfoT2, bestAttribute, bestValue);
+
+            return new Node(bestAttribute, bestValue, ln, rn);
         }
-        return names;
     }
 
-    private static HashMap<String, Frequencies> hashMapOfClassNames(ArrayList<Instance> instances, int attributeNumber, double lessThan) {
-        HashMap<String, Frequencies> names = new HashMap<>();
-        for (Instance instance : instances) {
-            if (instance.attributes.get(attributeNumber) <= lessThan) {
-                if (names.get(instance.className) == null) {
-                    names.put(instance.className, new Frequencies(1, 0));
-                } else {
-                    names.put(instance.className, new Frequencies(names.get(instance.className).freqLess + 1, names.get(instance.className).freqGreater));
-                }
-            } else {
-                if (names.get(instance.className) == null) {
-                    names.put(instance.className, new Frequencies(0, 1));
-                } else {
-                    names.put(instance.className, new Frequencies(names.get(instance.className).freqLess, names.get(instance.className).freqGreater + 1));
+
+    private static double info(ArrayList<Instance> T) {
+        double sum = 0;
+        int[] freq = freq(T);
+        double size = (double) T.size();
+        for (int i = 0; i < CLASS_COUNT; i++) {
+            if (freq[i] > 0)
+                sum += (freq[i] / size) * log(freq[i] / size);
+        }
+        return sum;
+    }
+
+    private static int[] freq(ArrayList<Instance> T) {
+        int[] freq = new int[CLASS_COUNT];
+        Arrays.fill(freq, 0);
+
+        for (Instance instance : T) {
+            for (int i = 0; i < CLASS_COUNT; i++) {
+                if (instance.className.equals(CLASS_NAMES[i])) {
+                    freq[i]++;
+                    break;
                 }
             }
         }
-        return names;
-    }
-
-    public static class Frequencies {
-        int freqLess = 0;
-        int freqGreater = 0;
-
-        public Frequencies(int x, int y) {
-            freqLess = x;
-            freqGreater = y;
-        }
+        return freq;
     }
 
     private static void readDataSet(String s) throws IOException {
@@ -266,7 +222,7 @@ public class C45 {
             String[] parts = strLine.split(",");
             Instance instance = new Instance(parts[parts.length - 1]);
             for (int i = 0; i < parts.length - 1; i++) {
-                instance.attributes.add(Double.parseDouble(parts[i]));
+                instance.attributes[i] = Double.parseDouble(parts[i]);
             }
             instances.add(instance);
         }
@@ -274,12 +230,12 @@ public class C45 {
         br.close();
     }
 
+
     public static class Instance {
-        public ArrayList<Double> attributes;
+        public double attributes[] = new double[ATTRIBUTE_COUNT];
         public String className;
 
         public Instance(String name) {
-            attributes = new ArrayList<>();
             className = name;
         }
     }
