@@ -22,7 +22,27 @@ public class C45 {
 
 
         Node root = createDecisionTree(instances, -1, -1);
-        System.out.print(root.toString(0));
+        System.out.println(root.toString(0));
+
+        int trueC = 0;
+        int falseC = 0;
+        for (Instance instance : instances) {
+            if (test(root, instance))
+                trueC++;
+            else
+                falseC++;
+        }
+
+        System.out.println("Test: " + (double) trueC / (trueC + falseC));
+    }
+
+    private static boolean test(Node node, Instance instance) {
+        if (node.isLeaf) {
+            return node.className.equals(instance.className);
+        } else if (instance.attributes.get(node.attributeNumber) <= node.value)
+            return test(node.leftNode, instance);
+        else
+            return test(node.rightNode, instance);
     }
 
     private static String findMostFreqClass(ArrayList<Instance> instances) {
