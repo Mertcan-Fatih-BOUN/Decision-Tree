@@ -8,11 +8,10 @@ import java.util.HashMap;
 
 public class C45 {
 
-    public static ArrayList<Instance> instances = new ArrayList<Instance>();
+    public static ArrayList<Instance> instances = new ArrayList<>();
     public static String mostFreqClass;
 
     public static void main(String[] args) {
-//        System.out.println(log(4) + " " + log(8) + " " + log(10));
         try {
             readDataSet("iris.data.txt");
         } catch (IOException e) {
@@ -43,7 +42,7 @@ public class C45 {
 
     private static boolean cleanTree(Node node) {
         if (!node.isLeaf) {
-            if (node.leftNode.isLeaf && node.rightNode.isLeaf){
+            if (node.leftNode.isLeaf && node.rightNode.isLeaf) {
                 if (node.leftNode.className.equals(node.rightNode.className)) {
                     node.isLeaf = true;
                     node.className = node.rightNode.className;
@@ -53,19 +52,18 @@ public class C45 {
                     node.isLeaf = true;
                     node.className = node.rightNode.className;
                     return true;
-                }
-                else  if (node.rightNode.className.equals("failure")) {
+                } else if (node.rightNode.className.equals("failure")) {
                     node.isLeaf = true;
                     node.className = node.leftNode.className;
                     return true;
                 }
-            }
-            else {
-               return  cleanTree(node.leftNode) || cleanTree(node.rightNode);
+            } else {
+                return cleanTree(node.leftNode) || cleanTree(node.rightNode);
             }
         }
         return false;
     }
+
     private static boolean test(Node node, Instance instance) {
         if (node.isLeaf) {
             return node.className.equals(instance.className);
@@ -76,21 +74,21 @@ public class C45 {
     }
 
     private static String findMostFreqClass(ArrayList<Instance> instances) {
-        HashMap<String, Integer> names = new HashMap<String, Integer>();
+        HashMap<String, Integer> names = new HashMap<>();
         String freqName = "";
         int freq = 0;
-        for (int i = 0; i < instances.size(); i++) {
-            if (names.get(instances.get(i).className) == null) {
-                names.put(instances.get(i).className, 1);
+        for (Instance instance : instances) {
+            if (names.get(instance.className) == null) {
+                names.put(instance.className, 1);
                 if (freq == 0) {
-                    freqName = instances.get(i).className;
+                    freqName = instance.className;
                     freq = 1;
                 }
             } else {
-                names.put(instances.get(i).className, names.get(instances.get(i).className) + 1);
-                if (freq < names.get(instances.get(i).className)) {
-                    freqName = instances.get(i).className;
-                    freq = names.get(instances.get(i).className);
+                names.put(instance.className, names.get(instance.className) + 1);
+                if (freq < names.get(instance.className)) {
+                    freqName = instance.className;
+                    freq = names.get(instance.className);
                 }
             }
         }
@@ -102,8 +100,6 @@ public class C45 {
             return new Node("failure");
         } else if (checkAllSame(instances)) {
             return new Node(instances.get(0).className);
-        } else if (checkEmptyAttribute(instances)) {
-            return new Node(mostFreqClass);
         } else {
             double bestGain[] = findBestGain(instances);
             int attributeNumber = (int) bestGain[0];
@@ -111,23 +107,15 @@ public class C45 {
             if (attributeNumber == attributeNumberPast && option == optionPast) {
                 return new Node(findMostFreqClass(instances));
             } else {
-                System.out.println(attributeNumber + " with option less than or equal to " + option);
-                ArrayList<Instance> i1 = new ArrayList<Instance>();
-                ArrayList<Instance> i2 = new ArrayList<Instance>();
-                for (int i = 0; i < instances.size(); i++) {
-                    if (instances.get(i).attributes.get(attributeNumber) <= option) {
-                        i1.add(new Instance(instances.get(i).className, instances.get(i).attributes));
-                        //i1.get(i1.size() - 1).attributes.remove(attributeNumber);
+                ArrayList<Instance> i1 = new ArrayList<>();
+                ArrayList<Instance> i2 = new ArrayList<>();
+                for (Instance instance : instances) {
+                    if (instance.attributes.get(attributeNumber) <= option) {
+                        i1.add(instance);
                     } else {
-                        i2.add(new Instance(instances.get(i).className, instances.get(i).attributes));
-                        //i2.get(i2.size() - 1).attributes.remove(attributeNumber);
+                        i2.add(instance);
                     }
                 }
-//                for (int i = 0; i < i1.size(); i++)
-//                    System.out.println(i1.get(i).className + " " + i1.get(i).attributes);
-//                for (int i = 0; i < i2.size(); i++)
-//                    System.out.println(i2.get(i).className + " " + i2.get(i).attributes);
-//            System.out.println(i1.size() + " " + i2.size());
 
                 Node ln = createDecisionTree(i1, attributeNumber, option);
                 Node rn = createDecisionTree(i2, attributeNumber, option);
@@ -147,17 +135,7 @@ public class C45 {
     }
 
     private static boolean checkEmptiness(ArrayList<Instance> instances) {
-        if (instances.size() > 0)
-            return false;
-        else
-            return true;
-    }
-
-    private static boolean checkEmptyAttribute(ArrayList<Instance> instances) {
-        if (instances.get(0).attributes.size() == 0)
-            return true;
-        else
-            return false;
+        return instances.size() <= 0;
     }
 
     private static double[] findBestGain(ArrayList<Instance> instances) {
@@ -186,9 +164,9 @@ public class C45 {
         Arrays.sort(values);
 
         double bestOption = values[0];
-        double bestGain = info - findGainForLessThan(instances, values[0], 0, attributeNumber, info);
+        double bestGain = info - findGainForLessThan(instances, values[0], 0, attributeNumber);
         for (int i = 1; i < values.length - 1; i++) {
-            double tempGain = findGainForLessThan(instances, values[i], i, attributeNumber, info);
+            double tempGain = findGainForLessThan(instances, values[i], i, attributeNumber);
             if (bestGain <= info - tempGain) {
                 bestGain = info - tempGain;
                 bestOption = values[i];
@@ -197,9 +175,9 @@ public class C45 {
         return new double[]{bestGain, bestOption};
     }
 
-    private static double findGainForLessThan(ArrayList<Instance> instances, double value, int place, int attributeNumber, double info) {
+    private static double findGainForLessThan(ArrayList<Instance> instances, double value, int place, int attributeNumber) {
         HashMap<String, Frequencies> map = hashMapOfClassNames(instances, attributeNumber, value);
-        double infoThis = 0;
+        double infoThis;
         double temp1 = 0;
         for (String key : map.keySet()) {
             int temp = map.get(key).freqLess;
@@ -208,14 +186,12 @@ public class C45 {
         }
         double temp2 = 0;
         for (String key : map.keySet()) {
-            int temp = map.get(key).fregGreater;
+            int temp = map.get(key).freqGreater;
             if (instances.size() != place && temp != 0)
                 temp2 -= ((double) temp / (instances.size() - place)) * log(((double) temp / (instances.size() - place)));
 
-//            System.out.println(temp2);
         }
         infoThis = (double) place / instances.size() * temp1 + (double) (instances.size() - place) / instances.size() * temp2;
-//        System.out.println(infoThis + "asd" + temp1 + " " + temp2);
         return infoThis;
     }
 
@@ -231,8 +207,8 @@ public class C45 {
             total += temp;
         }
         double info = 0;
-        for (int j = 0; j < frequencies.length; j++) {
-            info -= (double) frequencies[j] / total * log((double) frequencies[j] / total);
+        for (int frequency : frequencies) {
+            info -= (double) frequency / total * log((double) frequency / total);
         }
         return info;
     }
@@ -242,31 +218,31 @@ public class C45 {
     }
 
     private static HashMap<String, Integer> hashMapOfClassNames(ArrayList<Instance> instances) {
-        HashMap<String, Integer> names = new HashMap<String, Integer>();
-        for (int i = 0; i < instances.size(); i++) {
-            if (names.get(instances.get(i).className) == null) {
-                names.put(instances.get(i).className, 1);
+        HashMap<String, Integer> names = new HashMap<>();
+        for (Instance instance : instances) {
+            if (names.get(instance.className) == null) {
+                names.put(instance.className, 1);
             } else {
-                names.put(instances.get(i).className, names.get(instances.get(i).className) + 1);
+                names.put(instance.className, names.get(instance.className) + 1);
             }
         }
         return names;
     }
 
     private static HashMap<String, Frequencies> hashMapOfClassNames(ArrayList<Instance> instances, int attributeNumber, double lessThan) {
-        HashMap<String, Frequencies> names = new HashMap<String, Frequencies>();
-        for (int i = 0; i < instances.size(); i++) {
-            if (instances.get(i).attributes.get(attributeNumber) <= lessThan) {
-                if (names.get(instances.get(i).className) == null) {
-                    names.put(instances.get(i).className, new Frequencies(1, 0));
+        HashMap<String, Frequencies> names = new HashMap<>();
+        for (Instance instance : instances) {
+            if (instance.attributes.get(attributeNumber) <= lessThan) {
+                if (names.get(instance.className) == null) {
+                    names.put(instance.className, new Frequencies(1, 0));
                 } else {
-                    names.put(instances.get(i).className, new Frequencies(names.get(instances.get(i).className).freqLess + 1, names.get(instances.get(i).className).fregGreater));
+                    names.put(instance.className, new Frequencies(names.get(instance.className).freqLess + 1, names.get(instance.className).freqGreater));
                 }
             } else {
-                if (names.get(instances.get(i).className) == null) {
-                    names.put(instances.get(i).className, new Frequencies(0, 1));
+                if (names.get(instance.className) == null) {
+                    names.put(instance.className, new Frequencies(0, 1));
                 } else {
-                    names.put(instances.get(i).className, new Frequencies(names.get(instances.get(i).className).freqLess, names.get(instances.get(i).className).fregGreater + 1));
+                    names.put(instance.className, new Frequencies(names.get(instance.className).freqLess, names.get(instance.className).freqGreater + 1));
                 }
             }
         }
@@ -275,11 +251,11 @@ public class C45 {
 
     public static class Frequencies {
         int freqLess = 0;
-        int fregGreater = 0;
+        int freqGreater = 0;
 
         public Frequencies(int x, int y) {
             freqLess = x;
-            fregGreater = y;
+            freqGreater = y;
         }
     }
 
@@ -306,12 +282,7 @@ public class C45 {
         public String className;
 
         public Instance(String name) {
-            attributes = new ArrayList<Double>();
-            className = name;
-        }
-
-        public Instance(String name, ArrayList<Double> atts) {
-            attributes = atts;
+            attributes = new ArrayList<>();
             className = name;
         }
     }
