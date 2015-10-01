@@ -6,9 +6,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
-/**
- * Created by mertcan on 30.9.2015.
- */
 public class C45 {
 
     public static ArrayList<Instance> instances = new ArrayList<Instance>();
@@ -23,8 +20,8 @@ public class C45 {
         }
         mostFreqClass = findMostFreqClass(instances);
 
-
-        System.out.println(createDecisionTree(instances));
+        Node root = createDecisionTree(instances);
+        System.out.print(root.toString(0));
     }
 
     private static String findMostFreqClass(ArrayList<Instance> instances) {
@@ -49,25 +46,25 @@ public class C45 {
         return freqName;
     }
 
-    private static String createDecisionTree(ArrayList<Instance> instances) {
+    private static Node createDecisionTree(ArrayList<Instance> instances) {
         if (checkEmptiness(instances)) {
-            return "failure";
+            return new Node("failure");
         } else if (checkAllSame(instances)) {
-            return instances.get(0).className;
+            return new Node(instances.get(0).className);
         } else if (checkEmptyAttribute(instances)) {
-            return mostFreqClass;
+            return new Node(mostFreqClass);
         } else {
             double bestGain[] = findBestGain(instances);
-            int attributeNumber = (int)bestGain[0];
+            int attributeNumber = (int) bestGain[0];
             double option = bestGain[1];
-            System.out.println(attributeNumber + " with option less than or equal to " + option);
+            //System.out.println(attributeNumber + " with option less than or equal to " + option);
             ArrayList<Instance> i1 = new ArrayList<Instance>();
             ArrayList<Instance> i2 = new ArrayList<Instance>();
-            for(int i = 0; i < instances.size(); i++){
-                if(instances.get(i).attributes.get(attributeNumber) <= option){
+            for (int i = 0; i < instances.size(); i++) {
+                if (instances.get(i).attributes.get(attributeNumber) <= option) {
                     i1.add(new Instance(instances.get(i).className, instances.get(i).attributes));
                     i1.get(i1.size() - 1).attributes.remove(attributeNumber);
-                }else{
+                } else {
                     i2.add(new Instance(instances.get(i).className, instances.get(i).attributes));
                     i2.get(i2.size() - 1).attributes.remove(attributeNumber);
                 }
@@ -76,9 +73,10 @@ public class C45 {
 //                System.out.println(i1.get(i).className + " " + i1.get(i).attributes);
 //            for(int i = 0; i < i2.size(); i++)
 //                System.out.println(i2.get(i).className + " " + i2.get(i).attributes);
-            System.out.println(createDecisionTree(i1));
-            System.out.println(createDecisionTree(i2));
-            return formTree();
+
+            Node ln = createDecisionTree(i1);
+            Node rn = createDecisionTree(i2);
+            return new Node(attributeNumber, option, ln, rn);
         }
     }
 
@@ -228,9 +226,6 @@ public class C45 {
         }
     }
 
-    private static String formTree() {
-        return "tree";
-    }
 
     private static void readDataSet(String s) throws IOException {
         FileInputStream fstream = new FileInputStream(s);
