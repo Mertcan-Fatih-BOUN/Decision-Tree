@@ -23,78 +23,7 @@ public class C45 {
         }
         mostFreqClass = findMostFreqClass(instances);
 
-        int trues = 0;
-        int falses = 0;
-        for (int i = 0; i < 150; i++) {
-            if (instances.get(i).attributes.get(2) <= 1.9) {
-                if (i < 50) {
-                    System.out.println(1);
-                    trues++;
-                } else {
-                    System.out.println(0);
-                    falses++;
-                }
-            } else {
-                if (instances.get(i).attributes.get(3) <= 1.7) {
-                    if (instances.get(i).attributes.get(1) <= 3.0) {
-                        if (instances.get(i).attributes.get(0) <= 6.8) {
-                            if (i < 50) {
-                                System.out.println(1);
-                                trues++;
-                            } else {
-                                System.out.println(0);
-                                falses++;
-                            }
-                        } else {
-                            if (i > 99) {
-                                System.out.println(1);
-                                trues++;
-                            } else {
-                                System.out.println(0);
-                                falses++;
-                            }
-                        }
-                    } else {
-                        if (i < 100 && i > 49) {
-                            System.out.println(1);
-                            trues++;
-                        } else {
-                            System.out.println(0);
-                            falses++;
-                        }
-                    }
-                } else {
-                    if (instances.get(i).attributes.get(1) <= 3.0) {
-                        if (i > 99) {
-                            System.out.println(1);
-                            trues++;
-                        } else {
-                            System.out.println(0);
-                            falses++;
-                        }
-                    } else {
-                        if (instances.get(i).attributes.get(0) <= 6.2) {
-                            if (i < 50) {
-                                System.out.println(1);
-                                trues++;
-                            } else {
-                                System.out.println(0);
-                                falses++;
-                            }
-                        } else {
-                            if (i > 99) {
-                                System.out.println(1);
-                                trues++;
-                            } else {
-                                System.out.println(0);
-                                falses++;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        System.out.println(trues + " " + falses);
+
         System.out.println(createDecisionTree(instances));
     }
 
@@ -120,8 +49,6 @@ public class C45 {
         return freqName;
     }
 
-    public static int level = 0;
-
     private static String createDecisionTree(ArrayList<Instance> instances) {
         if (checkEmptiness(instances)) {
             return "failure";
@@ -131,16 +58,16 @@ public class C45 {
             return mostFreqClass;
         } else {
             double bestGain[] = findBestGain(instances);
-            int attributeNumber = (int) bestGain[0];
+            int attributeNumber = (int)bestGain[0];
             double option = bestGain[1];
-            System.out.println(attributeNumber + " with option less than or equal to " + option + " " + level);
+            System.out.println(attributeNumber + " with option less than or equal to " + option);
             ArrayList<Instance> i1 = new ArrayList<Instance>();
             ArrayList<Instance> i2 = new ArrayList<Instance>();
-            for (int i = 0; i < instances.size(); i++) {
-                if (instances.get(i).attributes.get(attributeNumber) <= option) {
+            for(int i = 0; i < instances.size(); i++){
+                if(instances.get(i).attributes.get(attributeNumber) <= option){
                     i1.add(new Instance(instances.get(i).className, instances.get(i).attributes));
                     i1.get(i1.size() - 1).attributes.remove(attributeNumber);
-                } else {
+                }else{
                     i2.add(new Instance(instances.get(i).className, instances.get(i).attributes));
                     i2.get(i2.size() - 1).attributes.remove(attributeNumber);
                 }
@@ -149,8 +76,8 @@ public class C45 {
 //                System.out.println(i1.get(i).className + " " + i1.get(i).attributes);
 //            for(int i = 0; i < i2.size(); i++)
 //                System.out.println(i2.get(i).className + " " + i2.get(i).attributes);
-            System.out.println(createDecisionTree(i1) + "left");
-            System.out.println(createDecisionTree(i2) + "right");
+            System.out.println(createDecisionTree(i1));
+            System.out.println(createDecisionTree(i2));
             return formTree();
         }
     }
@@ -207,7 +134,7 @@ public class C45 {
         double bestGain = info - findGainForLessThan(instances, values[0], 0, attributeNumber, info);
         for (int i = 1; i < values.length - 1; i++) {
             double tempGain = findGainForLessThan(instances, values[i], i, attributeNumber, info);
-            if (bestGain <= info - tempGain) {
+            if(bestGain <= info - tempGain){
                 bestGain = info - tempGain;
                 bestOption = values[i];
             }
@@ -221,13 +148,13 @@ public class C45 {
         double temp1 = 0;
         for (String key : map.keySet()) {
             int temp = map.get(key).freqLess;
-            if (place != 0 && temp != 0)
+            if(place != 0 && temp != 0)
                 temp1 -= (double) temp / place * log((double) temp / place);
         }
         double temp2 = 0;
         for (String key : map.keySet()) {
             int temp = map.get(key).fregGreater;
-            if (instances.size() != place && temp != 0)
+            if(instances.size() != place && temp != 0)
                 temp2 -= ((double) temp / (instances.size() - place)) * log(((double) temp / (instances.size() - place)));
 
 //            System.out.println(temp2);
@@ -276,13 +203,13 @@ public class C45 {
         for (int i = 0; i < instances.size(); i++) {
             if (instances.get(i).attributes.get(attributeNumber) <= lessThan) {
                 if (names.get(instances.get(i).className) == null) {
-                    names.put(instances.get(i).className, new Frequencies(1, 0));
+                    names.put(instances.get(i).className, new Frequencies(1 , 0));
                 } else {
                     names.put(instances.get(i).className, new Frequencies(names.get(instances.get(i).className).freqLess + 1, names.get(instances.get(i).className).fregGreater));
                 }
-            } else {
+            }else{
                 if (names.get(instances.get(i).className) == null) {
-                    names.put(instances.get(i).className, new Frequencies(0, 1));
+                    names.put(instances.get(i).className, new Frequencies(0 , 1));
                 } else {
                     names.put(instances.get(i).className, new Frequencies(names.get(instances.get(i).className).freqLess, names.get(instances.get(i).className).fregGreater + 1));
                 }
@@ -291,11 +218,11 @@ public class C45 {
         return names;
     }
 
-    public static class Frequencies {
+    public static class Frequencies{
         int freqLess = 0;
         int fregGreater = 0;
 
-        public Frequencies(int x, int y) {
+        public Frequencies(int x, int y){
             freqLess = x;
             fregGreater = y;
         }
