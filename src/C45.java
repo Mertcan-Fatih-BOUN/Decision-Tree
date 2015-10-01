@@ -58,6 +58,7 @@ public class C45 {
             return mostFreqClass;
         } else {
             int attributeNumber = findBestGain(instances);
+            System.out.println(attributeNumber);
             return formTree();
         }
     }
@@ -91,6 +92,7 @@ public class C45 {
         double info = findEntropy(instances);
         for (int i = 0; i < instances.get(0).attributes.size(); i++) {
             double tempGain = findGain(instances, i, info);
+            System.out.println(tempGain);
             if (bestGain <= tempGain) {
                 bestGain = tempGain;
                 bestGainAttribute = i;
@@ -101,18 +103,22 @@ public class C45 {
 
     private static double findGain(ArrayList<Instance> instances, int attributeNumber, double info) {
         double values[] = new double[instances.size()];
-        System.out.print(instances.size());
         for (int j = 0; j < values.length; j++) {
             values[j] = instances.get(j).attributes.get(attributeNumber);
         }
         Arrays.sort(values);
 
         double bestOption = values[0];
-        double bestGain = findGainForLessThan(instances, values[0], 0, attributeNumber, info);
+        double bestGain = info - findGainForLessThan(instances, values[0], 0, attributeNumber, info);
         for (int i = 1; i < values.length - 1; i++) {
             double tempGain = findGainForLessThan(instances, values[i], i, attributeNumber, info);
+            if(bestGain <= info - tempGain){
+                bestGain = info - tempGain;
+                bestOption = values[i];
+            }
         }
-        return 0;
+        System.out.println(bestOption + "option");
+        return bestGain;
     }
 
     private static double findGainForLessThan(ArrayList<Instance> instances, double value, int place, int attributeNumber, double info) {
@@ -121,16 +127,19 @@ public class C45 {
         double temp1 = 0;
         for (String key : map.keySet()) {
             int temp = map.get(key).freqLess;
-            temp1 += temp;
-            temp1 -= (double) temp / place * log((double) temp / place);
+            if(place != 0 && temp != 0)
+                temp1 -= (double) temp / place * log((double) temp / place);
         }
         double temp2 = 0;
         for (String key : map.keySet()) {
             int temp = map.get(key).fregGreater;
-            temp2 -= (double) temp / (instances.size() - place) * log((double) temp / (instances.size() - place));
+            if(instances.size() != place && temp != 0)
+                temp2 -= ((double) temp / (instances.size() - place)) * log(((double) temp / (instances.size() - place)));
+
+//            System.out.println(temp2);
         }
         infoThis = (double) place / instances.size() * temp1 + (double) (instances.size() - place) / instances.size() * temp2;
-        System.out.println(infoThis + "asd");
+//        System.out.println(infoThis + "asd" + temp1 + " " + temp2);
         return infoThis;
     }
 
