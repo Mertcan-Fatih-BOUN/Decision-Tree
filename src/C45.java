@@ -95,7 +95,40 @@ public class C45 {
             }
         }
         System.out.println(trues + " " + falses);
-        System.out.println(createDecisionTree(instances));
+
+        trues = 0;
+        falses = 0;
+        for (int i = 0; i < 150; i++) {
+            if (instances.get(i).attributes.get(2) <= 1.9) {
+                if (i < 50) {
+                    System.out.println(1);
+                    trues++;
+                } else {
+                    System.out.println(0);
+                    falses++;
+                }
+            } else {
+                if (instances.get(i).attributes.get(3) <= 1.7) {
+                    if (i < 100 && i > 49) {
+                        System.out.println(1);
+                        trues++;
+                    } else {
+                        System.out.println(0);
+                        falses++;
+                    }
+                } else {
+                    if (i > 99) {
+                        System.out.println(1);
+                        trues++;
+                    } else {
+                        System.out.println(0);
+                        falses++;
+                    }
+                }
+            }
+        }
+        System.out.println(trues + " " + falses);
+        System.out.println(createDecisionTree(instances, -1, -1));
     }
 
     private static String findMostFreqClass(ArrayList<Instance> instances) {
@@ -120,9 +153,7 @@ public class C45 {
         return freqName;
     }
 
-    public static int level = 0;
-
-    private static String createDecisionTree(ArrayList<Instance> instances) {
+    private static String createDecisionTree(ArrayList<Instance> instances, int attributeNumberPast, double optionPast) {
         if (checkEmptiness(instances)) {
             return "failure";
         } else if (checkAllSame(instances)) {
@@ -133,25 +164,31 @@ public class C45 {
             double bestGain[] = findBestGain(instances);
             int attributeNumber = (int) bestGain[0];
             double option = bestGain[1];
-            System.out.println(attributeNumber + " with option less than or equal to " + option + " " + level);
-            ArrayList<Instance> i1 = new ArrayList<Instance>();
-            ArrayList<Instance> i2 = new ArrayList<Instance>();
-            for (int i = 0; i < instances.size(); i++) {
-                if (instances.get(i).attributes.get(attributeNumber) <= option) {
-                    i1.add(new Instance(instances.get(i).className, instances.get(i).attributes));
-                    i1.get(i1.size() - 1).attributes.remove(attributeNumber);
-                } else {
-                    i2.add(new Instance(instances.get(i).className, instances.get(i).attributes));
-                    i2.get(i2.size() - 1).attributes.remove(attributeNumber);
+            if (attributeNumber == attributeNumberPast && option == optionPast) {
+                return findMostFreqClass(instances);
+            } else {
+                System.out.println(attributeNumber + " with option less than or equal to " + option);
+                ArrayList<Instance> i1 = new ArrayList<Instance>();
+                ArrayList<Instance> i2 = new ArrayList<Instance>();
+                for (int i = 0; i < instances.size(); i++) {
+                    if (instances.get(i).attributes.get(attributeNumber) <= option) {
+                        i1.add(new Instance(instances.get(i).className, instances.get(i).attributes));
+                        //i1.get(i1.size() - 1).attributes.remove(attributeNumber);
+                    } else {
+                        i2.add(new Instance(instances.get(i).className, instances.get(i).attributes));
+                        //i2.get(i2.size() - 1).attributes.remove(attributeNumber);
+                    }
                 }
+//                for (int i = 0; i < i1.size(); i++)
+//                    System.out.println(i1.get(i).className + " " + i1.get(i).attributes);
+//                for (int i = 0; i < i2.size(); i++)
+//                    System.out.println(i2.get(i).className + " " + i2.get(i).attributes);
+//            System.out.println(i1.size() + " " + i2.size());
+
+                System.out.println(createDecisionTree(i1, attributeNumber, option) + "left");
+                System.out.println(createDecisionTree(i2, attributeNumber, option) + "right");
+                return formTree();
             }
-//            for(int i = 0; i < i1.size(); i++)
-//                System.out.println(i1.get(i).className + " " + i1.get(i).attributes);
-//            for(int i = 0; i < i2.size(); i++)
-//                System.out.println(i2.get(i).className + " " + i2.get(i).attributes);
-            System.out.println(createDecisionTree(i1) + "left");
-            System.out.println(createDecisionTree(i2) + "right");
-            return formTree();
         }
     }
 
