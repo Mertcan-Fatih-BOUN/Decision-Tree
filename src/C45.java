@@ -10,18 +10,16 @@ import java.util.HashMap;
 
 public class C45 {
 
-    public static final int CLASS_COUNT = 3;
-    public static final int ATTRIBUTE_COUNT = 4;
-    public static final String[] CLASS_NAMES = {"Iris-virginica", "Iris-versicolor", "Iris-setosa"};
-
-    //public static final String[] CLASS_NAMES = {"Slight-Right-Turn", "Sharp-Right-Turn", "Move-Forward", "Slight-Left-Turn"};
-
+    public static int CLASS_COUNT = 0;
+    public static int ATTRIBUTE_COUNT = 0;
+    public static String[] CLASS_NAMES = new String[]{};
 
     public static ArrayList<Instance> instances = new ArrayList<>();
 
     public static void main(String[] args) {
         try {
             readDataSet("iris.data.txt");
+//            readDataSet("sensor_readings_24.data.txt");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -30,10 +28,10 @@ public class C45 {
 
 
         Node root = getNode(instances, infoT, -1, -1);
-//
-//        boolean cleaned = cleanTree(root);
-//        while (cleaned)
-//            cleaned = cleanTree(root);
+
+        boolean cleaned = cleanTree(root);
+        while (cleaned)
+            cleaned = cleanTree(root);
 
         System.out.println(root.toString(0));
 
@@ -146,7 +144,6 @@ public class C45 {
                 }
                 Arrays.sort(values);
 
-
                 for (int i = 0; i < values.length - 1; i++) {
                     ArrayList<Instance> T1 = new ArrayList<>();
                     ArrayList<Instance> T2 = new ArrayList<>();
@@ -192,7 +189,7 @@ public class C45 {
         double size = (double) T.size();
         for (int i = 0; i < CLASS_COUNT; i++) {
             if (freq[i] > 0)
-                sum += (freq[i] / size) * log(freq[i] / size);
+                sum -= (freq[i] / size) * log(freq[i] / size);
         }
         return sum;
     }
@@ -217,9 +214,13 @@ public class C45 {
         BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
 
         String strLine;
-
+        boolean firstLine = true;
         while ((strLine = br.readLine()) != null) {
             String[] parts = strLine.split(",");
+            if(firstLine){
+                firstLine = false;
+                ATTRIBUTE_COUNT = parts.length - 1;
+            }
             Instance instance = new Instance(parts[parts.length - 1]);
             for (int i = 0; i < parts.length - 1; i++) {
                 instance.attributes[i] = Double.parseDouble(parts[i]);
@@ -228,6 +229,21 @@ public class C45 {
         }
 
         br.close();
+
+        findDataSetsAttributes(instances);
+    }
+
+    private static void findDataSetsAttributes(ArrayList<Instance> instances) {
+        ArrayList<String> classNames = new ArrayList<>();
+        for(int i = 0; i < instances.size(); i++){
+            if(i == 0)
+                ATTRIBUTE_COUNT = instances.get(0).attributes.length;
+            if(!classNames.contains(instances.get(i).className)){
+                CLASS_COUNT++;
+                classNames.add(instances.get(i).className);
+            }
+        }
+        CLASS_NAMES = classNames.toArray(CLASS_NAMES);
     }
 
 
