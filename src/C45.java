@@ -19,7 +19,7 @@ public class C45 {
     public static void main(String[] args) {
         try {
             readDataSet("iris.data.txt");
-//            readDataSet("sensor_readings_24.data.txt");
+//            readDataSet("sensor_readings_2.data.txt");
         } catch (IOException e) {
             e.printStackTrace();
         }
