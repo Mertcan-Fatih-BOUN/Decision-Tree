@@ -1,12 +1,9 @@
-import com.sun.org.apache.xml.internal.security.transforms.implementations.TransformXPath2Filter;
-
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 
 public class C45 {
 
@@ -19,7 +16,6 @@ public class C45 {
     public static void main(String[] args) {
         try {
             readDataSet("iris.data.txt");
-//            readDataSet("sensor_readings_24.data.txt");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -27,7 +23,7 @@ public class C45 {
         double infoT = info(instances);
 
 
-        Node root = getNode(instances, infoT, -1, -1);
+        Node root = getNode(instances, infoT);
 
         boolean cleaned = cleanTree(root);
         while (cleaned)
@@ -120,10 +116,8 @@ public class C45 {
     }
 
 
-    private static Node getNode(ArrayList<Instance> T, double infoT, int previousBestAttribute, double previousBestValue) {
-        if (T.size() == 0)
-            return new Node("failure");
-        else if (checkAllSame(T)) {
+    private static Node getNode(ArrayList<Instance> T, double infoT) {
+        if (checkAllSame(T)) {
             return new Node(T.get(0).className);
         } else {
             double bestGain = -1;
@@ -172,11 +166,10 @@ public class C45 {
                     }
                 }
             }
-            if (bestAttribute == previousBestAttribute && bestValue == previousBestValue)
-                return new Node(findMostFreqClass(T));
 
-            Node ln = getNode(bestT1, bestInfoT1, bestAttribute, bestValue);
-            Node rn = getNode(bestT2, bestInfoT2, bestAttribute, bestValue);
+
+            Node ln = getNode(bestT1, bestInfoT1);
+            Node rn = getNode(bestT2, bestInfoT2);
 
             return new Node(bestAttribute, bestValue, ln, rn);
         }
