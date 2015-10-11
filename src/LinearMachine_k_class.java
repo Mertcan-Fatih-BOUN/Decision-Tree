@@ -14,10 +14,11 @@ import java.util.ArrayList;
 /**
  * Created by mertcan on 6.10.2015.
  */
-public class LinearMachine {
+public class LinearMachine_k_class {
 
     public static int CLASS_COUNT = 0;
     public static int ATTRIBUTE_COUNT = 0;
+    public static int SAMPLE_SIZE = 0;
     public static String[] CLASS_NAMES = new String[]{};
 
     public static ArrayList<Instance> instances = new ArrayList<>();
@@ -33,11 +34,72 @@ public class LinearMachine {
             e.printStackTrace();
         }
 
-        for(int i = 0; i < CLASS_COUNT - 1; i++){
+        double[][] distances = createDistancesMatrix(instances);
+
+        for(int i = 0; i < CLASS_COUNT; i++){
+            String s = "";
+            for(int j = 0; j < CLASS_COUNT; j++){
+                s += distances[i][j] + " ";
+            }
+            System.out.println(s);
+        }
+
+        
+
+        /*for(int i = 0; i < CLASS_COUNT - 1; i++){
             for(int j = i + 1; j < CLASS_COUNT; j++){
                 classify(i, j);
             }
+        }*/
+    }
+
+    private static double[][] createDistancesMatrix(ArrayList<Instance> instances) {
+        double[][] massCenters = findMassCenters(instances);
+
+        for(int i = 0; i < CLASS_COUNT; i++){
+            String s = "";
+            for(int j = 0; j < ATTRIBUTE_COUNT; j++){
+                s += massCenters[i][j] + " ";
+            }
         }
+
+        double[][] distances = new double[CLASS_COUNT][CLASS_COUNT];
+        for(int i = 0; i < CLASS_COUNT; i++){
+            for(int j = i + 1; j < CLASS_COUNT; j++){
+                distances[i][j] = distance(massCenters[i], massCenters[j]);
+            }
+        }
+        return distances;
+    }
+
+    private static double distance(double[] massCenter, double[] massCenter1) {
+        double sum = 0;
+        for(int i = 0; i < massCenter.length; i++){
+            sum += Math.pow(massCenter[i] - massCenter1[i], 2);
+        }
+        sum = Math.sqrt(sum);
+        return sum;
+    }
+
+    private static double[][] findMassCenters(ArrayList<Instance> instances) {
+        double[][] massCenters = new double[CLASS_COUNT][ATTRIBUTE_COUNT];
+        for(int i = 0; i < CLASS_COUNT; i++){
+            massCenters[i] = findMassCenter(i, instances);
+        }
+        return massCenters;
+    }
+
+    private static double[] findMassCenter(int i, ArrayList<Instance> instances) {
+        double massCenter[] = new double[ATTRIBUTE_COUNT];
+        for(int k = i * SAMPLE_SIZE; k < i * SAMPLE_SIZE + SAMPLE_SIZE; k++){
+            for(int j = 0; j < ATTRIBUTE_COUNT; j++){
+                massCenter[j] += instances.get(k).attributes[j];
+            }
+        }
+        for(int j = 0; j < ATTRIBUTE_COUNT; j++){
+            massCenter[j] /= SAMPLE_SIZE;
+        }
+        return massCenter;
     }
 
     private static void classify(int class_1, int class_2) throws Exception {
@@ -207,6 +269,7 @@ public class LinearMachine {
             }
         }
         CLASS_NAMES = classNames.toArray(CLASS_NAMES);
+        SAMPLE_SIZE = instances.size() / CLASS_COUNT;
     }
 
     public static class Instance {
