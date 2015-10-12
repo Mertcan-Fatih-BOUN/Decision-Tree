@@ -1,12 +1,9 @@
-import com.sun.org.apache.xml.internal.security.transforms.implementations.TransformXPath2Filter;
-
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 
 public class C45 {
 
@@ -50,18 +47,18 @@ public class C45 {
     private static boolean cleanTree(Node node) {
         if (!node.isLeaf) {
             if (node.leftNode.isLeaf && node.rightNode.isLeaf) {
-                if (node.leftNode.className.equals(node.rightNode.className)) {
+                if (node.leftNode.name.equals(node.rightNode.name)) {
                     node.isLeaf = true;
-                    node.className = node.rightNode.className;
+                    node.name = node.rightNode.name;
                     return true;
                 }
-                if (node.leftNode.className.equals("failure")) {
+                if (node.leftNode.name.equals("failure")) {
                     node.isLeaf = true;
-                    node.className = node.rightNode.className;
+                    node.name = node.rightNode.name;
                     return true;
-                } else if (node.rightNode.className.equals("failure")) {
+                } else if (node.rightNode.name.equals("failure")) {
                     node.isLeaf = true;
-                    node.className = node.leftNode.className;
+                    node.name = node.leftNode.name;
                     return true;
                 }
             } else {
@@ -73,7 +70,7 @@ public class C45 {
 
     private static boolean test(Node node, Instance instance) {
         if (node.isLeaf) {
-            return node.className.equals(instance.className);
+            return node.name.equals(instance.className);
         } else if (instance.attributes[node.attributeNumber] <= node.value)
             return test(node.leftNode, instance);
         else

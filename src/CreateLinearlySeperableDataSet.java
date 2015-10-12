@@ -14,14 +14,17 @@ public class CreateLinearlySeperableDataSet {
 
     public static void main(String[] args){
         String dataSet = "";
+        String draw = "";
         for(int i = 0; i < 4; i++){
             for(int j = 0; j < 50; j++){
                 int a1 = r.nextInt(50) + i * 50;
                 int a2 = r.nextInt(50) + i * 50;
                 dataSet += a1 + "," + a2 + "," + (char)('a' + i) + "\n";
+                draw += "(" + a1 + "," + a2 + "),";
             }
         }
         writeToFile(dataSet, "data_set_1.data.txt");
+        System.out.println(draw);
     }
 
     private static void writeToFile(String dataSet, String s) {

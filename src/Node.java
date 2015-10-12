@@ -1,15 +1,24 @@
 public class Node {
     public boolean isLeaf;
-    public String className;
+    public String name;
+    public int[][] classes;
     public int attributeNumber;
     public double value;
     public Node leftNode;
     public Node rightNode;
+    public Node parentNode;
+    public double[] massCenter;
 
 
     public Node(String cn) {
-        className = cn;
+        name = cn;
         isLeaf = true;
+    }
+
+    public Node(String cn, double[] mCenter) {
+        name = cn;
+        isLeaf = true;
+        massCenter = mCenter;
     }
 
     public Node(int an, double v, Node ln, Node rn) {
@@ -26,7 +35,7 @@ public class Node {
             s += "\t";
         }
         if (isLeaf)
-            s += className;
+            s += name;
         else
             s += "The attribute "  + attributeNumber + " with value " + value + "\n " + leftNode.toString(k+1) + "\n" + rightNode.toString(k+1);
 

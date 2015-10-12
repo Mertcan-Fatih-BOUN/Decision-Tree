@@ -9,6 +9,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 
 /**
@@ -21,6 +22,8 @@ public class LinearMachine_k_class {
     public static int SAMPLE_SIZE = 0;
     public static String[] CLASS_NAMES = new String[]{};
 
+
+    public static ArrayList<Node> nodes = new ArrayList<>();
     public static ArrayList<Instance> instances = new ArrayList<>();
 
     public static ArrayList<double[]> w_s = new ArrayList<>();
@@ -34,18 +37,28 @@ public class LinearMachine_k_class {
             e.printStackTrace();
         }
 
-        double[][] distances = createDistancesMatrix(instances);
 
-        for(int i = 0; i < CLASS_COUNT; i++){
-            String s = "";
-            for(int j = 0; j < CLASS_COUNT; j++){
-                s += distances[i][j] + " ";
+
+        createLeafNodes();
+
+        for(int i = 0; i < log(CLASS_COUNT); i++)
+            findClosestNodes(i);
+
+        for(int i = nodes.size() - 1; i >= CLASS_COUNT; i--) {
+            String classes1 = "";
+            String classes2 = "";
+            for(int j = 0; j < nodes.get(i).classes[0].length; j++){
+                classes1 += nodes.get(i).classes[0][j] + " ";
+                classes2 += nodes.get(i).classes[1][j] + " ";
             }
-            System.out.println(s);
+            String empty = "";
+            for(int j = 0; j < (nodes.size() - i) / 2; j++)
+                empty += "\t";
+            System.out.println(empty + "The hyperplane to seperate classes " + classes1 + "from " + classes2 + "is:");
+            classify(nodes.get(i), empty);
         }
-
-        
-
+//        System.out.println(nodes.get(6).classes[0][0] + " " + nodes.get(6).classes[0][1] + " " + nodes.get(6).classes[1][0] + " " + nodes.get(6).classes[1][1]);
+//        System.out.println(nodes.get(4).classes[0][0] + " " + nodes.get(4).classes[1][0] + " " + nodes.get(5).classes[0][0] + " " + nodes.get(5).classes[1][0]);
         /*for(int i = 0; i < CLASS_COUNT - 1; i++){
             for(int j = i + 1; j < CLASS_COUNT; j++){
                 classify(i, j);
@@ -53,23 +66,113 @@ public class LinearMachine_k_class {
         }*/
     }
 
-    private static double[][] createDistancesMatrix(ArrayList<Instance> instances) {
-        double[][] massCenters = findMassCenters(instances);
 
-        for(int i = 0; i < CLASS_COUNT; i++){
-            String s = "";
-            for(int j = 0; j < ATTRIBUTE_COUNT; j++){
-                s += massCenters[i][j] + " ";
+
+    private static void findClosestNodes(int level) {
+        double[][] distanceMatrix = createDistancesMatrix(nodes, level);
+
+        int size = (int)(CLASS_COUNT / Math.pow(2, level));
+
+//        for(int i = 0; i < size; i++){
+//            String s = "";
+//            for(int j = 0; j < size; j++){
+//                s += distanceMatrix[i][j] + " ";
+//            }
+//            System.out.println(s);
+//        }
+
+
+        int[] columns = new int[size - 1];
+        double[] zeros = new double[size];
+        for(int i = 0; i < size; i++) zeros[i] = 0;
+        for(int i = 0; i < size - 1; i++){
+            if(Arrays.equals(distanceMatrix[i], zeros))
+                continue;
+            double cost = estimateCost(i, i + 1, distanceMatrix, size);
+            columns[i] = i + 1;
+            for(int j = i + 2; j < size; j++){
+                double cost2 = estimateCost(i , j, distanceMatrix, size);
+                if(cost2 < cost){
+                    cost = cost2;
+                    columns[i] = j;
+                }
             }
+            distanceMatrix[i] = zeros;
+            distanceMatrix[columns[i]] = zeros;
+            for(int j = 0; j < size; j++) distanceMatrix[j][columns[i]] = 0;
+            for(int j = 0; j < size; j++) distanceMatrix[j][i] = 0;
+        }
+        for(int i = 0; i < size - 1; i++) {
+            if(columns[i] == 0)
+                continue;
+            int nodeOrder = sum_2_powers_times_class_count(level);
+            double[] massCenter = new double[ATTRIBUTE_COUNT];
+            for(int j = 0; j < ATTRIBUTE_COUNT; j++) {
+                massCenter[j] = (nodes.get(i + nodeOrder).massCenter[j] + nodes.get(columns[i] + nodeOrder).massCenter[j]) / 2;
+            }
+            Node n = new Node(nodes.get(i + nodeOrder).name + "___" + nodes.get(columns[i] + nodeOrder).name, massCenter);
+            n.leftNode = nodes.get(i + nodeOrder);
+            n.rightNode = nodes.get(columns[i] + nodeOrder);
+            nodes.get(i + nodeOrder).parentNode = n;
+            nodes.get(columns[i] + nodeOrder).parentNode = n;
+            n.isLeaf = false;
+            n.classes = new int[2][(int)Math.pow(2, level)];
+            if(level == 0){
+                n.classes[0][0] = i;
+                n.classes[1][0] = columns[i];
+            }else {
+                for (int t = 0; t < (int) Math.pow(2, level - 1); t++) {
+                    n.classes[0][t] = nodes.get(i + nodeOrder).classes[0][t];
+                }
+                for (int t = (int) Math.pow(2, level - 1); t < (int) Math.pow(2, level); t++) {
+                    n.classes[0][t] = nodes.get(i + nodeOrder).classes[1][t - (int) Math.pow(2, level - 1)];
+                }
+                for (int t = 0; t < (int) Math.pow(2, level - 1); t++) {
+                    n.classes[1][t] = nodes.get(columns[i] + nodeOrder).classes[0][t];
+                }
+                for (int t = (int) Math.pow(2, level - 1); t < (int) Math.pow(2, level); t++) {
+                    n.classes[1][t] = nodes.get(columns[i] + nodeOrder).classes[1][t - (int) Math.pow(2, level - 1)];
+                }
+            }
+            nodes.add(n);
         }
 
-        double[][] distances = new double[CLASS_COUNT][CLASS_COUNT];
+
+    }
+
+    private static double estimateCost(int i, int i1, double[][] distanceMatrix, int size) {
+        double sum = 0;
+        for(int a = i + 1; a < size; a++)
+            sum += distanceMatrix[i][a];
+        for(int a = 0; a < i1; a++)
+            sum += distanceMatrix[a][i1];
+        sum -= 2 * distanceMatrix[i][i1];
+        return sum;
+    }
+
+    private static void createLeafNodes() {
         for(int i = 0; i < CLASS_COUNT; i++){
-            for(int j = i + 1; j < CLASS_COUNT; j++){
-                distances[i][j] = distance(massCenters[i], massCenters[j]);
+            nodes.add(new Node(CLASS_NAMES[i], findMassCenter(i, instances)));
+        }
+    }
+
+    private static double[][] createDistancesMatrix(ArrayList<Node> nodes, int level) {
+        int size = (int)(CLASS_COUNT / Math.pow(2, level));
+        double[][] distances = new double[size][size];
+        for(int i = 0; i < size; i++){
+            for(int j = i + 1; j < size; j++){
+                distances[i][j] = distance(nodes.get(i + sum_2_powers_times_class_count(level)).massCenter, nodes.get(j + sum_2_powers_times_class_count(level)).massCenter);
             }
         }
         return distances;
+    }
+
+    private static int sum_2_powers_times_class_count(int level){
+        double sum = 0;
+        for(int i = 0; i < level; i++){
+            sum += Math.pow(2, -i);
+        }
+        return (int)(sum * CLASS_COUNT);
     }
 
     private static double distance(double[] massCenter, double[] massCenter1) {
@@ -81,12 +184,8 @@ public class LinearMachine_k_class {
         return sum;
     }
 
-    private static double[][] findMassCenters(ArrayList<Instance> instances) {
-        double[][] massCenters = new double[CLASS_COUNT][ATTRIBUTE_COUNT];
-        for(int i = 0; i < CLASS_COUNT; i++){
-            massCenters[i] = findMassCenter(i, instances);
-        }
-        return massCenters;
+    private static double log(double v) {
+        return Math.log(v) / Math.log(2);
     }
 
     private static double[] findMassCenter(int i, ArrayList<Instance> instances) {
@@ -99,25 +198,29 @@ public class LinearMachine_k_class {
         for(int j = 0; j < ATTRIBUTE_COUNT; j++){
             massCenter[j] /= SAMPLE_SIZE;
         }
+
         return massCenter;
     }
 
-    private static void classify(int class_1, int class_2) throws Exception {
-        System.out.println(class_1 + " " + class_2);
+    private static void classify(Node n, String empty) throws Exception {
         int classInstanceSize = instances.size() / CLASS_COUNT;
         ArrayList<Instance> currentInstances = new ArrayList<>();
-        for(int i = class_1 * classInstanceSize; i < class_1 * classInstanceSize + classInstanceSize; i++) {
-            instances.get(i).classCode = 1;
-            currentInstances.add(instances.get(i));
+        for(int j = 0; j < n.classes[0].length; j++) {
+            for (int i = n.classes[0][j] * classInstanceSize; i < n.classes[0][j] * classInstanceSize + classInstanceSize; i++) {
+                instances.get(i).classCode = 1;
+                currentInstances.add(instances.get(i));
+            }
         }
-        for(int i = class_2 * classInstanceSize; i < class_2 * classInstanceSize + classInstanceSize; i++) {
-            instances.get(i).classCode = -1;
-            currentInstances.add(instances.get(i));
+        for(int j = 0; j < n.classes[1].length; j++) {
+            for (int i = n.classes[1][j] * classInstanceSize; i < n.classes[1][j] * classInstanceSize + classInstanceSize; i++) {
+                instances.get(i).classCode = -1;
+                currentInstances.add(instances.get(i));
+            }
         }
 
 
 
-        int size = instances.size() / CLASS_COUNT * 2;
+        int size = currentInstances.size();
         double[][] H = new double[size][size];
 
         for(int i = 0; i < size; i++){
@@ -192,9 +295,8 @@ public class LinearMachine_k_class {
             }
         }
 
-        System.out.println("Normal vector to the hyperplane: ");
         for(double d:w)
-            System.out.println(d);
+            System.out.println(empty + d);
 
         double bb = 0;
         for(int i = 0; i < supports.size(); i++){
@@ -205,23 +307,23 @@ public class LinearMachine_k_class {
             bb += tmp;
         }
         bb = 1.0 / supports.size() * bb;
-        System.out.println("b vector\n" + bb);
+        System.out.println(empty + "b vector\n" + empty + bb);
 
         int trues = 0;
         int falses = 0;
-        for(int i = 0; i < classInstanceSize; i++){
+        for(int i = 0; i < size/2; i++){
             if(dotProduct(w, currentInstances.get(i).attributes) + bb > 0)
                 trues++;
             else
                 falses++;
         }
-        for(int i = classInstanceSize; i < size; i++){
+        for(int i = size/2; i < size; i++){
             if(dotProduct(w, currentInstances.get(i).attributes) + bb < 0)
                 trues++;
             else
                 falses++;
         }
-        System.out.println("trues: " + trues + " falses: " + falses);
+        System.out.println(empty + "trues: " + trues + " falses: " + falses);
     }
 
     private static double dotProduct(double[] array1, double[] array2) {
