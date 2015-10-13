@@ -30,7 +30,7 @@ public class LinearMachine_k_class {
 
     public static void main(String[] args) throws Exception {
         try {
-            readDataSet("data_set_1.data.txt");
+            readDataSet("data_set_2.data.txt");
 //            readDataSet("iris.data.txt");
 //            readDataSet("sensor_readings_2.data.txt");
         } catch (IOException e) {
