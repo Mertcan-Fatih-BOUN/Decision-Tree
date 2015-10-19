@@ -30,7 +30,7 @@ public class LinearMachine_k_class {
 
     public static void main(String[] args) throws Exception {
         try {
-            readDataSet("data_set_2.data.txt");
+            readDataSet("data_set_3.data.txt");
 //            readDataSet("iris.data.txt");
 //            readDataSet("sensor_readings_2.data.txt");
         } catch (IOException e) {
@@ -73,18 +73,18 @@ public class LinearMachine_k_class {
 
         int size = (int)(CLASS_COUNT / Math.pow(2, level));
 
-//        for(int i = 0; i < size; i++){
-//            String s = "";
-//            for(int j = 0; j < size; j++){
-//                s += distanceMatrix[i][j] + " ";
-//            }
-//            System.out.println(s);
-//        }
+        for(int i = 0; i < size; i++){
+            String s = "";
+            for(int j = 0; j < size; j++){
+                s += distanceMatrix[i][j] + " ";
+            }
+            System.out.println(s);
+        }
 
 
         int[] columns = new int[size - 1];
         double[] zeros = new double[size];
-        for(int i = 0; i < size; i++) zeros[i] = 0;
+        for(int i = 0; i < size; i++) zeros[i] = 9999999;
         for(int i = 0; i < size - 1; i++){
             if(Arrays.equals(distanceMatrix[i], zeros))
                 continue;
@@ -102,6 +102,8 @@ public class LinearMachine_k_class {
             for(int j = 0; j < size; j++) distanceMatrix[j][columns[i]] = 0;
             for(int j = 0; j < size; j++) distanceMatrix[j][i] = 0;
         }
+        for(int i = 0; i < size -1; i++)
+            System.out.println(columns[i]);
         for(int i = 0; i < size - 1; i++) {
             if(columns[i] == 0)
                 continue;
@@ -143,10 +145,14 @@ public class LinearMachine_k_class {
     private static double estimateCost(int i, int i1, double[][] distanceMatrix, int size) {
         double sum = 0;
         for(int a = i + 1; a < size; a++)
-            sum += distanceMatrix[i][a];
+            sum -= distanceMatrix[i][a];
+        for(int a = 0; a < i; a++)
+            sum -= distanceMatrix[a][i];
+        for(int a = i1 + 1; a < size; a++)
+            sum -= distanceMatrix[i1][a];
         for(int a = 0; a < i1; a++)
-            sum += distanceMatrix[a][i1];
-        sum -= 2 * distanceMatrix[i][i1];
+            sum -= distanceMatrix[a][i1];
+        sum += 3 * distanceMatrix[i][i1];
         return sum;
     }
 
