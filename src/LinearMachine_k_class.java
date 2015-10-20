@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Random;
 
 
 /**
@@ -18,6 +19,7 @@ import java.util.Arrays;
 public class LinearMachine_k_class {
 
     public static int CLASS_COUNT = 0;
+    public static int REQUIRED_CLASS_COUNT = 0;
     public static int ATTRIBUTE_COUNT = 0;
     public static int SAMPLE_SIZE = 0;
     public static String[] CLASS_NAMES = new String[]{};
@@ -30,7 +32,7 @@ public class LinearMachine_k_class {
 
     public static void main(String[] args) throws Exception {
         try {
-            readDataSet("data_set_3.data.txt");
+            readDataSet("data_set_66.data.txt");
 //            readDataSet("iris.data.txt");
 //            readDataSet("sensor_readings_2.data.txt");
         } catch (IOException e) {
@@ -41,18 +43,20 @@ public class LinearMachine_k_class {
 
         createLeafNodes();
 
-        for(int i = 0; i < log(CLASS_COUNT); i++)
+        for(int i = 0; i < log(REQUIRED_CLASS_COUNT); i++)
             findClosestNodes(i);
 
-        for(int i = nodes.size() - 1; i >= CLASS_COUNT; i--) {
+        for(int i = nodes.size() - 1; i >= REQUIRED_CLASS_COUNT; i--) {
             String classes1 = "";
             String classes2 = "";
             for(int j = 0; j < nodes.get(i).classes[0].length; j++){
-                classes1 += nodes.get(i).classes[0][j] + " ";
-                classes2 += nodes.get(i).classes[1][j] + " ";
+                classes1 += CLASS_NAMES[nodes.get(i).classes[0][j]] + " ";
+            }
+            for(int j = 0; j < nodes.get(i).classes[1].length; j++){
+                classes2 += CLASS_NAMES[nodes.get(i).classes[1][j]] + " ";
             }
             String empty = "";
-            for(int j = 0; j < (nodes.size() - i) / 2; j++)
+            for(int j = 0; j < (int)log(nodes.size() - i); j++)
                 empty += "\t";
             System.out.println(empty + "The hyperplane to seperate classes " + classes1 + "from " + classes2 + "is:");
             classify(nodes.get(i), empty);
@@ -66,12 +70,108 @@ public class LinearMachine_k_class {
         }*/
     }
 
+    private static void createLeafNodes() {
+        double log_c_count = log(CLASS_COUNT);
+        for(int i = 0; i < CLASS_COUNT; i++)
+            nodes.add(new Node(CLASS_NAMES[i], findMassCenter(i, instances), i));
+        if(Math.abs(log_c_count - (int) log_c_count) > Math.pow(10, -10)){
+            REQUIRED_CLASS_COUNT = (int) Math.pow(2, (int) log_c_count);
+            groupSomeClasses();
+        }else{
+            REQUIRED_CLASS_COUNT = CLASS_COUNT;
+        }
 
+
+    }
+
+    private static void groupSomeClasses() {
+        double[][] distanceMatrix = createInitialDistancesMatrix(nodes);
+
+        int size = CLASS_COUNT;
+
+
+        int[] columns = new int[size - 1];
+        double[] zeros = new double[size];
+        for(int i = 0; i < size; i++) zeros[i] = 9999999;
+        for(int i = 0; i < size - 1; i++){
+            if(Arrays.equals(distanceMatrix[i], zeros))
+                continue;
+            double cost = estimateCost(i, i + 1, distanceMatrix, size);
+            columns[i] = i + 1;
+            for(int j = i + 2; j < size; j++){
+                double cost2 = estimateCost(i , j, distanceMatrix, size);
+                if(cost2 <= cost){
+                    cost = cost2;
+                    columns[i] = j;
+                }
+            }
+            distanceMatrix[i] = zeros;
+            distanceMatrix[columns[i]] = zeros;
+            for(int j = 0; j < size; j++) distanceMatrix[j][columns[i]] = 9999999;
+            for(int j = 0; j < size; j++) distanceMatrix[j][i] = 9999999;
+        }
+        for(int i = 0; i < size -1; i++)
+            System.out.println(columns[i]);
+        int grouped = 0;
+        int[] nodes_to_remove = new int[(CLASS_COUNT - REQUIRED_CLASS_COUNT) * 2];
+        while(grouped != CLASS_COUNT - REQUIRED_CLASS_COUNT) {
+            Random r = new Random();
+            int i = r.nextInt(size - 1);
+            if(columns[i] == 0)
+                continue;
+            double[] massCenter = new double[ATTRIBUTE_COUNT];
+            for(int j = 0; j < ATTRIBUTE_COUNT; j++) {
+                massCenter[j] = (nodes.get(i).massCenter[j] + nodes.get(columns[i]).massCenter[j]) / 2;
+            }
+            Node n = new Node(nodes.get(i).name + "___" + nodes.get(columns[i]).name, massCenter);
+            n.initiallyCreated = true;
+            n.leftNode = nodes.get(i);
+            n.rightNode = nodes.get(columns[i]);
+            nodes.get(i).parentNode = n;
+            nodes.get(columns[i]).parentNode = n;
+            n.isLeaf = false;
+            n.classes = new int[2][1];
+            n.classes[0][0] = n.leftNode.id;
+            n.classes[1][0] = n.rightNode.id;
+            System.out.println(i + " and " + columns[i] + " are grouped");
+            nodes.add(n);
+            nodes_to_remove[grouped * 2] = i;
+            nodes_to_remove[grouped * 2 + 1] = columns[i];
+            columns[i] = 0;
+            grouped++;
+        }
+        Arrays.sort(nodes_to_remove);
+        for(int i = nodes_to_remove.length - 1; i >= 0; i--)
+            nodes.remove(nodes_to_remove[i]);
+
+        for(int i = 0; i < nodes.size(); i++){
+            String classes1 = "";
+            String classes2 = "";
+            if(!nodes.get(i).isLeaf)
+            for(int j = 0; j < nodes.get(i).classes[0].length; j++){
+                classes1 += CLASS_NAMES[nodes.get(i).classes[0][j]] + " ";
+                classes2 += CLASS_NAMES[nodes.get(i).classes[1][j]] + " ";
+            }
+            System.out.println(nodes.get(i).id + " " + nodes.get(i).name + " " + classes1 + " " + classes2);
+        }
+
+    }
+
+    private static double[][] createInitialDistancesMatrix(ArrayList<Node> nodes) {
+        int size = CLASS_COUNT;
+        double[][] distances = new double[size][size];
+        for(int i = 0; i < size; i++){
+            for(int j = i + 1; j < size; j++){
+                distances[i][j] = distance(nodes.get(i).massCenter, nodes.get(j).massCenter);
+            }
+        }
+        return distances;
+    }
 
     private static void findClosestNodes(int level) {
         double[][] distanceMatrix = createDistancesMatrix(nodes, level);
 
-        int size = (int)(CLASS_COUNT / Math.pow(2, level));
+        int size = (int)(REQUIRED_CLASS_COUNT / Math.pow(2, level));
 
         for(int i = 0; i < size; i++){
             String s = "";
@@ -88,19 +188,23 @@ public class LinearMachine_k_class {
         for(int i = 0; i < size - 1; i++){
             if(Arrays.equals(distanceMatrix[i], zeros))
                 continue;
-            double cost = estimateCost(i, i + 1, distanceMatrix, size);
-            columns[i] = i + 1;
-            for(int j = i + 2; j < size; j++){
-                double cost2 = estimateCost(i , j, distanceMatrix, size);
-                if(cost2 < cost){
+            double cost = 9999999;
+            columns[i] = 0;
+            for(int j = i + 1; j < size; j++){
+                double cost2 = 0;
+                if(Arrays.equals(distanceMatrix[j], zeros))
+                    cost2 = 9999999;
+                else
+                    cost2 = estimateCost(i , j, distanceMatrix, size);
+                if(cost2 <= cost){
                     cost = cost2;
                     columns[i] = j;
                 }
             }
             distanceMatrix[i] = zeros;
             distanceMatrix[columns[i]] = zeros;
-            for(int j = 0; j < size; j++) distanceMatrix[j][columns[i]] = 0;
-            for(int j = 0; j < size; j++) distanceMatrix[j][i] = 0;
+            for(int j = 0; j < size; j++) distanceMatrix[j][columns[i]] = 9999999;
+            for(int j = 0; j < size; j++) distanceMatrix[j][i] = 9999999;
         }
         for(int i = 0; i < size -1; i++)
             System.out.println(columns[i]);
@@ -118,23 +222,30 @@ public class LinearMachine_k_class {
             nodes.get(i + nodeOrder).parentNode = n;
             nodes.get(columns[i] + nodeOrder).parentNode = n;
             n.isLeaf = false;
-            n.classes = new int[2][(int)Math.pow(2, level)];
-            if(level == 0){
-                n.classes[0][0] = i;
-                n.classes[1][0] = columns[i];
+            n.classes = new int[2][];
+            if(!n.leftNode.isLeaf) {
+                n.classes[0] = new int[n.leftNode.classes[0].length + n.leftNode.classes[1].length];
+                for(int t = 0; t < n.leftNode.classes[0].length; t++){
+                    n.classes[0][t] = n.leftNode.classes[0][t];
+                }
+                for(int t = n.leftNode.classes[0].length; t < n.classes[0].length; t++){
+                    n.classes[0][t] = n.leftNode.classes[1][t - n.leftNode.classes[0].length];
+                }
             }else {
-                for (int t = 0; t < (int) Math.pow(2, level - 1); t++) {
-                    n.classes[0][t] = nodes.get(i + nodeOrder).classes[0][t];
+                n.classes[0] = new int[1];
+                n.classes[0][0] = n.leftNode.id;
+            }
+            if(!n.rightNode.isLeaf) {
+                n.classes[1] = new int[n.rightNode.classes[0].length + n.rightNode.classes[1].length];
+                for(int t = 0; t < n.rightNode.classes[0].length; t++){
+                    n.classes[1][t] = n.rightNode.classes[0][t];
                 }
-                for (int t = (int) Math.pow(2, level - 1); t < (int) Math.pow(2, level); t++) {
-                    n.classes[0][t] = nodes.get(i + nodeOrder).classes[1][t - (int) Math.pow(2, level - 1)];
+                for(int t = n.rightNode.classes[0].length; t < n.classes[1].length; t++){
+                    n.classes[1][t] = n.rightNode.classes[1][t - n.rightNode.classes[0].length];
                 }
-                for (int t = 0; t < (int) Math.pow(2, level - 1); t++) {
-                    n.classes[1][t] = nodes.get(columns[i] + nodeOrder).classes[0][t];
-                }
-                for (int t = (int) Math.pow(2, level - 1); t < (int) Math.pow(2, level); t++) {
-                    n.classes[1][t] = nodes.get(columns[i] + nodeOrder).classes[1][t - (int) Math.pow(2, level - 1)];
-                }
+            }else {
+                n.classes[1] = new int[1];
+                n.classes[1][0] = n.rightNode.id;
             }
             nodes.add(n);
         }
@@ -144,26 +255,29 @@ public class LinearMachine_k_class {
 
     private static double estimateCost(int i, int i1, double[][] distanceMatrix, int size) {
         double sum = 0;
-        for(int a = i + 1; a < size; a++)
+//        for(int a = i + 1; a < size; a++)
+//            sum -= distanceMatrix[i][a];
+//        for(int a = 0; a < i; a++)
+//            sum -= distanceMatrix[a][i];
+//        for(int a = i1 + 1; a < size; a++)
+//            sum -= distanceMatrix[i1][a];
+//        for(int a = 0; a < i1; a++)
+//            sum -= distanceMatrix[a][i1];
+        for(int a = 0; a < size; a++)
             sum -= distanceMatrix[i][a];
-        for(int a = 0; a < i; a++)
+        for(int a = 0; a < size; a++)
             sum -= distanceMatrix[a][i];
-        for(int a = i1 + 1; a < size; a++)
+        for(int a = 0; a < size; a++)
             sum -= distanceMatrix[i1][a];
-        for(int a = 0; a < i1; a++)
+        for(int a = 0; a < size; a++)
             sum -= distanceMatrix[a][i1];
         sum += 3 * distanceMatrix[i][i1];
         return sum;
     }
 
-    private static void createLeafNodes() {
-        for(int i = 0; i < CLASS_COUNT; i++){
-            nodes.add(new Node(CLASS_NAMES[i], findMassCenter(i, instances)));
-        }
-    }
-
     private static double[][] createDistancesMatrix(ArrayList<Node> nodes, int level) {
-        int size = (int)(CLASS_COUNT / Math.pow(2, level));
+        int size = (int)(REQUIRED_CLASS_COUNT / Math.pow(2, level));
+        System.out.println(size + " " + REQUIRED_CLASS_COUNT + " " + level + " " + nodes.size());
         double[][] distances = new double[size][size];
         for(int i = 0; i < size; i++){
             for(int j = i + 1; j < size; j++){
@@ -178,7 +292,7 @@ public class LinearMachine_k_class {
         for(int i = 0; i < level; i++){
             sum += Math.pow(2, -i);
         }
-        return (int)(sum * CLASS_COUNT);
+        return (int)(sum * REQUIRED_CLASS_COUNT);
     }
 
     private static double distance(double[] massCenter, double[] massCenter1) {
@@ -211,18 +325,28 @@ public class LinearMachine_k_class {
     private static void classify(Node n, String empty) throws Exception {
         int classInstanceSize = instances.size() / CLASS_COUNT;
         ArrayList<Instance> currentInstances = new ArrayList<>();
+        Random r = new Random();
         for(int j = 0; j < n.classes[0].length; j++) {
+            System.out.println(n.classes[0][j]);
             for (int i = n.classes[0][j] * classInstanceSize; i < n.classes[0][j] * classInstanceSize + classInstanceSize; i++) {
                 instances.get(i).classCode = 1;
                 currentInstances.add(instances.get(i));
             }
         }
+        System.out.println("");
+//        for(int j = 0; j < (n.classes[1].length - n.classes[0].length) * classInstanceSize; j++){
+//            currentInstances.add(currentInstances.get(r.nextInt(currentInstances.size())));
+//        }
         for(int j = 0; j < n.classes[1].length; j++) {
+            System.out.println(n.classes[1][j]);
             for (int i = n.classes[1][j] * classInstanceSize; i < n.classes[1][j] * classInstanceSize + classInstanceSize; i++) {
                 instances.get(i).classCode = -1;
                 currentInstances.add(instances.get(i));
             }
         }
+//        for(int j = 0; j < (n.classes[0].length - n.classes[1].length) * classInstanceSize; j++){
+//            currentInstances.add(currentInstances.get(n.classes[0].length * classInstanceSize + r.nextInt(50)));
+//        }
 
 
 
@@ -238,15 +362,17 @@ public class LinearMachine_k_class {
         }
 
         double[] alpha = new double[size];
-        for(int i = 0; i < size; i++) alpha[i] = 1;
+        for(int i = 0; i < size; i++) alpha[i] = Math.pow(10, 0);
 
         double[] q = new double[size];
         for(int i = 0; i < size; i++) q[i] = -1;
 
         double[][] A = new double[1][size];
         double[] b = new double[]{0};
-        for(int i = 0; i < size/2; i++) A[0][i] = 1;
-        for(int i = size/2; i < size; i++) A[0][i] = -1;
+//        for(int i = 0; i < size / 2; i++) A[0][i] = 1;
+//        for(int i = size / 2; i < size; i++) A[0][i] = -1;
+        for(int i = 0; i < n.classes[0].length * classInstanceSize; i++) A[0][i] = 1;
+        for(int i = n.classes[0].length * classInstanceSize; i < size; i++) A[0][i] = -1;
 
 
         PDQuadraticMultivariateRealFunction objectiveFunction = new PDQuadraticMultivariateRealFunction(H, q, 0);
@@ -261,7 +387,7 @@ public class LinearMachine_k_class {
             double[] tmp = new double[size];
             for(int j = 0; j < size; j++) tmp[j] = 0;
             tmp[i] = -1;
-            inequalities[i] = new LinearMultivariateRealFunction(tmp, 0);
+            inequalities[i] = new LinearMultivariateRealFunction(tmp, -Math.pow(10, -7));
 //            tmp[i] = 0;
 //            tmp[i + 1] = -1;
         }

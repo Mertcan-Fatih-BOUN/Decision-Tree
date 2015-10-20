@@ -8,7 +8,7 @@ import java.util.Random;
  * Created by mertcan on 11.10.2015.
  */
 public class CreateLinearlySeperableDataSet {
-    int numberOfClasses = 4;
+    int numberOfClasses = 8;
     int numberOfInstances = 50;
     static Random r = new Random();
 
@@ -17,13 +17,13 @@ public class CreateLinearlySeperableDataSet {
         String draw = "";
         for(int i = 0; i < 8; i++){
             for(int j = 0; j < 50; j++){
-                int a1 = r.nextInt(50) + i * 50;
-                int a2 = r.nextInt(50) + i * 50;
+                int a1 = r.nextInt(50) + i * 100;
+                int a2 = r.nextInt(50) + i * 100;
                 dataSet += a1 + "," + a2 + "," + (char)('a' + i) + "\n";
                 draw += "(" + a1 + "," + a2 + "),";
             }
         }
-        writeToFile(dataSet, "data_set_2.data.txt");
+        writeToFile(dataSet, "data_set_8.data.txt");
         System.out.println(draw);
     }
 

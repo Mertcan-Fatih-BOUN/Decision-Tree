@@ -1,7 +1,9 @@
 public class Node {
     public boolean isLeaf;
+    public boolean initiallyCreated = false;
     public String name;
     public int[][] classes;
+    public int id = -1;
     public int attributeNumber;
     public double value;
     public Node leftNode;
@@ -19,6 +21,14 @@ public class Node {
         name = cn;
         isLeaf = true;
         massCenter = mCenter;
+        this.id = id;
+    }
+
+    public Node(String cn, double[] mCenter, int id) {
+        name = cn;
+        isLeaf = true;
+        massCenter = mCenter;
+        this.id = id;
     }
 
     public Node(int an, double v, Node ln, Node rn) {
