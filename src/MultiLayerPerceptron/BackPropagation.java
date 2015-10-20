@@ -31,22 +31,22 @@ public class BackPropagation {
         }*/
 
         inputs[0][0] = 1;
-        inputs[0][1] = 2;
+        inputs[0][1] = 1;
 
-        inputs[1][0] = 2;
-        inputs[1][1] = 3;
+        inputs[1][0] = 4;
+        inputs[1][1] = 4;
 
-        inputs[2][0] = 0;
-        inputs[2][1] = 1;
+        inputs[2][0] = 7;
+        inputs[2][1] = 7;
 
         outputs[0][0] = 1;
         outputs[0][1] = 1;
 
-        outputs[1][0] = 1.5;
-        outputs[1][1] = 1.5;
+        outputs[1][0] = 3;
+        outputs[1][1] = 3;
 
-        outputs[2][0] = 0.5;
-        outputs[2][1] = 0.5;
+        outputs[2][0] = 5;
+        outputs[2][1] = 5;
 
         train_backPropagate();
 
