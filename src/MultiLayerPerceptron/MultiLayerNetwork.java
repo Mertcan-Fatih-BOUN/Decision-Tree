@@ -15,7 +15,7 @@ public class MultiLayerNetwork {
     Neuron[] input_neurons;
     Neuron[] hidden_neurons;
     Neuron[] output_neurons;
-    double learn_rate = 1;
+    double learn_rate = 0.05;
 
     public MultiLayerNetwork(int input_layer, int hidden_layer, int output_layer){
         this.hidden_layer = hidden_layer;
@@ -50,19 +50,19 @@ public class MultiLayerNetwork {
     }
 
     private void createW2() {
-        W2 = new double[hidden_layer][output_layer];
-        for(int i = 0; i < hidden_layer; i++){
-            for(int j = 0; j < output_layer; j++){
-                W2[i][j] = r.nextDouble();
+        W2 = new double[output_layer][hidden_layer];
+        for(int i = 0; i < output_layer; i++){
+            for(int j = 0; j < hidden_layer; j++){
+                W2[i][j] = (0.001 - 0.0001) * r.nextDouble() + 0.0001;
             }
         }
     }
 
     private void createW1() {
-        W1 = new double[input_layer][hidden_layer];
-        for(int i = 0; i < input_layer; i++){
-            for(int j = 0; j < hidden_layer; j++){
-                W1[i][j] = r.nextDouble();
+        W1 = new double[hidden_layer][input_layer];
+        for(int i = 0; i < hidden_layer; i++){
+            for(int j = 0; j < input_layer; j++){
+                W1[i][j] = (0.001 - 0.0001) * r.nextDouble() + 0.0001;
             }
         }
     }
