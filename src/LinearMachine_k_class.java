@@ -3,6 +3,10 @@ import com.joptimizer.functions.LinearMultivariateRealFunction;
 import com.joptimizer.functions.PDQuadraticMultivariateRealFunction;
 import com.joptimizer.optimizers.JOptimizer;
 import com.joptimizer.optimizers.OptimizationRequest;
+import matlabcontrol.MatlabProxy;
+import matlabcontrol.MatlabProxyFactory;
+import matlabcontrol.extensions.MatlabNumericArray;
+import matlabcontrol.extensions.MatlabTypeConverter;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -24,6 +28,9 @@ public class LinearMachine_k_class {
     public static int SAMPLE_SIZE = 0;
     public static String[] CLASS_NAMES = new String[]{};
 
+    public static MatlabProxyFactory factory;
+    public static MatlabProxy proxy;
+
 
     public static ArrayList<Node> nodes = new ArrayList<>();
     public static ArrayList<Instance> instances = new ArrayList<>();
@@ -31,6 +38,7 @@ public class LinearMachine_k_class {
     public static ArrayList<double[]> w_s = new ArrayList<>();
 
     public static void main(String[] args) throws Exception {
+
         try {
             readDataSet("data_set_66.data.txt");
 //            readDataSet("iris.data.txt");
@@ -39,7 +47,8 @@ public class LinearMachine_k_class {
             e.printStackTrace();
         }
 
-
+        factory = new MatlabProxyFactory();
+        proxy = factory.getProxy();
 
         createLeafNodes();
 
@@ -61,6 +70,8 @@ public class LinearMachine_k_class {
             System.out.println(empty + "The hyperplane to seperate classes " + classes1 + "from " + classes2 + "is:");
             classify(nodes.get(i), empty);
         }
+
+        proxy.disconnect();
 //        System.out.println(nodes.get(6).classes[0][0] + " " + nodes.get(6).classes[0][1] + " " + nodes.get(6).classes[1][0] + " " + nodes.get(6).classes[1][1]);
 //        System.out.println(nodes.get(4).classes[0][0] + " " + nodes.get(4).classes[1][0] + " " + nodes.get(5).classes[0][0] + " " + nodes.get(5).classes[1][0]);
         /*for(int i = 0; i < CLASS_COUNT - 1; i++){
@@ -368,13 +379,44 @@ public class LinearMachine_k_class {
         for(int i = 0; i < size; i++) q[i] = -1;
 
         double[][] A = new double[1][size];
+        double[][] Aeq = new double[1][size];
         double[] b = new double[]{0};
 //        for(int i = 0; i < size / 2; i++) A[0][i] = 1;
 //        for(int i = size / 2; i < size; i++) A[0][i] = -1;
-        for(int i = 0; i < n.classes[0].length * classInstanceSize; i++) A[0][i] = 1;
-        for(int i = n.classes[0].length * classInstanceSize; i < size; i++) A[0][i] = -1;
+        for(int i = 0; i < n.classes[0].length * classInstanceSize; i++) A[0][i] = 0;
+        for(int i = n.classes[0].length * classInstanceSize; i < size; i++) A[0][i] = 0;
+
+        for(int i = 0; i < n.classes[0].length * classInstanceSize; i++) Aeq[0][i] = 1;
+        for(int i = n.classes[0].length * classInstanceSize; i < size; i++) Aeq[0][i] = -1;
 
 
+
+
+        //Send the array to MATLAB, transpose it, then retrieve it and convert it to a 2D double array
+        MatlabTypeConverter processor = new MatlabTypeConverter(proxy);
+        processor.setNumericArray("H", new MatlabNumericArray(H, null));
+        proxy.eval("q = ones(1, " + size + ") * -1");
+        processor.setNumericArray("Aeq", new MatlabNumericArray(Aeq, null));
+        processor.setNumericArray("A", new MatlabNumericArray(A, null));
+        proxy.eval("b = ones(1,1) * 0");
+        proxy.eval("beq = ones(1,1) * 0");
+        proxy.eval("lb = ones(1, " + size + ") * 0");
+        proxy.eval("ub = ones(1, " + size + ") * 100000");
+
+        proxy.eval("options = optimoptions(@quadprog, 'Algorithm', 'active-set')");
+        proxy.eval("x = quadprog(H,q,A,b,Aeq,beq,lb,ub)");
+
+        double[][] solution = processor.getNumericArray("x").getRealArray2D();
+        double sol[] = new double[size];
+
+        for(int i = 0; i < solution.length; i++)
+        {
+            sol[i] = solution[i][0];
+        }
+
+
+
+        /*
         PDQuadraticMultivariateRealFunction objectiveFunction = new PDQuadraticMultivariateRealFunction(H, q, 0);
 
 
@@ -406,8 +448,9 @@ public class LinearMachine_k_class {
         JOptimizer opt = new JOptimizer();
         opt.setOptimizationRequest(or);
         int returnCode = opt.optimize();
-        double[] sol = opt.getOptimizationResponse().getSolution();
+        double[] sol = opt.getOptimizationResponse().getSolution();*/
         ArrayList<Integer> supports = new ArrayList<>();
+
         for(int i = 0; i < size; i++){
             if(sol[i] < Math.pow(10, -10) && sol[i] > -1 * Math.pow(10, -10))
                 sol[i] = 0;
@@ -443,14 +486,14 @@ public class LinearMachine_k_class {
 
         int trues = 0;
         int falses = 0;
-        for(int i = 0; i < size/2; i++){
-            if(dotProduct(w, currentInstances.get(i).attributes) + bb > 0)
+        for(int i = 0; i <  n.classes[0].length * classInstanceSize; i++){
+            if(dotProduct(w, currentInstances.get(i).attributes) + bb > 0.0001)
                 trues++;
             else
                 falses++;
         }
-        for(int i = size/2; i < size; i++){
-            if(dotProduct(w, currentInstances.get(i).attributes) + bb < 0)
+        for(int i =  n.classes[0].length * classInstanceSize; i < size; i++){
+            if(dotProduct(w, currentInstances.get(i).attributes) + bb < -0.0001)
                 trues++;
             else
                 falses++;
