@@ -4,6 +4,9 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Random;
 
 /**
@@ -14,9 +17,10 @@ public class BackPropagation {
     public static MultiLayerNetwork multi_perceptron;
     public static Random r = new Random();
     public final static int input_number = 150;
-    public final static int hidden_neuron_number = 50;
+    public final static int hidden_neuron_number = 0;
     public final static int input_dimension = 4;
     public final static int output_dimension = 3;
+    public final static int number_of_epochs = 30;
     public static double[][] inputs = new double[input_number][input_dimension];
     public static double[][] outputs = new double[input_number][output_dimension];
     public static double[][] output_hats = new double[input_number][output_dimension];
@@ -106,7 +110,7 @@ public class BackPropagation {
             for(int j = 0; j < output_dimension; j++){
                 sum += Math.abs((outputs[i][j] - output_hats[i][j]) * (1 - output_hats[i][j]) * output_hats[i][j]);
             }
-            if(sum / 4 < Math.pow(10, -1) && sum / 4 > - Math.pow(10, -1))
+            if(sum < Math.pow(10, -1) && sum > - Math.pow(10, -1))
                 trues++;
             else
                 falses++;
@@ -121,42 +125,68 @@ public class BackPropagation {
 
         System.out.println("inputs: " + toString2dArray(inputs));
 
-        for(int i = 0; i < input_number; i++) {
-            double[] output_hat = feed_forward(inputs[i]);
-            output_hats[i] = output_hat;
-            for(int j = 0; j < B2.length; j++){
-                B2[j] = -2 * (outputs[i][j] - output_hat[j]) * multi_perceptron.output_neurons[j].derivative_sigma();
-            }
-            for(int j = 0; j < G2.length; j++){
-                for(int t = 0; t < G2[0].length; t++){
-                    G2[j][t] = B2[j] * multi_perceptron.hidden_neurons[t].output;
-                }
-            }
 
-            for(int j = 0; j < B1.length; j++){
-                double temp = 0;
-                for(int t = 0; t < B2.length; t++){
-                    temp += B2[t] * multi_perceptron.W2[t][j];
-                }
-                temp *= multi_perceptron.hidden_neurons[j].derivative_sigma();
-                B1[j] = temp;
-            }
-            for(int j = 0; j < G1.length; j++){
-                for(int t = 0; t < G1[0].length; t++){
-                    G1[j][t] = B1[j] * multi_perceptron.input_neurons[t].output;
-                }
-            }
+        ArrayList<Integer> shuffler = new ArrayList<>();
+        for(int i = 0; i < input_number; i++) shuffler.add(i);
 
-            for(int j = 0; j < G1.length; j++){
-                for(int t = 0; t < G1[0].length; t++){
-                    multi_perceptron.W1[j][t] -= multi_perceptron.learn_rate * G1[j][t];
-                }
-            }
+        for(int trial = 0; trial < number_of_epochs + 1000; trial++) {
+            Collections.shuffle(shuffler);
+            for (int i = 0; i < input_number; i++) {
+                int theInput = shuffler.get(i);
+                double[] output_hat = feed_forward(inputs[theInput]);
+                output_hats[theInput] = output_hat;
+                if(multi_perceptron.hidden_layer != 0) {
+                    for (int j = 0; j < B2.length; j++) {
+                        B2[j] = -2 * (outputs[theInput][j] - output_hat[j]) * multi_perceptron.output_neurons[j].derivative_sigma();
+                    }
+                    for (int j = 0; j < G2.length; j++) {
+                        for (int t = 0; t < G2[0].length; t++) {
+                            G2[j][t] = B2[j] * multi_perceptron.hidden_neurons[t].output;
+                        }
+                    }
 
-            for(int j = 0; j < G2.length; j++){
-                for(int t = 0; t < G2[0].length; t++){
-                    multi_perceptron.W2[j][t] -= multi_perceptron.learn_rate * G2[j][t];
+                    for (int j = 0; j < B1.length; j++) {
+                        double temp = 0;
+                        for (int t = 0; t < B2.length; t++) {
+                            temp += B2[t] * multi_perceptron.W2[t][j];
+                        }
+                        temp *= multi_perceptron.hidden_neurons[j].derivative_sigma();
+                        B1[j] = temp;
+                    }
+                    for (int j = 0; j < G1.length; j++) {
+                        for (int t = 0; t < G1[0].length; t++) {
+                            G1[j][t] = B1[j] * multi_perceptron.input_neurons[t].output;
+                        }
+                    }
+
+
+                    for (int j = 0; j < G1.length; j++) {
+                        for (int t = 0; t < G1[0].length; t++) {
+                            multi_perceptron.W1[j][t] -= multi_perceptron.learn_rate * G1[j][t];
+                        }
+                    }
+                    for (int j = 0; j < G2.length; j++) {
+                        for (int t = 0; t < G2[0].length; t++) {
+                            multi_perceptron.W2[j][t] -= multi_perceptron.learn_rate * G2[j][t];
+                        }
+                    }
+                }else{
+                    G2 = new double[output_dimension][input_dimension];
+                    for (int j = 0; j < B2.length; j++) {
+                        B2[j] = -2 * (outputs[theInput][j] - output_hat[j]) * multi_perceptron.hidden_neurons[j].derivative_sigma();
+                    }
+                    for (int j = 0; j < G2.length; j++) {
+                        for (int t = 0; t < G2[0].length; t++) {
+                            G2[j][t] = B2[j] * multi_perceptron.input_neurons[t].output;
+                        }
+                    }
+                    for (int j = 0; j < G2.length; j++) {
+                        for (int t = 0; t < G2[0].length; t++) {
+                            multi_perceptron.W1[j][t] -= multi_perceptron.learn_rate * G2[j][t];
+                        }
+                    }
                 }
+
             }
         }
 
@@ -178,21 +208,36 @@ public class BackPropagation {
             multi_perceptron.input_neurons[i].feed_neuron(input[i]);
         }
 
-        for(int i = 0; i < multi_perceptron.hidden_layer; i++){
-            double sum_hidden_neuron_i = 0;
-            for(int j = 0; j < multi_perceptron.input_layer; j++){
-                sum_hidden_neuron_i += multi_perceptron.input_neurons[j].output * multi_perceptron.W1[i][j];
+        if(multi_perceptron.hidden_layer != 0) {
+            for(int i = 0; i < multi_perceptron.hidden_layer; i++){
+                double sum_hidden_neuron_i = 0;
+                for(int j = 0; j < multi_perceptron.input_layer; j++){
+                    sum_hidden_neuron_i += multi_perceptron.input_neurons[j].output * multi_perceptron.W1[i][j];
+                }
+                multi_perceptron.hidden_neurons[i].feed_neuron(sum_hidden_neuron_i);
+                if(multi_perceptron.hidden_layer == 0){
+                    output_hat[i] = multi_perceptron.hidden_neurons[i].output;
+                }
             }
-            multi_perceptron.hidden_neurons[i].feed_neuron(sum_hidden_neuron_i);
-        }
 
-        for(int i = 0; i < multi_perceptron.output_layer; i++){
-            double sum_hidden_neuron_i = 0;
-            for(int j = 0; j < multi_perceptron.hidden_layer; j++){
-                sum_hidden_neuron_i += multi_perceptron.hidden_neurons[j].output * multi_perceptron.W2[i][j];
+            for (int i = 0; i < multi_perceptron.output_layer; i++) {
+                double sum_hidden_neuron_i = 0;
+                for (int j = 0; j < multi_perceptron.hidden_layer; j++) {
+                    sum_hidden_neuron_i += multi_perceptron.hidden_neurons[j].output * multi_perceptron.W2[i][j];
+                }
+                multi_perceptron.output_neurons[i].feed_neuron(sum_hidden_neuron_i);
+
+                output_hat[i] = multi_perceptron.output_neurons[i].output;
             }
-            multi_perceptron.output_neurons[i].feed_neuron(sum_hidden_neuron_i);
-            output_hat[i] = multi_perceptron.output_neurons[i].output;
+        }else{
+            for(int i = 0; i < multi_perceptron.output_layer; i++){
+                double sum_hidden_neuron_i = 0;
+                for(int j = 0; j < multi_perceptron.input_layer; j++){
+                    sum_hidden_neuron_i += multi_perceptron.input_neurons[j].output * multi_perceptron.W1[i][j];
+                }
+                multi_perceptron.hidden_neurons[i].feed_neuron(sum_hidden_neuron_i);
+                output_hat[i] = multi_perceptron.hidden_neurons[i].output;
+            }
         }
 
 

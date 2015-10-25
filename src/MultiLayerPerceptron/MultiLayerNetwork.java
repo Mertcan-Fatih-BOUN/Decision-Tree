@@ -21,11 +21,18 @@ public class MultiLayerNetwork {
         this.hidden_layer = hidden_layer;
         this.input_layer = input_layer;
         this.output_layer = output_layer;
-        createW1();
-        createW2();
-        createInputNeurons();
-        createHiddenNeurons();
-        createOutputNeurons();
+        if(hidden_layer != 0) {
+            createW1();
+            createW2();
+            createInputNeurons();
+            createHiddenNeurons();
+            createOutputNeurons();
+        }else{
+            createW1();
+            createInputNeurons();
+            createHiddenNeurons();
+            W2 = new double[0][1];
+        }
     }
 
     private void createInputNeurons() {
@@ -36,9 +43,16 @@ public class MultiLayerNetwork {
     }
 
     private void createHiddenNeurons() {
-        hidden_neurons = new Neuron[hidden_layer];
-        for(int i = 0; i < hidden_layer; i++){
-            hidden_neurons[i] = new Neuron(false);
+        if(hidden_layer != 0) {
+            hidden_neurons = new Neuron[hidden_layer];
+            for (int i = 0; i < hidden_layer; i++) {
+                hidden_neurons[i] = new Neuron(false);
+            }
+        }else{
+            hidden_neurons = new Neuron[output_layer];
+            for (int i = 0; i < output_layer; i++) {
+                hidden_neurons[i] = new Neuron(false);
+            }
         }
     }
 
@@ -59,8 +73,11 @@ public class MultiLayerNetwork {
     }
 
     private void createW1() {
-        W1 = new double[hidden_layer][input_layer];
-        for(int i = 0; i < hidden_layer; i++){
+        if(hidden_layer != 0)
+            W1 = new double[hidden_layer][input_layer];
+        else
+            W1 = new double[output_layer][input_layer];
+        for(int i = 0; i < W1.length; i++){
             for(int j = 0; j < input_layer; j++){
                 W1[i][j] = (0.001 - 0.0001) * r.nextDouble() + 0.0001;
             }
