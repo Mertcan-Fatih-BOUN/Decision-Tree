@@ -20,7 +20,7 @@ public class BackPropagation {
     public final static int hidden_neuron_number = 0;
     public final static int input_dimension = 4;
     public final static int output_dimension = 3;
-    public final static int number_of_epochs = 30;
+    public final static int number_of_epochs = 100;
     public static double[][] inputs = new double[input_number][input_dimension];
     public static double[][] outputs = new double[input_number][output_dimension];
     public static double[][] output_hats = new double[input_number][output_dimension];
@@ -34,8 +34,8 @@ public class BackPropagation {
         multi_perceptron = new MultiLayerNetwork(input_dimension,hidden_neuron_number,output_dimension);
 
         try {
-//            readDataSet("data_set_1.data.txt");
-            readDataSet("iris.data.txt");
+            readDataSet("data_set_66.data.txt");
+//            readDataSet("iris.data.txt");
 //            readDataSet("sensor_readings_2.data.txt");
         } catch (IOException e) {
             e.printStackTrace();
@@ -106,11 +106,22 @@ public class BackPropagation {
         int trues = 0;
         int falses = 0;
         for(int i = 0; i < input_number; i++){
-            double sum = 0;
+//            double sum = 0;
+            double max = 0;
+            int maxIndex = 0;
             for(int j = 0; j < output_dimension; j++){
-                sum += Math.abs((outputs[i][j] - output_hats[i][j]) * (1 - output_hats[i][j]) * output_hats[i][j]);
+//                sum += Math.abs((outputs[i][j] - output_hats[i][j]) * (1 - output_hats[i][j]) * output_hats[i][j]);
+                if(output_hats[i][j] > max){
+                    max = output_hats[i][j];
+                    maxIndex = j;
+                }
+
             }
-            if(sum < Math.pow(10, -1) && sum > - Math.pow(10, -1))
+//            if(sum < Math.pow(10, -1) && sum > - Math.pow(10, -1))
+//                trues++;
+//            else
+//                falses++;
+            if(maxIndex == i / 50)
                 trues++;
             else
                 falses++;
@@ -129,7 +140,7 @@ public class BackPropagation {
         ArrayList<Integer> shuffler = new ArrayList<>();
         for(int i = 0; i < input_number; i++) shuffler.add(i);
 
-        for(int trial = 0; trial < number_of_epochs + 1000; trial++) {
+        for(int trial = 0; trial < number_of_epochs; trial++) {
             Collections.shuffle(shuffler);
             for (int i = 0; i < input_number; i++) {
                 int theInput = shuffler.get(i);

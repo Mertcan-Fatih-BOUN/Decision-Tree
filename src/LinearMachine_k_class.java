@@ -3,6 +3,7 @@ import com.joptimizer.functions.LinearMultivariateRealFunction;
 import com.joptimizer.functions.PDQuadraticMultivariateRealFunction;
 import com.joptimizer.optimizers.JOptimizer;
 import com.joptimizer.optimizers.OptimizationRequest;
+import matlabcontrol.MatlabInvocationException;
 import matlabcontrol.MatlabProxy;
 import matlabcontrol.MatlabProxyFactory;
 import matlabcontrol.extensions.MatlabNumericArray;
@@ -28,6 +29,9 @@ public class LinearMachine_k_class {
     public static int SAMPLE_SIZE = 0;
     public static String[] CLASS_NAMES = new String[]{};
 
+    static int graphs = 0;
+    static int xmin = 0, xmax = 0;
+
     public static MatlabProxyFactory factory;
     public static MatlabProxy proxy;
 
@@ -38,6 +42,8 @@ public class LinearMachine_k_class {
     public static ArrayList<double[]> w_s = new ArrayList<>();
 
     public static void main(String[] args) throws Exception {
+        factory = new MatlabProxyFactory();
+        proxy = factory.getProxy();
 
         try {
             readDataSet("data_set_66.data.txt");
@@ -46,16 +52,14 @@ public class LinearMachine_k_class {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        factory = new MatlabProxyFactory();
-        proxy = factory.getProxy();
+        plotPoints();
 
         createLeafNodes();
 
         for(int i = 0; i < log(REQUIRED_CLASS_COUNT); i++)
             findClosestNodes(i);
 
-        for(int i = nodes.size() - 1; i >= REQUIRED_CLASS_COUNT; i--) {
+        for(int i = nodes.size() - 1; i >= REQUIRED_CLASS_COUNT - (CLASS_COUNT - REQUIRED_CLASS_COUNT); i--) {
             String classes1 = "";
             String classes2 = "";
             for(int j = 0; j < nodes.get(i).classes[0].length; j++){
@@ -71,7 +75,9 @@ public class LinearMachine_k_class {
             classify(nodes.get(i), empty);
         }
 
+        graph_all();
         proxy.disconnect();
+//        proxy.exit();
 //        System.out.println(nodes.get(6).classes[0][0] + " " + nodes.get(6).classes[0][1] + " " + nodes.get(6).classes[1][0] + " " + nodes.get(6).classes[1][1]);
 //        System.out.println(nodes.get(4).classes[0][0] + " " + nodes.get(4).classes[1][0] + " " + nodes.get(5).classes[0][0] + " " + nodes.get(5).classes[1][0]);
         /*for(int i = 0; i < CLASS_COUNT - 1; i++){
@@ -80,6 +86,8 @@ public class LinearMachine_k_class {
             }
         }*/
     }
+
+
 
     private static void createLeafNodes() {
         double log_c_count = log(CLASS_COUNT);
@@ -345,9 +353,9 @@ public class LinearMachine_k_class {
             }
         }
         System.out.println("");
-//        for(int j = 0; j < (n.classes[1].length - n.classes[0].length) * classInstanceSize; j++){
-//            currentInstances.add(currentInstances.get(r.nextInt(currentInstances.size())));
-//        }
+        for(int j = 0; j < (n.classes[1].length - n.classes[0].length) * classInstanceSize; j++){
+            currentInstances.add(currentInstances.get(r.nextInt(currentInstances.size())));
+        }
         for(int j = 0; j < n.classes[1].length; j++) {
             System.out.println(n.classes[1][j]);
             for (int i = n.classes[1][j] * classInstanceSize; i < n.classes[1][j] * classInstanceSize + classInstanceSize; i++) {
@@ -355,13 +363,15 @@ public class LinearMachine_k_class {
                 currentInstances.add(instances.get(i));
             }
         }
-//        for(int j = 0; j < (n.classes[0].length - n.classes[1].length) * classInstanceSize; j++){
-//            currentInstances.add(currentInstances.get(n.classes[0].length * classInstanceSize + r.nextInt(50)));
-//        }
+        for(int j = 0; j < (n.classes[0].length - n.classes[1].length) * classInstanceSize; j++){
+            currentInstances.add(currentInstances.get(n.classes[0].length * classInstanceSize + r.nextInt(50)));
+        }
+
 
 
 
         int size = currentInstances.size();
+
         double[][] H = new double[size][size];
 
         for(int i = 0; i < size; i++){
@@ -372,24 +382,11 @@ public class LinearMachine_k_class {
             }
         }
 
-        double[] alpha = new double[size];
-        for(int i = 0; i < size; i++) alpha[i] = Math.pow(10, 0);
-
-        double[] q = new double[size];
-        for(int i = 0; i < size; i++) q[i] = -1;
 
         double[][] A = new double[1][size];
         double[][] Aeq = new double[1][size];
-        double[] b = new double[]{0};
-//        for(int i = 0; i < size / 2; i++) A[0][i] = 1;
-//        for(int i = size / 2; i < size; i++) A[0][i] = -1;
-        for(int i = 0; i < n.classes[0].length * classInstanceSize; i++) A[0][i] = 0;
-        for(int i = n.classes[0].length * classInstanceSize; i < size; i++) A[0][i] = 0;
 
-        for(int i = 0; i < n.classes[0].length * classInstanceSize; i++) Aeq[0][i] = 1;
-        for(int i = n.classes[0].length * classInstanceSize; i < size; i++) Aeq[0][i] = -1;
-
-
+        for(int i = 0; i < size; i++) {Aeq[0][i] = currentInstances.get(i).classCode; A[0][i] = 0;}
 
 
         //Send the array to MATLAB, transpose it, then retrieve it and convert it to a 2D double array
@@ -398,10 +395,10 @@ public class LinearMachine_k_class {
         proxy.eval("q = ones(1, " + size + ") * -1");
         processor.setNumericArray("Aeq", new MatlabNumericArray(Aeq, null));
         processor.setNumericArray("A", new MatlabNumericArray(A, null));
-        proxy.eval("b = ones(1,1) * 0");
+        proxy.eval("b = ones(1,1) * 1");
         proxy.eval("beq = ones(1,1) * 0");
-        proxy.eval("lb = ones(1, " + size + ") * 0");
-        proxy.eval("ub = ones(1, " + size + ") * 100000");
+        proxy.eval("lb = ones(1, " + size + ") * -0.000001");
+        proxy.eval("ub = ones(1, " + size + ") * 10000");
 
         proxy.eval("options = optimoptions(@quadprog, 'Algorithm', 'active-set')");
         proxy.eval("x = quadprog(H,q,A,b,Aeq,beq,lb,ub)");
@@ -470,8 +467,7 @@ public class LinearMachine_k_class {
             }
         }
 
-        for(double d:w)
-            System.out.println(empty + d);
+
 
         double bb = 0;
         for(int i = 0; i < supports.size(); i++){
@@ -482,7 +478,11 @@ public class LinearMachine_k_class {
             bb += tmp;
         }
         bb = 1.0 / supports.size() * bb;
-        System.out.println(empty + "b vector\n" + empty + bb);
+
+
+
+
+
 
         int trues = 0;
         int falses = 0;
@@ -498,7 +498,50 @@ public class LinearMachine_k_class {
             else
                 falses++;
         }
+        if(falses < 5000) {
+            for (double d : w)
+                System.out.println(empty + d);
+            System.out.println(empty + "b vector\n" + empty + bb);
+            graph(w, bb);
+        }else
+            classify(n, empty);
         System.out.println(empty + "trues: " + trues + " falses: " + falses);
+    }
+
+    private static void graph(double[] w, double bb) throws MatlabInvocationException {
+        if(w.length == 2){
+
+            proxy.eval("y" + graphs + "= " + w[0]/-w[1] + " * xlin" + " + " + bb/-w[1] );
+            graphs++;
+        }
+    }
+
+    private static void graph_all() throws MatlabInvocationException {
+        proxy.eval("figure");
+        String plot = "plot(xlin,y0";
+        for(int i = 1; i < graphs; i++){
+            plot += ",xlin,y" + i;
+        }
+        plot += ",points_x, points_y, '.')";
+        proxy.eval(plot);
+    }
+
+    private static void plotPoints() throws MatlabInvocationException {
+        if(ATTRIBUTE_COUNT == 2){
+            String points_x = "[" + instances.get(0).attributes[0];
+            String points_y = "[" + instances.get(0).attributes[1];
+            for(int i = 1; i < instances.size(); i++){
+                points_x += "," + instances.get(i).attributes[0];
+                points_y += "," + instances.get(i).attributes[1];
+            }
+            points_x += "]";
+            points_y += "]";
+            proxy.eval("points_x = " + points_x);
+            proxy.eval("points_y = " + points_y);
+            proxy.eval("xmin = min(points_x) - 50");
+            proxy.eval("xmax = max(points_x) + 50");
+            proxy.eval("xlin = linspace(xmin, xmax)");
+        }
     }
 
     private static double dotProduct(double[] array1, double[] array2) {
