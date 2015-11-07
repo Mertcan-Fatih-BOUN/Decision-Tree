@@ -8,13 +8,15 @@ import java.util.Scanner;
 
 public class SDT {
 
-    public static final int LEARNING_RATE = 1;
-    public static final int EPOCH = 20;
-    public static final String TRAINING_SET_FILENAME = "ringnorm-train-1-1.txt";
-    public static final String VALIDATION_SET_FILENAME = "ringnorm-validation-1-1.txt";
+    public static final double LEARNING_RATE = 10;
+    public static final int MAX_STEP = 10;
+    public static final int EPOCH = 25;
+    public static final String TRAINING_SET_FILENAME = "breast-train-1-1.txt";
+    public static final String VALIDATION_SET_FILENAME = "breast-validation-1-1.txt";
     public static int ATTRIBUTE_COUNT;
     public static Node ROOT;
 
+    public static ArrayList<String> CLASS_NAMES = new ArrayList<>();
 
     static class Node {
         Node parent = null;
@@ -25,14 +27,45 @@ public class SDT {
         double w0;
         double[] w = new double[ATTRIBUTE_COUNT];
 
+        Node() {
+            this.w0 = rand(-0.005, 0.005);
+        }
 
-        double F(Instance instance) {
+        public void setChildren(Node l, Node r) {
+            this.leftNode = l;
+            this.rightNode = r;
+            this.isLeaf = false;
+            l.parent = this;
+            r.parent = this;
+            l.isLeft = true;
+            r.isLeft = false;
+
+            this.w0 = rand(-0.005, 0.005);
+
+            for (int i = 0; i < this.w.length; i++)
+                this.w[i] = rand(-0.005, 0.005);
+
+
+        }
+
+        public void deleteChilderen() {
+            this.isLeaf = true;
+            this.leftNode = null;
+            this.rightNode = null;
+        }
+
+        private double F(Instance instance) {
+            double r;
             if (this.isLeaf) {
-                return this.w0;
+                r = this.w0;
             } else {
                 double g = this.g(instance);
-                return this.leftNode.F(instance) * g + this.rightNode.F(instance) * (1 - g);
+                r = this.leftNode.F(instance) * g + this.rightNode.F(instance) * (1 - g);
             }
+            if (this.parent == null)
+                return sigmoid(r);
+            else
+                return r;
         }
 
 
@@ -42,6 +75,7 @@ public class SDT {
         }
 
     }
+
 
     static class Instance {
         int classNumber;
@@ -62,6 +96,7 @@ public class SDT {
         }
     }
 
+
     public static void main(String[] args) throws IOException {
         Locale.setDefault(Locale.US);
         ArrayList<Instance> X = new ArrayList<>();
@@ -71,21 +106,19 @@ public class SDT {
         readFile(V, VALIDATION_SET_FILENAME);
 
 
-//        for (Instance i : X)
-//            System.out.println(i.toString());
-
         ROOT = new Node();
         //TODO C kodunda gördüm, paperda bulamadım
-        ROOT.w0 = 0;
-        for (Instance instance : X)
-            ROOT.w0 += instance.classNumber;
-        ROOT.w0 /= X.size();
+//        ROOT.w0 = 0;
+//        for (Instance instance : X)
+//            ROOT.w0 += instance.classNumber;
+//        ROOT.w0 /= X.size();
+
         //TODO end
 
         LearnSoftTree(ROOT, X, V);
 
-        System.out.println(1 - ErrorOfTree(X));
-        System.out.println(1 - ErrorOfTree(V));
+        System.out.println(ErrorOfTree(X));
+        System.out.println(ErrorOfTree(V));
 
 
     }
@@ -109,7 +142,15 @@ public class SDT {
             for (int i = 0; i < ATTRIBUTE_COUNT; i++) {
                 attributes[i] = scanner.nextDouble();
             }
-            int classNumber = scanner.nextInt();
+            String className = scanner.next();
+
+            int classNumber;
+            if (CLASS_NAMES.contains(className)) {
+                classNumber = CLASS_NAMES.indexOf(className);
+            } else {
+                CLASS_NAMES.add(className);
+                classNumber = CLASS_NAMES.indexOf(className);
+            }
             I.add(new Instance(classNumber, attributes));
         }
 
@@ -118,49 +159,66 @@ public class SDT {
     private static void LearnSoftTree(Node m, ArrayList<Instance> X, ArrayList<Instance> V) {
         System.out.println("here");
         double error_before = ErrorOfTree(V);
-        for (int i = 0; i < m.w.length; i++)
-            m.w[i] = rand(-0.01, 0.01);
+
+        double bestlw0 = 0;
+        double bestrw0 = 0;
+        double[] bestw = new double[ATTRIBUTE_COUNT];
+        double bestw0 = 0;
+        double previous_m_w0 = m.w0;
+
+        double best_error = 1e10;
+
+        for (int step = 0; step < MAX_STEP; step++) {
+            double rate = LEARNING_RATE / (2 ^ (step + 1));
+            m.setChildren(new Node(), new Node());
+            for (int i = 0; i < EPOCH; i++) {
+                //TODO Shuffle
+                for (Instance x : X) {
+                    double d = ROOT.F(x) - x.classNumber;
+                    Node t = m;
+                    while (t.parent != null) {
+                        Node p = t.parent;
+                        if (t.isLeft)
+                            d = d * p.g(x);
+                        else
+                            d = d * (1 - p.g(x));
+                        t = p;
+                    }
+                    double vmx = m.g(x);
+                    double b = d * (m.leftNode.F(x) - m.rightNode.F(x));
+                    for (int j = 0; j < m.w.length; j++)
+                        m.w[j] -= rate * b * vmx * (1 - vmx) * x.attributes[j];
 
 
-        m.leftNode = new Node();
-        m.leftNode.isLeft = true;
-
-        m.rightNode = new Node();
-        m.rightNode.isLeft = false;
-
-        m.leftNode.w0 = rand(-0.01, 0.01);
-        m.rightNode.w0 = rand(-0.01, 0.01);
-
-
-        for (int i = 0; i < EPOCH; i++) {
-            //TODO Shuffle
-            for (Instance x : X) {
-                double d = ROOT.F(x) - x.classNumber;
-                Node t = m;
-                while (t.parent != null) {
-                    Node p = t.parent;
-                    if (t.isLeft)
-                        d = d * p.g(x);
-                    else
-                        d = d * (1 - p.g(x));
-                    t = p;
+                    m.leftNode.w0 -= rate * d * vmx;
+                    m.rightNode.w0 -= rate * d * (1 - vmx);
                 }
-                double vmx = m.g(x);
-                double b = d * (m.leftNode.F(x) - m.rightNode.F(x));
-                for (int j = 0; j < m.w.length; j++)
-                    m.w[j] = m.w[j] - LEARNING_RATE * b * vmx * (1 - vmx) * x.attributes[j];
-                m.leftNode.w0 -= LEARNING_RATE * d * vmx;
-                m.rightNode.w0 -= LEARNING_RATE * d * (1 - vmx);
             }
+
+            double new_error = ErrorOfTree(V);
+
+            if (new_error < best_error) {
+                bestw = m.w;
+                bestlw0 = m.leftNode.w0;
+                bestrw0 = m.rightNode.w0;
+                bestw0 = m.w0;
+                best_error = new_error;
+            }
+            m.deleteChilderen();
         }
 
-        double error_after = ErrorOfTree(V);
-
-        if (error_after < error_before) {
+        if (best_error + 1e-3 < error_before) {
+            m.setChildren(new Node(), new Node());
+            m.leftNode.w0 = bestlw0;
+            m.rightNode.w0 = bestrw0;
+            m.w = bestw;
+            m.w0 = bestw0;
             LearnSoftTree(m.leftNode, X, V);
             LearnSoftTree(m.rightNode, X, V);
+        } else {
+            m.deleteChilderen();
+            m.w0 = previous_m_w0;
         }
-
     }
 
 
@@ -170,6 +228,7 @@ public class SDT {
             e = s;
             s = t;
         }
+
         return (e - s) * Math.random() + s;
     }
 
@@ -179,7 +238,13 @@ public class SDT {
         for (Instance instance : V) {
             double r = instance.classNumber;
             double y = ROOT.F(instance);
-            error += r * Math.log(y) + (1 - r) * Math.log(1 - y);
+            //System.out.println(r + "\t" + y);
+            if (y > 0.5) {
+                if (r != 1)
+                    error++;
+            } else if (r != 0)
+                error++;
+
 
         }
         return error / V.size();
@@ -188,7 +253,7 @@ public class SDT {
 
 
     private static double sigmoid(double x) {
-        return 1 / (1 + Math.exp(-x));
+        return 1.0 / (1 + Math.exp(-x));
     }
 
     private static double dotProduct(double[] x, double[] y) {
