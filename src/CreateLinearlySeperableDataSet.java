@@ -15,15 +15,15 @@ public class CreateLinearlySeperableDataSet {
     public static void main(String[] args){
         String dataSet = "";
         String draw = "";
-        for(int i = 0; i < 8; i++){
+        for(int i = 0; i < 3; i++){
             for(int j = 0; j < 50; j++){
                 int a1 = r.nextInt(50) + i * 100;
                 int a2 = r.nextInt(50) + i * 100;
-                dataSet += a1 + "," + a2 + "," + (char)('a' + i) + "\n";
+                dataSet += a1 + "," + a2 + "," + a1 + "," + a2 + "," + (char)('a' + i) + "\n";
                 draw += "(" + a1 + "," + a2 + "),";
             }
         }
-        writeToFile(dataSet, "data_set_8.data.txt");
+        writeToFile(dataSet, "data_set_1_4.data.txt");
         System.out.println(draw);
     }
 

@@ -15,7 +15,7 @@ public class MultiLayerNetwork {
     Neuron[] input_neurons;
     Neuron[] hidden_neurons;
     Neuron[] output_neurons;
-    double learn_rate = 0.01;
+    double learn_rate = 0.05;
 
     public MultiLayerNetwork(int input_layer, int hidden_layer, int output_layer){
         this.hidden_layer = hidden_layer;

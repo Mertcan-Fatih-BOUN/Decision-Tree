@@ -17,10 +17,10 @@ public class BackPropagation {
     public static MultiLayerNetwork multi_perceptron;
     public static Random r = new Random();
     public final static int input_number = 150;
-    public final static int hidden_neuron_number = 0;
+    public final static int hidden_neuron_number = 2;
     public final static int input_dimension = 4;
     public final static int output_dimension = 3;
-    public final static int number_of_epochs = 100;
+    public final static int number_of_epochs = 1000;
     public static double[][] inputs = new double[input_number][input_dimension];
     public static double[][] outputs = new double[input_number][output_dimension];
     public static double[][] output_hats = new double[input_number][output_dimension];
@@ -34,8 +34,8 @@ public class BackPropagation {
         multi_perceptron = new MultiLayerNetwork(input_dimension,hidden_neuron_number,output_dimension);
 
         try {
-            readDataSet("data_set_66.data.txt");
-//            readDataSet("iris.data.txt");
+//            readDataSet("data_set_1_4.data.txt");
+            readDataSet("iris.data.txt");
 //            readDataSet("sensor_readings_2.data.txt");
         } catch (IOException e) {
             e.printStackTrace();
@@ -145,6 +145,7 @@ public class BackPropagation {
             for (int i = 0; i < input_number; i++) {
                 int theInput = shuffler.get(i);
                 double[] output_hat = feed_forward(inputs[theInput]);
+//                System.out.println(toString1dArray(inputs[theInput]) + " " + toString1dArray(output_hat) + " " + toString1dArray(outputs[theInput]));
                 output_hats[theInput] = output_hat;
                 if(multi_perceptron.hidden_layer != 0) {
                     for (int j = 0; j < B2.length; j++) {
@@ -226,9 +227,6 @@ public class BackPropagation {
                     sum_hidden_neuron_i += multi_perceptron.input_neurons[j].output * multi_perceptron.W1[i][j];
                 }
                 multi_perceptron.hidden_neurons[i].feed_neuron(sum_hidden_neuron_i);
-                if(multi_perceptron.hidden_layer == 0){
-                    output_hat[i] = multi_perceptron.hidden_neurons[i].output;
-                }
             }
 
             for (int i = 0; i < multi_perceptron.output_layer; i++) {
@@ -248,6 +246,7 @@ public class BackPropagation {
                 }
                 multi_perceptron.hidden_neurons[i].feed_neuron(sum_hidden_neuron_i);
                 output_hat[i] = multi_perceptron.hidden_neurons[i].output;
+//                output_hat[i] = sum_hidden_neuron_i;
             }
         }
 
@@ -304,6 +303,13 @@ public class BackPropagation {
 //                outputs[a] = new double[]{0, 0, 1, 0};
 //            }else if(parts[parts.length - 1].equals("d")){
 //                outputs[a] = new double[]{0, 0, 0, 1};
+//            }
+//            if(parts[parts.length - 1].equals("a")){
+//                outputs[a] = new double[]{1, 0, 0};
+//            }else if(parts[parts.length - 1].equals("b")){
+//                outputs[a] = new double[]{0, 1, 0};
+//            }else if(parts[parts.length - 1].equals("c")){
+//                outputs[a] = new double[]{0, 0, 1};
 //            }
             a++;
         }
