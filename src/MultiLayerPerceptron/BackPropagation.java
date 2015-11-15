@@ -1,13 +1,13 @@
 package MultiLayerPerceptron;
 
+import Utils.Instance;
+import Utils.Util;
+
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Random;
+import java.util.*;
 
 /**
  * Created by mertcan on 21.10.2015.
@@ -21,6 +21,7 @@ public class BackPropagation {
     public final static int input_dimension = 4;
     public final static int output_dimension = 3;
     public final static int number_of_epochs = 1000;
+    public static ArrayList<Instance> instances = new ArrayList<>();
     public static double[][] inputs = new double[input_number][input_dimension];
     public static double[][] outputs = new double[input_number][output_dimension];
     public static double[][] output_hats = new double[input_number][output_dimension];
@@ -34,72 +35,13 @@ public class BackPropagation {
         multi_perceptron = new MultiLayerNetwork(input_dimension,hidden_neuron_number,output_dimension);
 
         try {
-//            readDataSet("data_set_1_4.data.txt");
-            readDataSet("iris.data.txt");
-//            readDataSet("sensor_readings_2.data.txt");
+//            Util.readFile(instances, "iris.data.txt");
+            Util.readFile(instances, "iris.data.v2.txt");
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        /*inputs[0][0] = 0.35;
-        inputs[0][1] = 0.9;
-
-        outputs[0][0] = 0.5;
-
-        for(int i = 1; i < 100; i++){
-            inputs[i][0] = 0.35;
-            inputs[i][1] = 0.9;
-
-            outputs[i][0] = 0.5;
-        }
-
-        multi_perceptron.W1[0][0] = 0.1;
-        multi_perceptron.W1[1][0] = 0.4;
-
-        multi_perceptron.W1[0][1] = 0.8;
-        multi_perceptron.W1[1][1] = 0.6;
-
-        multi_perceptron.W2[0][0] = 0.3;
-        multi_perceptron.W2[0][1] = 0.9;*/
-
-       /* inputs[0][0] = 0.1;
-        inputs[0][1] = 0.1;
-
-        inputs[1][0] = 0.2;
-        inputs[1][1] = 0.2;
-
-        inputs[2][0] = 0.3;
-        inputs[2][1] = 0.3;
-
-        outputs[0][0] = 0.1;
-        outputs[0][1] = 0.1;
-
-        outputs[1][0] = 0.2;
-        outputs[1][1] = 0.2;
-
-        outputs[2][0] = 0.2;
-        outputs[2][1] = 0.2;
-
-        for(int i = 1; i < 30; i++){
-            inputs[i * 3][0] = 0.1;
-            inputs[i * 3][1] = 0.1;
-
-            inputs[i * 3 + 1][0] = 0.2;
-            inputs[i * 3 + 1][1] = 0.2;
-
-            inputs[i * 3 + 2][0] = 0.3;
-            inputs[i * 3 + 2][1] = 0.3;
-
-            outputs[i * 3][0] = 0.1;
-            outputs[i * 3][1] = 0.1;
-
-            outputs[i * 3 + 1][0] = 0.2;
-            outputs[i * 3 + 1][1] = 0.2;
-
-            outputs[i * 3 + 2][0] = 0.3;
-            outputs[i * 3 + 2][1] = 0.3;
-        }*/
-
+        createArrays();
 
         train_backPropagate();
 
@@ -127,6 +69,18 @@ public class BackPropagation {
                 falses++;
         }
         System.out.println("True: " + trues + " False: " + falses + " Percentage: " + ((double) trues / input_number));
+    }
+
+    private static void createArrays() {
+        for(int a = 0; a < instances.size(); a++) {
+            Instance T = instances.get(a);
+            for (int i = 0; i < Util.ATTRIBUTE_COUNT; i++) {
+                inputs[a][i] = T.attributes[i];
+            }
+            outputs[a] = new double[Util.CLASS_COUNT];
+            Arrays.fill(outputs[a], 0);
+            outputs[a][T.classNumber] = 1;
+        }
     }
 
     private static void train_backPropagate() {
@@ -273,47 +227,4 @@ public class BackPropagation {
         return s;
     }
 
-    private static void readDataSet(String s) throws IOException {
-        FileInputStream fstream = new FileInputStream(s);
-        BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
-
-        String strLine;
-        boolean firstLine = true;
-        int a = 0;
-        while ((strLine = br.readLine()) != null) {
-            String[] parts = strLine.split(",");
-            if (firstLine) {
-                firstLine = false;
-            }
-            for (int i = 0; i < parts.length - 1; i++) {
-                inputs[a][i] = Double.parseDouble(parts[i]);
-            }
-            if(parts[parts.length - 1].equals("Iris-setosa")){
-                outputs[a] = new double[]{1, 0, 0};
-            }else if(parts[parts.length - 1].equals("Iris-versicolor")){
-                outputs[a] = new double[]{0, 1, 0};
-            }else if(parts[parts.length - 1].equals("Iris-virginica")){
-                outputs[a] = new double[]{0, 0, 1};
-            }
-//            if(parts[parts.length - 1].equals("a")){
-//                outputs[a] = new double[]{1, 0, 0, 0};
-//            }else if(parts[parts.length - 1].equals("b")){
-//                outputs[a] = new double[]{0, 1, 0, 0};
-//            }else if(parts[parts.length - 1].equals("c")){
-//                outputs[a] = new double[]{0, 0, 1, 0};
-//            }else if(parts[parts.length - 1].equals("d")){
-//                outputs[a] = new double[]{0, 0, 0, 1};
-//            }
-//            if(parts[parts.length - 1].equals("a")){
-//                outputs[a] = new double[]{1, 0, 0};
-//            }else if(parts[parts.length - 1].equals("b")){
-//                outputs[a] = new double[]{0, 1, 0};
-//            }else if(parts[parts.length - 1].equals("c")){
-//                outputs[a] = new double[]{0, 0, 1};
-//            }
-            a++;
-        }
-
-        br.close();
-    }
 }

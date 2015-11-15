@@ -1,4 +1,8 @@
-import c45.Node;
+package SVM;
+
+import Utils.Instance;
+import Utils.Node;
+import Utils.Util;
 import com.joptimizer.functions.ConvexMultivariateRealFunction;
 import com.joptimizer.functions.LinearMultivariateRealFunction;
 import com.joptimizer.functions.PDQuadraticMultivariateRealFunction;
@@ -24,14 +28,10 @@ import java.util.Random;
  */
 public class LinearMachine_k_class {
 
-    public static int CLASS_COUNT = 0;
     public static int REQUIRED_CLASS_COUNT = 0;
-    public static int ATTRIBUTE_COUNT = 0;
     public static int SAMPLE_SIZE = 0;
-    public static String[] CLASS_NAMES = new String[]{};
 
     static int graphs = 0;
-    static int xmin = 0, xmax = 0;
 
     public static MatlabProxyFactory factory;
     public static MatlabProxy proxy;
@@ -40,19 +40,19 @@ public class LinearMachine_k_class {
     public static ArrayList<Node> nodes = new ArrayList<>();
     public static ArrayList<Instance> instances = new ArrayList<>();
 
-    public static ArrayList<double[]> w_s = new ArrayList<>();
 
     public static void main(String[] args) throws Exception {
         factory = new MatlabProxyFactory();
         proxy = factory.getProxy();
 
         try {
-            readDataSet("data_set_66.data.txt");
-//            readDataSet("iris.data.txt");
-//            readDataSet("sensor_readings_2.data.txt");
+//            Util.readFile(instances, "data_set_66.data.txt");
+//            Util.readFile(instances, "iris.data.txt");
+            Util.readFile(instances, "iris.data.v2.txt");
         } catch (IOException e) {
             e.printStackTrace();
         }
+        SAMPLE_SIZE = instances.size() / Util.CLASS_COUNT;
         plotPoints();
 
         createLeafNodes();
@@ -60,14 +60,14 @@ public class LinearMachine_k_class {
         for(int i = 0; i < log(REQUIRED_CLASS_COUNT); i++)
             findClosestNodes(i);
 
-        for(int i = nodes.size() - 1; i >= REQUIRED_CLASS_COUNT - (CLASS_COUNT - REQUIRED_CLASS_COUNT); i--) {
+        for(int i = nodes.size() - 1; i >= REQUIRED_CLASS_COUNT - (Util.CLASS_COUNT - REQUIRED_CLASS_COUNT); i--) {
             String classes1 = "";
             String classes2 = "";
             for(int j = 0; j < nodes.get(i).classes[0].length; j++){
-                classes1 += CLASS_NAMES[nodes.get(i).classes[0][j]] + " ";
+                classes1 += Util.CLASS_NAMES.get(nodes.get(i).classes[0][j]) + " ";
             }
             for(int j = 0; j < nodes.get(i).classes[1].length; j++){
-                classes2 += CLASS_NAMES[nodes.get(i).classes[1][j]] + " ";
+                classes2 += Util.CLASS_NAMES.get(nodes.get(i).classes[1][j]) + " ";
             }
             String empty = "";
             for(int j = 0; j < (int)log(nodes.size() - i); j++)
@@ -78,27 +78,19 @@ public class LinearMachine_k_class {
 
         graph_all();
         proxy.disconnect();
-//        proxy.exit();
-//        System.out.println(nodes.get(6).classes[0][0] + " " + nodes.get(6).classes[0][1] + " " + nodes.get(6).classes[1][0] + " " + nodes.get(6).classes[1][1]);
-//        System.out.println(nodes.get(4).classes[0][0] + " " + nodes.get(4).classes[1][0] + " " + nodes.get(5).classes[0][0] + " " + nodes.get(5).classes[1][0]);
-        /*for(int i = 0; i < CLASS_COUNT - 1; i++){
-            for(int j = i + 1; j < CLASS_COUNT; j++){
-                classify(i, j);
-            }
-        }*/
     }
 
 
 
     private static void createLeafNodes() {
-        double log_c_count = log(CLASS_COUNT);
-        for(int i = 0; i < CLASS_COUNT; i++)
-            nodes.add(new Node(CLASS_NAMES[i], findMassCenter(i, instances), i));
+        double log_c_count = log(Util.CLASS_COUNT);
+        for(int i = 0; i < Util.CLASS_COUNT; i++)
+            nodes.add(new Node(Util.CLASS_NAMES.get(i), findMassCenter(i, instances), i));
         if(Math.abs(log_c_count - (int) log_c_count) > Math.pow(10, -10)){
             REQUIRED_CLASS_COUNT = (int) Math.pow(2, (int) log_c_count);
             groupSomeClasses();
         }else{
-            REQUIRED_CLASS_COUNT = CLASS_COUNT;
+            REQUIRED_CLASS_COUNT = Util.CLASS_COUNT;
         }
 
 
@@ -107,7 +99,7 @@ public class LinearMachine_k_class {
     private static void groupSomeClasses() {
         double[][] distanceMatrix = createInitialDistancesMatrix(nodes);
 
-        int size = CLASS_COUNT;
+        int size = Util.CLASS_COUNT;
 
 
         int[] columns = new int[size - 1];
@@ -133,22 +125,22 @@ public class LinearMachine_k_class {
         for(int i = 0; i < size -1; i++)
             System.out.println(columns[i]);
         int grouped = 0;
-        int[] nodes_to_remove = new int[(CLASS_COUNT - REQUIRED_CLASS_COUNT) * 2];
-        while(grouped != CLASS_COUNT - REQUIRED_CLASS_COUNT) {
+        int[] nodes_to_remove = new int[(Util.CLASS_COUNT - REQUIRED_CLASS_COUNT) * 2];
+        while(grouped != Util.CLASS_COUNT - REQUIRED_CLASS_COUNT) {
             Random r = new Random();
             int i = r.nextInt(size - 1);
             if(columns[i] == 0)
                 continue;
-            double[] massCenter = new double[ATTRIBUTE_COUNT];
-            for(int j = 0; j < ATTRIBUTE_COUNT; j++) {
+            double[] massCenter = new double[Util.ATTRIBUTE_COUNT];
+            for(int j = 0; j < Util.ATTRIBUTE_COUNT; j++) {
                 massCenter[j] = (nodes.get(i).massCenter[j] + nodes.get(columns[i]).massCenter[j]) / 2;
             }
             Node n = new Node(nodes.get(i).name + "___" + nodes.get(columns[i]).name, massCenter);
             n.initiallyCreated = true;
             n.leftNode = nodes.get(i);
             n.rightNode = nodes.get(columns[i]);
-            nodes.get(i).parentNode = n;
-            nodes.get(columns[i]).parentNode = n;
+            nodes.get(i).parent = n;
+            nodes.get(columns[i]).parent = n;
             n.isLeaf = false;
             n.classes = new int[2][1];
             n.classes[0][0] = n.leftNode.id;
@@ -169,8 +161,8 @@ public class LinearMachine_k_class {
             String classes2 = "";
             if(!nodes.get(i).isLeaf)
             for(int j = 0; j < nodes.get(i).classes[0].length; j++){
-                classes1 += CLASS_NAMES[nodes.get(i).classes[0][j]] + " ";
-                classes2 += CLASS_NAMES[nodes.get(i).classes[1][j]] + " ";
+                classes1 += Util.CLASS_NAMES.get(nodes.get(i).classes[0][j]) + " ";
+                classes2 += Util.CLASS_NAMES.get(nodes.get(i).classes[1][j]) + " ";
             }
             System.out.println(nodes.get(i).id + " " + nodes.get(i).name + " " + classes1 + " " + classes2);
         }
@@ -178,7 +170,7 @@ public class LinearMachine_k_class {
     }
 
     private static double[][] createInitialDistancesMatrix(ArrayList<Node> nodes) {
-        int size = CLASS_COUNT;
+        int size = Util.CLASS_COUNT;
         double[][] distances = new double[size][size];
         for(int i = 0; i < size; i++){
             for(int j = i + 1; j < size; j++){
@@ -232,15 +224,15 @@ public class LinearMachine_k_class {
             if(columns[i] == 0)
                 continue;
             int nodeOrder = sum_2_powers_times_class_count(level);
-            double[] massCenter = new double[ATTRIBUTE_COUNT];
-            for(int j = 0; j < ATTRIBUTE_COUNT; j++) {
+            double[] massCenter = new double[Util.ATTRIBUTE_COUNT];
+            for(int j = 0; j < Util.ATTRIBUTE_COUNT; j++) {
                 massCenter[j] = (nodes.get(i + nodeOrder).massCenter[j] + nodes.get(columns[i] + nodeOrder).massCenter[j]) / 2;
             }
             Node n = new Node(nodes.get(i + nodeOrder).name + "___" + nodes.get(columns[i] + nodeOrder).name, massCenter);
             n.leftNode = nodes.get(i + nodeOrder);
             n.rightNode = nodes.get(columns[i] + nodeOrder);
-            nodes.get(i + nodeOrder).parentNode = n;
-            nodes.get(columns[i] + nodeOrder).parentNode = n;
+            nodes.get(i + nodeOrder).parent = n;
+            nodes.get(columns[i] + nodeOrder).parent = n;
             n.isLeaf = false;
             n.classes = new int[2][];
             if(!n.leftNode.isLeaf) {
@@ -275,14 +267,6 @@ public class LinearMachine_k_class {
 
     private static double estimateCost(int i, int i1, double[][] distanceMatrix, int size) {
         double sum = 0;
-//        for(int a = i + 1; a < size; a++)
-//            sum -= distanceMatrix[i][a];
-//        for(int a = 0; a < i; a++)
-//            sum -= distanceMatrix[a][i];
-//        for(int a = i1 + 1; a < size; a++)
-//            sum -= distanceMatrix[i1][a];
-//        for(int a = 0; a < i1; a++)
-//            sum -= distanceMatrix[a][i1];
         for(int a = 0; a < size; a++)
             sum -= distanceMatrix[i][a];
         for(int a = 0; a < size; a++)
@@ -329,13 +313,13 @@ public class LinearMachine_k_class {
     }
 
     private static double[] findMassCenter(int i, ArrayList<Instance> instances) {
-        double massCenter[] = new double[ATTRIBUTE_COUNT];
+        double massCenter[] = new double[Util.ATTRIBUTE_COUNT];
         for(int k = i * SAMPLE_SIZE; k < i * SAMPLE_SIZE + SAMPLE_SIZE; k++){
-            for(int j = 0; j < ATTRIBUTE_COUNT; j++){
+            for(int j = 0; j < Util.ATTRIBUTE_COUNT; j++){
                 massCenter[j] += instances.get(k).attributes[j];
             }
         }
-        for(int j = 0; j < ATTRIBUTE_COUNT; j++){
+        for(int j = 0; j < Util.ATTRIBUTE_COUNT; j++){
             massCenter[j] /= SAMPLE_SIZE;
         }
 
@@ -343,7 +327,7 @@ public class LinearMachine_k_class {
     }
 
     private static void classify(Node n, String empty) throws Exception {
-        int classInstanceSize = instances.size() / CLASS_COUNT;
+        int classInstanceSize = SAMPLE_SIZE;
         ArrayList<Instance> currentInstances = new ArrayList<>();
         Random r = new Random();
         for(int j = 0; j < n.classes[0].length; j++) {
@@ -354,8 +338,8 @@ public class LinearMachine_k_class {
             }
         }
         System.out.println("");
-        for(int j = 0; j < (n.classes[1].length - n.classes[0].length) * classInstanceSize; j++){
-            currentInstances.add(currentInstances.get(r.nextInt(currentInstances.size())));
+        for(int j = 0; j < (n.classes[1].length - n.classes[0].length) * classInstanceSize * 2; j++){
+            currentInstances.add(currentInstances.get(j));
         }
         for(int j = 0; j < n.classes[1].length; j++) {
             System.out.println(n.classes[1][j]);
@@ -367,8 +351,6 @@ public class LinearMachine_k_class {
         for(int j = 0; j < (n.classes[0].length - n.classes[1].length) * classInstanceSize; j++){
             currentInstances.add(currentInstances.get(n.classes[0].length * classInstanceSize + r.nextInt(50)));
         }
-
-
 
 
         int size = currentInstances.size();
@@ -401,7 +383,7 @@ public class LinearMachine_k_class {
         proxy.eval("lb = ones(1, " + size + ") * -0.000001");
         proxy.eval("ub = ones(1, " + size + ") * 10000");
 
-        proxy.eval("options = optimoptions(@quadprog, 'Algorithm', 'active-set')");
+        //proxy.eval("options = optimoptions(@quadprog, 'Algorithm', 'active-set')");
         proxy.eval("x = quadprog(H,q,A,b,Aeq,beq,lb,ub)");
 
         double[][] solution = processor.getNumericArray("x").getRealArray2D();
@@ -412,41 +394,6 @@ public class LinearMachine_k_class {
             sol[i] = solution[i][0];
         }
 
-
-
-        /*
-        PDQuadraticMultivariateRealFunction objectiveFunction = new PDQuadraticMultivariateRealFunction(H, q, 0);
-
-
-        ConvexMultivariateRealFunction[] inequalities = new ConvexMultivariateRealFunction[size];
-
-//        double[] tmp = new double[size];
-//        for(int j = 0; j < size; j++) tmp[j] = 0;
-//        tmp[0] = -1;
-        for(int i = 0; i < size; i++){
-            double[] tmp = new double[size];
-            for(int j = 0; j < size; j++) tmp[j] = 0;
-            tmp[i] = -1;
-            inequalities[i] = new LinearMultivariateRealFunction(tmp, -Math.pow(10, -7));
-//            tmp[i] = 0;
-//            tmp[i + 1] = -1;
-        }
-
-
-        OptimizationRequest or = new OptimizationRequest();
-        or.setF0(objectiveFunction);
-        or.setInitialPoint(alpha);
-        or.setA(A);
-        or.setB(b);
-        or.setFi(inequalities);
-        or.setToleranceFeas(1.E-12);
-        or.setTolerance(1.E-12);
-
-
-        JOptimizer opt = new JOptimizer();
-        opt.setOptimizationRequest(or);
-        int returnCode = opt.optimize();
-        double[] sol = opt.getOptimizationResponse().getSolution();*/
         ArrayList<Integer> supports = new ArrayList<>();
 
         for(int i = 0; i < size; i++){
@@ -456,14 +403,10 @@ public class LinearMachine_k_class {
                 supports.add(i);
             }
         }
-//        for(double d:sol)
-//        System.out.println(d);
-//
-//        System.out.println(dotProduct(A[0], sol));
 
-        double[] w = new double[ATTRIBUTE_COUNT];
+        double[] w = new double[Util.ATTRIBUTE_COUNT];
         for(int i = 0; i < size; i++){
-            for(int j = 0; j < ATTRIBUTE_COUNT; j++){
+            for(int j = 0; j < Util.ATTRIBUTE_COUNT; j++){
                 w[j] += sol[i] * currentInstances.get(i).classCode * currentInstances.get(i).attributes[j];
             }
         }
@@ -518,17 +461,19 @@ public class LinearMachine_k_class {
     }
 
     private static void graph_all() throws MatlabInvocationException {
-        proxy.eval("figure");
-        String plot = "plot(xlin,y0";
-        for(int i = 1; i < graphs; i++){
-            plot += ",xlin,y" + i;
+        if(Util.ATTRIBUTE_COUNT == 2) {
+            proxy.eval("figure");
+            String plot = "plot(xlin,y0";
+            for (int i = 1; i < graphs; i++) {
+                plot += ",xlin,y" + i;
+            }
+            plot += ",points_x, points_y, '.')";
+            proxy.eval(plot);
         }
-        plot += ",points_x, points_y, '.')";
-        proxy.eval(plot);
     }
 
     private static void plotPoints() throws MatlabInvocationException {
-        if(ATTRIBUTE_COUNT == 2){
+        if(Util.ATTRIBUTE_COUNT == 2){
             String points_x = "[" + instances.get(0).attributes[0];
             String points_y = "[" + instances.get(0).attributes[1];
             for(int i = 1; i < instances.size(); i++){
@@ -555,51 +500,4 @@ public class LinearMachine_k_class {
         return sum;
     }
 
-    private static void readDataSet(String s) throws IOException {
-        FileInputStream fstream = new FileInputStream(s);
-        BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
-
-        String strLine;
-        boolean firstLine = true;
-        while ((strLine = br.readLine()) != null) {
-            String[] parts = strLine.split(",");
-            if(firstLine){
-                firstLine = false;
-                ATTRIBUTE_COUNT = parts.length - 1;
-            }
-            Instance instance = new Instance(parts[parts.length - 1]);
-            for (int i = 0; i < parts.length - 1; i++) {
-                instance.attributes[i] = Double.parseDouble(parts[i]);
-            }
-            instances.add(instance);
-        }
-
-        br.close();
-
-        findDataSetsAttributes(instances);
-    }
-
-    private static void findDataSetsAttributes(ArrayList<Instance> instances) {
-        ArrayList<String> classNames = new ArrayList<>();
-        for(int i = 0; i < instances.size(); i++){
-            if(i == 0)
-                ATTRIBUTE_COUNT = instances.get(0).attributes.length;
-            if(!classNames.contains(instances.get(i).className)){
-                CLASS_COUNT++;
-                classNames.add(instances.get(i).className);
-            }
-        }
-        CLASS_NAMES = classNames.toArray(CLASS_NAMES);
-        SAMPLE_SIZE = instances.size() / CLASS_COUNT;
-    }
-
-    public static class Instance {
-        public double attributes[] = new double[ATTRIBUTE_COUNT];
-        public String className;
-        public int classCode = -1;
-
-        public Instance(String name) {
-            className = name;
-        }
-    }
 }

@@ -1,4 +1,6 @@
-import c45.Node;
+import Utils.Instance;
+import Utils.Node;
+import Utils.Util;
 import matlabcontrol.MatlabConnectionException;
 import matlabcontrol.MatlabInvocationException;
 import matlabcontrol.MatlabProxy;
@@ -14,9 +16,9 @@ import java.util.Arrays;
 
 public class C45 {
 
-    public static int CLASS_COUNT = 0;
-    public static int ATTRIBUTE_COUNT = 0;
-    public static String[] CLASS_NAMES = new String[]{};
+//    public static int Util.CLASS_COUNT = 0;
+//    public static int Util.ATTRIBUTE_COUNT = 0;
+//    public static String[] Util.CLASS_NAMES = new String[]{};
     public static MatlabProxyFactory factory;
     public static MatlabProxy proxy;
 
@@ -28,12 +30,13 @@ public class C45 {
         factory = new MatlabProxyFactory();
         proxy = factory.getProxy();
         try {
-            readDataSet("data_set_66.data.txt");
-//            readDataSet("iris.data.txt");
-//            readDataSet("sensor_readings_2.data.txt");
+//            Util.readFile(instances, "data_set_66.data.txt");
+//            Util.readFile(instances, "iris.data.txt");
+            Util.readFile(instances, "iris.data.v2.txt");
         } catch (IOException e) {
             e.printStackTrace();
         }
+        
         plotPoints();
 
         double infoT = info(instances);
@@ -95,12 +98,12 @@ public class C45 {
     }
 
     private static String findMostFreqClass(ArrayList<Instance> instances) {
-        int[] frequencies = new int[CLASS_COUNT];
+        int[] frequencies = new int[Util.CLASS_COUNT];
         Arrays.fill(frequencies, 0);
 
         for (Instance instance : instances) {
-            for (int i = 0; i < CLASS_COUNT; i++) {
-                if (instance.className.equals(CLASS_NAMES[i])) {
+            for (int i = 0; i < Util.CLASS_COUNT; i++) {
+                if (instance.className.equals(Util.CLASS_NAMES.get(i))) {
                     frequencies[i]++;
                     break;
                 }
@@ -115,7 +118,7 @@ public class C45 {
             }
         }
 
-        return CLASS_NAMES[maxIndex];
+        return Util.CLASS_NAMES.get(maxIndex);
     }
 
 
@@ -150,7 +153,7 @@ public class C45 {
             double bestInfoT2 = -2;
 
 
-            for (int attribute_id = 0; attribute_id < ATTRIBUTE_COUNT; attribute_id++) {
+            for (int attribute_id = 0; attribute_id < Util.ATTRIBUTE_COUNT; attribute_id++) {
 
                 double values[] = new double[T.size()];
                 for (int j = 0; j < values.length; j++) {
@@ -199,7 +202,7 @@ public class C45 {
     }
     static int graphs = 0;
     private static void graph(int attributeNumber, double value) throws MatlabInvocationException {
-        if(ATTRIBUTE_COUNT == 2){
+        if(Util.ATTRIBUTE_COUNT == 2){
             if(attributeNumber == 0){
                 matlab.add("[" + value + " " + value + "], get(gca,'ylim')");
             }else {
@@ -214,7 +217,7 @@ public class C45 {
         double sum = 0;
         int[] freq = freq(T);
         double size = (double) T.size();
-        for (int i = 0; i < CLASS_COUNT; i++) {
+        for (int i = 0; i < Util.CLASS_COUNT; i++) {
             if (freq[i] > 0)
                 sum -= (freq[i] / size) * log(freq[i] / size);
         }
@@ -222,12 +225,12 @@ public class C45 {
     }
 
     private static int[] freq(ArrayList<Instance> T) {
-        int[] freq = new int[CLASS_COUNT];
+        int[] freq = new int[Util.CLASS_COUNT];
         Arrays.fill(freq, 0);
 
         for (Instance instance : T) {
-            for (int i = 0; i < CLASS_COUNT; i++) {
-                if (instance.className.equals(CLASS_NAMES[i])) {
+            for (int i = 0; i < Util.CLASS_COUNT; i++) {
+                if (instance.className.equals(Util.CLASS_NAMES.get(i))) {
                     freq[i]++;
                     break;
                 }
@@ -236,60 +239,26 @@ public class C45 {
         return freq;
     }
 
-    private static void readDataSet(String s) throws IOException {
-        FileInputStream fstream = new FileInputStream(s);
-        BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
-
-        String strLine;
-        boolean firstLine = true;
-        while ((strLine = br.readLine()) != null) {
-            String[] parts = strLine.split(",");
-            if(firstLine){
-                firstLine = false;
-                ATTRIBUTE_COUNT = parts.length - 1;
-            }
-            Instance instance = new Instance(parts[parts.length - 1]);
-            for (int i = 0; i < parts.length - 1; i++) {
-                instance.attributes[i] = Double.parseDouble(parts[i]);
-            }
-            instances.add(instance);
-        }
-
-        br.close();
-
-        findDataSetsAttributes(instances);
-    }
-
-    private static void findDataSetsAttributes(ArrayList<Instance> instances) {
-        ArrayList<String> classNames = new ArrayList<>();
-        for(int i = 0; i < instances.size(); i++){
-            if(i == 0)
-                ATTRIBUTE_COUNT = instances.get(0).attributes.length;
-            if(!classNames.contains(instances.get(i).className)){
-                CLASS_COUNT++;
-                classNames.add(instances.get(i).className);
-            }
-        }
-        CLASS_NAMES = classNames.toArray(CLASS_NAMES);
-    }
     private static void graph_all() throws MatlabInvocationException {
-        proxy.eval("figure");
-        String plot = "";
-        plot = "plot(";
-        for(int i = 0; i < graphs; i++){
-            plot += "xlin,y" + i + ",";
+        if(Util.ATTRIBUTE_COUNT == 2) {
+            proxy.eval("figure");
+            String plot = "";
+            plot = "plot(";
+            for (int i = 0; i < graphs; i++) {
+                plot += "xlin,y" + i + ",";
+            }
+            for (int i = 0; i < matlab.size(); i++) {
+                plot += matlab.get(i) + ",";
+            }
+            plot += "points_x, points_y, '.')";
+            System.out.println(plot);
+            proxy.eval(plot);
+            proxy.eval(plot);
         }
-        for(int i = 0; i < matlab.size(); i++){
-            plot += matlab.get(i) + ",";
-        }
-        plot += "points_x, points_y, '.')";
-        System.out.println(plot);
-        proxy.eval(plot);
-        proxy.eval(plot);
     }
 
     private static void plotPoints() throws MatlabInvocationException {
-        if(ATTRIBUTE_COUNT == 2){
+        if(Util.ATTRIBUTE_COUNT == 2){
             String points_x = "[" + instances.get(0).attributes[0];
             String points_y = "[" + instances.get(0).attributes[1];
             for(int i = 1; i < instances.size(); i++){
@@ -300,18 +269,13 @@ public class C45 {
             points_y += "]";
             proxy.eval("points_x = " + points_x);
             proxy.eval("points_y = " + points_y);
-            proxy.eval("xmin = min(points_x) - 50");
-            proxy.eval("xmax = max(points_x) + 50");
+            proxy.eval("xmin = min(points_x)");
+            proxy.eval("xmax = max(points_x)");
+            proxy.eval("difference = xmax - xmin");
+            proxy.eval("xmin = xmin - (difference) / 3");
+            proxy.eval("xmax = xmax + (difference) / 3");
             proxy.eval("xlin = linspace(xmin, xmax)");
         }
     }
 
-    public static class Instance {
-        public double attributes[] = new double[ATTRIBUTE_COUNT];
-        public String className;
-
-        public Instance(String name) {
-            className = name;
-        }
-    }
 }
