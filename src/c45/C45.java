@@ -5,12 +5,10 @@ import matlabcontrol.MatlabConnectionException;
 import matlabcontrol.MatlabInvocationException;
 import matlabcontrol.MatlabProxy;
 import matlabcontrol.MatlabProxyFactory;
+import matlabcontrol.extensions.MatlabNumericArray;
+import matlabcontrol.extensions.MatlabTypeConverter;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -21,14 +19,18 @@ public class C45 {
 //    public static String[] Util.CLASS_NAMES = new String[]{};
     public static MatlabProxyFactory factory;
     public static MatlabProxy proxy;
+    public static MatlabTypeConverter processor;
 
     public static ArrayList<String> matlab = new ArrayList<>();
 
     public static ArrayList<Instance> instances = new ArrayList<>();
 
+    public static Node root;
+
     public static void main(String[] args) throws MatlabConnectionException, MatlabInvocationException {
         factory = new MatlabProxyFactory();
         proxy = factory.getProxy();
+        processor = new MatlabTypeConverter(proxy);
         try {
 //            Util.readFile(instances, "data_set_66.data.txt");
 //            Util.readFile(instances, "iris.data.txt");
@@ -36,13 +38,12 @@ public class C45 {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        
-        plotPoints();
+
 
         double infoT = info(instances);
 
 
-        Node root = getNode(instances, infoT, -1, -1);
+        root = getNode(instances, infoT, -1, -1);
 
         boolean cleaned = cleanTree(root);
         while (cleaned)
@@ -60,6 +61,7 @@ public class C45 {
         }
 
         System.out.println("Test: " + (double) trueC / (trueC + falseC));
+        plotPoints();
         graph_all();
         proxy.disconnect();
     }
@@ -254,6 +256,18 @@ public class C45 {
             System.out.println(plot);
             proxy.eval(plot);
             proxy.eval(plot);
+            proxy.eval("figure");
+            proxy.eval("surf(xg,yg,zg)");
+            proxy.eval("figure");
+            proxy.eval("surfc(xg,yg,zg)");
+//            proxy.eval("figure");
+//            proxy.eval("surfc(zg)");
+            proxy.eval("figure");
+            String v = "[1";
+            for(int i = 2; i < Util.CLASS_COUNT; i++)
+                v += " " + i;
+            v += "]";
+            proxy.eval("contour(xg,yg,zg, " + v + ", 'ShowText','on')");
         }
     }
 
@@ -275,7 +289,35 @@ public class C45 {
             proxy.eval("xmin = xmin - (difference) / 3");
             proxy.eval("xmax = xmax + (difference) / 3");
             proxy.eval("xlin = linspace(xmin, xmax)");
+            proxy.eval("xlin2 = linspace(xmin, xmax,30)");
+            proxy.eval("ymin = min(points_y)");
+            proxy.eval("ymax = max(points_y)");
+            proxy.eval("difference_y = ymax - ymin");
+            proxy.eval("ymin = ymin - (difference_y) / 3");
+            proxy.eval("ymax = ymax + (difference_y) / 3");
+            proxy.eval("ylin = linspace(ymin, ymax,30)");
+            proxy.eval("[xg, yg] = meshgrid(xlin2, ylin)");
+            double[][] xg = processor.getNumericArray("xg").getRealArray2D();
+            double[][] yg = processor.getNumericArray("yg").getRealArray2D();
+            double[][] zg = new double[xg.length][xg[0].length];
+            for(int i = 0; i < xg.length; i++){
+                for(int j = 0; j < xg[0].length; j++){
+                    zg[i][j] = findClass(root, new Instance(new double[]{xg[i][j], yg[i][j]}));
+//                    System.out.print(zg[i][j]);
+                }
+//                System.out.println();
+            }
+            processor.setNumericArray("zg", new MatlabNumericArray(zg, null));
         }
+    }
+
+    private static double findClass(Node node, Instance i) {
+        if (node.isLeaf) {
+            return Util.CLASS_NAMES.indexOf(node.name);
+        } else if (i.attributes[node.attributeNumber] <= node.value)
+            return findClass(node.leftNode, i);
+        else
+            return findClass(node.rightNode, i);
     }
 
 }

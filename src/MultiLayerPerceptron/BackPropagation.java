@@ -2,11 +2,14 @@ package MultiLayerPerceptron;
 
 import Utils.Instance;
 import Utils.Util;
+import matlabcontrol.MatlabConnectionException;
+import matlabcontrol.MatlabInvocationException;
+import matlabcontrol.MatlabProxy;
+import matlabcontrol.MatlabProxyFactory;
+import matlabcontrol.extensions.MatlabNumericArray;
+import matlabcontrol.extensions.MatlabTypeConverter;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.*;
 
 /**
@@ -18,7 +21,7 @@ public class BackPropagation {
     public static Random r = new Random();
     public final static int input_number = 150;
     public final static int hidden_neuron_number = 2;
-    public final static int input_dimension = 4;
+    public final static int input_dimension = 2;
     public final static int output_dimension = 3;
     public final static int number_of_epochs = 1000;
     public static ArrayList<Instance> instances = new ArrayList<>();
@@ -31,7 +34,14 @@ public class BackPropagation {
     public static double[] B1 = new double[hidden_neuron_number];
     public static double[][] G1 = new double[hidden_neuron_number][input_dimension];
 
-    public static void main(String[] args){
+    public static MatlabProxyFactory factory;
+    public static MatlabProxy proxy;
+    public static MatlabTypeConverter processor;
+
+    public static void main(String[] args) throws MatlabConnectionException, MatlabInvocationException {
+        factory = new MatlabProxyFactory();
+        proxy = factory.getProxy();
+        processor = new MatlabTypeConverter(proxy);
         multi_perceptron = new MultiLayerNetwork(input_dimension,hidden_neuron_number,output_dimension);
 
         try {
@@ -41,10 +51,91 @@ public class BackPropagation {
             e.printStackTrace();
         }
 
+
         createArrays();
 
         train_backPropagate();
 
+        test();
+
+        plotPoints();
+        graph_all();
+    }
+
+
+    private static void plotPoints() throws MatlabInvocationException {
+        if(Util.ATTRIBUTE_COUNT == 2){
+            String points_x = "[" + instances.get(0).attributes[0];
+            String points_y = "[" + instances.get(0).attributes[1];
+            for(int i = 1; i < instances.size(); i++){
+                points_x += "," + instances.get(i).attributes[0];
+                points_y += "," + instances.get(i).attributes[1];
+            }
+            points_x += "]";
+            points_y += "]";
+            proxy.eval("points_x = " + points_x);
+            proxy.eval("points_y = " + points_y);
+            proxy.eval("xmin = min(points_x)");
+            proxy.eval("xmax = max(points_x)");
+            proxy.eval("difference = xmax - xmin");
+            proxy.eval("xmin = xmin - (difference) / 3");
+            proxy.eval("xmax = xmax + (difference) / 3");
+            proxy.eval("xlin = linspace(xmin, xmax)");
+            proxy.eval("xlin2 = linspace(xmin, xmax,50)");
+            proxy.eval("ymin = min(points_y)");
+            proxy.eval("ymax = max(points_y)");
+            proxy.eval("difference_y = ymax - ymin");
+            proxy.eval("ymin = ymin - (difference_y) / 3");
+            proxy.eval("ymax = ymax + (difference_y) / 3");
+            proxy.eval("ylin = linspace(ymin, ymax,50)");
+            proxy.eval("[xg, yg] = meshgrid(xlin2, ylin)");
+            double[][] xg = processor.getNumericArray("xg").getRealArray2D();
+            double[][] yg = processor.getNumericArray("yg").getRealArray2D();
+            double[][] zg = new double[xg.length][xg[0].length];
+            for(int i = 0; i < xg.length; i++){
+                for(int j = 0; j < xg[0].length; j++){
+                    zg[i][j] = findClass(new Instance(new double[]{xg[i][j], yg[i][j]}));
+//                    System.out.print(zg[i][j]);
+                }
+//                System.out.println();
+            }
+            processor.setNumericArray("zg", new MatlabNumericArray(zg, null));
+        }
+    }
+
+    private static double findClass(Instance i) {
+        double[] results = feed_forward(i.attributes);
+        System.out.println(toString1dArray(i.attributes) + " " + toString1dArray(results));
+        double max = 0;
+        int maxIndex = 0;
+        for(int j = 0; j < results.length; j++){
+            if(results[j] > max){
+                max = results[j];
+                maxIndex = j;
+            }
+        }
+        return maxIndex;
+    }
+
+    private static void graph_all() throws MatlabInvocationException {
+        if(Util.ATTRIBUTE_COUNT == 2) {
+            proxy.eval("figure");
+            proxy.eval("surf(xg,yg,zg)");
+            proxy.eval("figure");
+            proxy.eval("surfc(xg,yg,zg)");
+//            proxy.eval("figure");
+//            proxy.eval("surfc(zg)");
+            proxy.eval("figure");
+            String v = "[1";
+            for(int i = 2; i < Util.CLASS_COUNT; i++)
+                v += " " + i;
+            v += "]";
+            proxy.eval("contour(xg,yg,zg, " + v + ", 'ShowText','on')");
+        }
+    }
+
+
+    private static void test() {
         int trues = 0;
         int falses = 0;
         for(int i = 0; i < input_number; i++){
