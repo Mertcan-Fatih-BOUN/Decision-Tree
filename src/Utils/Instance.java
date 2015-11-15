@@ -21,6 +21,10 @@ public class Instance {
         this.attributes = attributes;
     }
 
+    public Instance(double[] attributes) {
+        this.attributes = attributes;
+    }
+
     public Instance(String className, int classNumber, double[] attributes) {
         this.classNumber = classNumber;
         this.attributes = attributes;

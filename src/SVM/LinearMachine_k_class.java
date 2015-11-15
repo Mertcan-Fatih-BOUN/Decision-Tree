@@ -35,6 +35,7 @@ public class LinearMachine_k_class {
 
     public static MatlabProxyFactory factory;
     public static MatlabProxy proxy;
+    public static MatlabTypeConverter processor;
 
 
     public static ArrayList<Node> nodes = new ArrayList<>();
@@ -44,6 +45,7 @@ public class LinearMachine_k_class {
     public static void main(String[] args) throws Exception {
         factory = new MatlabProxyFactory();
         proxy = factory.getProxy();
+        processor = new MatlabTypeConverter(proxy);
 
         try {
 //            Util.readFile(instances, "data_set_66.data.txt");
@@ -53,6 +55,7 @@ public class LinearMachine_k_class {
             e.printStackTrace();
         }
         SAMPLE_SIZE = instances.size() / Util.CLASS_COUNT;
+
         plotPoints();
 
         createLeafNodes();
@@ -75,7 +78,7 @@ public class LinearMachine_k_class {
             System.out.println(empty + "The hyperplane to seperate classes " + classes1 + "from " + classes2 + "is:");
             classify(nodes.get(i), empty);
         }
-
+        plotPoints2();
         graph_all();
         proxy.disconnect();
     }
@@ -331,7 +334,7 @@ public class LinearMachine_k_class {
         ArrayList<Instance> currentInstances = new ArrayList<>();
         Random r = new Random();
         for(int j = 0; j < n.classes[0].length; j++) {
-            System.out.println(n.classes[0][j]);
+           // System.out.println(n.classes[0][j]);
             for (int i = n.classes[0][j] * classInstanceSize; i < n.classes[0][j] * classInstanceSize + classInstanceSize; i++) {
                 instances.get(i).classCode = 1;
                 currentInstances.add(instances.get(i));
@@ -342,7 +345,7 @@ public class LinearMachine_k_class {
             currentInstances.add(currentInstances.get(j));
         }
         for(int j = 0; j < n.classes[1].length; j++) {
-            System.out.println(n.classes[1][j]);
+           // System.out.println(n.classes[1][j]);
             for (int i = n.classes[1][j] * classInstanceSize; i < n.classes[1][j] * classInstanceSize + classInstanceSize; i++) {
                 instances.get(i).classCode = -1;
                 currentInstances.add(instances.get(i));
@@ -373,7 +376,7 @@ public class LinearMachine_k_class {
 
 
         //Send the array to MATLAB, transpose it, then retrieve it and convert it to a 2D double array
-        MatlabTypeConverter processor = new MatlabTypeConverter(proxy);
+
         processor.setNumericArray("H", new MatlabNumericArray(H, null));
         proxy.eval("q = ones(1, " + size + ") * -1");
         processor.setNumericArray("Aeq", new MatlabNumericArray(Aeq, null));
@@ -426,7 +429,8 @@ public class LinearMachine_k_class {
 
 
 
-
+        n.w0 = bb;
+        n.w = w;
 
         int trues = 0;
         int falses = 0;
@@ -469,6 +473,17 @@ public class LinearMachine_k_class {
             }
             plot += ",points_x, points_y, '.')";
             proxy.eval(plot);
+
+            proxy.eval("figure");
+            proxy.eval("surf(xg,yg,zg)");
+            proxy.eval("figure");
+            proxy.eval("surfc(xg,yg,zg)");
+            proxy.eval("figure");
+            String v = "[1";
+            for(int i = 2; i < Util.CLASS_COUNT; i++)
+                v += " " + i;
+            v += "]";
+            proxy.eval("contour(xg,yg,zg, " + v + ", 'ShowText','on')");
         }
     }
 
@@ -484,9 +499,53 @@ public class LinearMachine_k_class {
             points_y += "]";
             proxy.eval("points_x = " + points_x);
             proxy.eval("points_y = " + points_y);
-            proxy.eval("xmin = min(points_x) - 50");
-            proxy.eval("xmax = max(points_x) + 50");
+            proxy.eval("xmin = min(points_x)");
+            proxy.eval("xmax = max(points_x)");
+            proxy.eval("difference = xmax - xmin");
+            proxy.eval("xmin = xmin - (difference) / 3");
+            proxy.eval("xmax = xmax + (difference) / 3");
             proxy.eval("xlin = linspace(xmin, xmax)");
+        }
+    }
+
+    private static void plotPoints2() throws MatlabInvocationException {
+        if(Util.ATTRIBUTE_COUNT == 2){
+            proxy.eval("xlin2 = linspace(xmin, xmax,30)");
+            proxy.eval("ymin = min(points_y)");
+            proxy.eval("ymax = max(points_y)");
+            proxy.eval("difference_y = ymax - ymin");
+            proxy.eval("ymin = ymin - (difference_y) / 3");
+            proxy.eval("ymax = ymax + (difference_y) / 3");
+            proxy.eval("ylin = linspace(ymin, ymax,30)");
+            proxy.eval("[xg, yg] = meshgrid(xlin2, ylin)");
+            double[][] xg = processor.getNumericArray("xg").getRealArray2D();
+            double[][] yg = processor.getNumericArray("yg").getRealArray2D();
+            double[][] zg = new double[xg.length][xg[0].length];
+            System.out.println(nodes.size());
+            for(int i = 0; i < xg.length; i++){
+                for(int j = 0; j < xg[0].length; j++){
+                    zg[i][j] = findClass(nodes.get(nodes.size() - 1), new Instance(new double[]{xg[i][j], yg[i][j]}));
+//                    System.out.print(zg[i][j]);
+                }
+//                System.out.println();
+            }
+            processor.setNumericArray("zg", new MatlabNumericArray(zg, null));
+        }
+    }
+
+    private static double findClass(Node node, Instance i) {
+        if(dotProduct(node.w, i.attributes) + node.w0 > 0.0001){
+            if(node.classes[0].length == 1)
+                return node.classes[0][0];
+            else{
+                return findClass(node.leftNode, i);
+            }
+        }else{
+            if(node.classes[1].length == 1)
+                return node.classes[1][0];
+            else{
+                return findClass(node.rightNode, i);
+            }
         }
     }
 
