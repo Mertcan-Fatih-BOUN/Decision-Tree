@@ -1,66 +1,62 @@
 package SDT;
 
-import Utils.Instance;
-import Utils.Node;
-import Utils.Util;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Locale;
+import java.util.Scanner;
+
 public class SDT {
+    public double LEARNING_RATE;
+    public int MAX_STEP;
+    public int EPOCH;
+    public String TRAINING_SET_FILENAME;
+    public String VALIDATION_SET_FILENAME;
+    public String TEST_SET_FILENAME;
+    public int ATTRIBUTE_COUNT;
+    public ArrayList<String> CLASS_NAMES = new ArrayList<>();
 
-    public static final double LEARNING_RATE = 10;
-    public static final int MAX_STEP = 10;
-    public static final int EPOCH = 25;
-    public static final String TRAINING_SET_FILENAME = "breast-train-1-1.txt";
-    public static final String VALIDATION_SET_FILENAME = "breast-validation-1-1.txt";
-//    public static final String TRAINING_SET_FILENAME = "data_set_sdt_2.data.txt";
-//    public static final String VALIDATION_SET_FILENAME = "data_set_sdt_2.data.txt";
+    ArrayList<Instance> X = new ArrayList<>();
+    ArrayList<Instance> V = new ArrayList<>();
+    ArrayList<Instance> T = new ArrayList<>();
 
-    public static Node ROOT;
+    public boolean isClassify;
 
+    public Node ROOT;
 
-
-
-
-
-    public static void main(String[] args) throws IOException {
-        Locale.setDefault(Locale.US);
-        ArrayList<Instance> X = new ArrayList<>();
-        ArrayList<Instance> V = new ArrayList<>();
-
-        Util.readFile(X, TRAINING_SET_FILENAME);
-        Util.readFile(V, VALIDATION_SET_FILENAME);
+    public SDT(String training, String validation, String test, boolean isClassify, double learning_rate, int epıch, int max_step) throws IOException {
 
 
-        ROOT = new Node();
-        //TODO C kodunda gördüm, paperda bulamadım
-//        ROOT.w0 = 0;
-//        for (Instance instance : X)
-//            ROOT.w0 += instance.classNumber;
-//        ROOT.w0 /= X.size();
-
-        //TODO end
-
-        System.out.println(ErrorOfTree(X));
-        System.out.println(ErrorOfTree(V));
-
-        LearnSoftTree(ROOT, X, V);
-
-        System.out.println(ErrorOfTree(X));
-        System.out.println(ErrorOfTree(V));
+        this.LEARNING_RATE = learning_rate;
+        this.MAX_STEP = max_step;
+        this.EPOCH = epıch;
+        this.TRAINING_SET_FILENAME = training;
+        this.VALIDATION_SET_FILENAME = validation;
+        this.TEST_SET_FILENAME = test;
+        this.isClassify = isClassify;
 
 
-        print_results(V);
+        readFile(X, TRAINING_SET_FILENAME);
+        readFile(V, VALIDATION_SET_FILENAME);
+        readFile(T, TEST_SET_FILENAME);
     }
 
-    private static void LearnSoftTree(Node m, ArrayList<Instance> X, ArrayList<Instance> V) {
-        System.out.println("here");
+    public void learnTree() {
+        ROOT = new Node(ATTRIBUTE_COUNT);
+        learnIteration(ROOT, X, V);
+    }
+
+    public String getErrors() {
+        return "Training: " + ErrorOfTree(X) + " Validation: " + ErrorOfTree(V) + " Test: " + ErrorOfTree(T);
+    }
+
+
+    private void learnIteration(Node m, ArrayList<Instance> X, ArrayList<Instance> V) {
         double error_before = ErrorOfTree(V);
 
         double bestlw0 = 0;
         double bestrw0 = 0;
-        double[] bestw = new double[Util.ATTRIBUTE_COUNT];
+        double[] bestw = new double[ATTRIBUTE_COUNT];
         double bestw0 = 0;
         double previous_m_w0 = m.w0;
 
@@ -68,11 +64,11 @@ public class SDT {
 
         for (int step = 0; step < MAX_STEP; step++) {
             double rate = LEARNING_RATE / (2 ^ (step + 1));
-            m.setChildren(new Node(), new Node());
+            m.setChildren(new Node(ATTRIBUTE_COUNT), new Node(ATTRIBUTE_COUNT));
             for (int i = 0; i < EPOCH; i++) {
                 //TODO Shuffle
                 for (Instance x : X) {
-                    double d = ROOT.F(x) - x.classNumber;
+                    double d = ROOT.F(x) - x.classValue;
                     Node t = m;
                     while (t.parent != null) {
                         Node p = t.parent;
@@ -102,82 +98,85 @@ public class SDT {
                 bestw0 = m.w0;
                 best_error = new_error;
             }
-            m.deleteChilderen();
+            m.deleteChildren();
         }
 
         if (best_error + 1e-3 < error_before) {
-            m.setChildren(new Node(), new Node());
+            m.setChildren(new Node(ATTRIBUTE_COUNT), new Node(ATTRIBUTE_COUNT));
             m.leftNode.w0 = bestlw0;
             m.rightNode.w0 = bestrw0;
             m.w = bestw;
             m.w0 = bestw0;
-            LearnSoftTree(m.leftNode, X, V);
-            LearnSoftTree(m.rightNode, X, V);
+            learnIteration(m.leftNode, X, V);
+            learnIteration(m.rightNode, X, V);
         } else {
-            m.deleteChilderen();
+            m.deleteChildren();
             m.w0 = previous_m_w0;
         }
     }
 
-
-//    private static double rand(double s, double e) {
-//        if (e < s) {
-//            double t = e;
-//            e = s;
-//            s = t;
-//        }
-//
-//        return (e - s) * Math.random() + s;
-//    }
-
-    private static double ErrorOfTree(ArrayList<Instance> V) {
-        //TODO C kodunda farklı, PDF'ye göre yapmaya çalıştım
+    private double ErrorOfTree(ArrayList<Instance> V) {
         double error = 0;
         for (Instance instance : V) {
-            double r = instance.classNumber;
-            double y = ROOT.F(instance);
-            //System.out.println(r + "\t" + y);
-            if (y > 0.5) {
-                if (r != 1)
+            if (isClassify) {
+                double r = instance.classValue;
+                double y = ROOT.F(instance);
+                if (y > 0.5) {
+                    if (r != 1)
+                        error++;
+                } else if (r != 0)
                     error++;
-            } else if (r != 0)
-                error++;
-
-
+            } else {
+                double r = instance.classValue;
+                double y = ROOT.F(instance);
+                error += (r - y) * (r - y);
+            }
         }
         return error / V.size();
 
     }
 
-    private static void print_results(ArrayList<Instance> V) {
-        int i = 0;
-        for (Instance instance : V) {
-            double r = instance.classNumber;
-            double y = ROOT.F(instance);
-            //System.out.println(r + "\t" + y);
-            if (y > 0.5) {
-                if (r != 1)
-                    System.out.println("False:   " + i + "th instance is class 0");
-                else
-                    System.out.println("True:   " + i + "th instance is class 1");
-            } else if (r != 0)
-                System.out.println("False:   " + i + "th instance is class 1");
-            else
-                System.out.println("True:   " + i + "th instance is class 0");
+    public String toString() {
+        return ROOT.toString(1);
+    }
 
-            i++;
+    private void readFile(ArrayList<Instance> I, String filename) throws IOException {
+        String line;
+
+        InputStream fis = new FileInputStream(filename);
+        InputStreamReader isr = new InputStreamReader(fis, Charset.forName("UTF-8"));
+        BufferedReader br = new BufferedReader(isr);
+
+        line = br.readLine();
+
+        br.close();
+        String[] s = line.split(" ");
+
+        ATTRIBUTE_COUNT = s.length - 1;
+        Scanner scanner = new Scanner(new File(filename));
+        while (scanner.hasNext()) {
+            double[] attributes = new double[ATTRIBUTE_COUNT];
+            for (int i = 0; i < ATTRIBUTE_COUNT; i++) {
+                attributes[i] = scanner.nextDouble();
+
+            }
+            double classValue;
+
+
+            if (isClassify) {
+                String className = scanner.next();
+                if (CLASS_NAMES.contains(className)) {
+                    classValue = CLASS_NAMES.indexOf(className);
+                } else {
+                    CLASS_NAMES.add(className);
+                    classValue = CLASS_NAMES.indexOf(className);
+                }
+            } else
+                classValue = scanner.nextDouble();
+
+
+            I.add(new Instance(classValue, attributes));
         }
 
     }
-
-//    private static double sigmoid(double x) {
-//        return 1.0 / (1 + Math.exp(-x));
-//    }
-//
-//    private static double dotProduct(double[] x, double[] y) {
-//        double result = 0;
-//        for (int i = 0; i < x.length; i++)
-//            result += x[i] * y[i];
-//        return result;
-//    }
 }
