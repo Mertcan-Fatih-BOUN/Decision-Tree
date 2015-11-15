@@ -6,6 +6,8 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+import static SDT.Util.rand;
+
 public class SDT {
     public double LEARNING_RATE;
     public int MAX_STEP;
@@ -43,7 +45,14 @@ public class SDT {
 
     public void learnTree() {
         ROOT = new Node(ATTRIBUTE_COUNT);
-        learnIteration(ROOT, X, V);
+
+        ROOT.w0 = 0;
+        for (Instance i : X)
+            ROOT.w0 += i.classValue;
+        ROOT.w0 /= X.size();
+
+
+        ROOT.splitNode(X,V,this);
     }
 
     public String getErrors() {
@@ -51,71 +60,7 @@ public class SDT {
     }
 
 
-    private void learnIteration(Node m, ArrayList<Instance> X, ArrayList<Instance> V) {
-        double error_before = ErrorOfTree(V);
-
-        double bestlw0 = 0;
-        double bestrw0 = 0;
-        double[] bestw = new double[ATTRIBUTE_COUNT];
-        double bestw0 = 0;
-        double previous_m_w0 = m.w0;
-
-        double best_error = 1e10;
-
-        for (int step = 0; step < MAX_STEP; step++) {
-            double rate = LEARNING_RATE / (2 ^ (step + 1));
-            m.setChildren(new Node(ATTRIBUTE_COUNT), new Node(ATTRIBUTE_COUNT));
-            for (int i = 0; i < EPOCH; i++) {
-                //TODO Shuffle
-                for (Instance x : X) {
-                    double d = ROOT.F(x) - x.classValue;
-                    Node t = m;
-                    while (t.parent != null) {
-                        Node p = t.parent;
-                        if (t.isLeft)
-                            d = d * p.g(x);
-                        else
-                            d = d * (1 - p.g(x));
-                        t = p;
-                    }
-                    double vmx = m.g(x);
-                    double b = d * (m.leftNode.F(x) - m.rightNode.F(x));
-                    for (int j = 0; j < m.w.length; j++)
-                        m.w[j] -= rate * b * vmx * (1 - vmx) * x.attributes[j];
-
-
-                    m.leftNode.w0 -= rate * d * vmx;
-                    m.rightNode.w0 -= rate * d * (1 - vmx);
-                }
-            }
-
-            double new_error = ErrorOfTree(V);
-
-            if (new_error < best_error) {
-                bestw = m.w;
-                bestlw0 = m.leftNode.w0;
-                bestrw0 = m.rightNode.w0;
-                bestw0 = m.w0;
-                best_error = new_error;
-            }
-            m.deleteChildren();
-        }
-
-        if (best_error + 1e-3 < error_before) {
-            m.setChildren(new Node(ATTRIBUTE_COUNT), new Node(ATTRIBUTE_COUNT));
-            m.leftNode.w0 = bestlw0;
-            m.rightNode.w0 = bestrw0;
-            m.w = bestw;
-            m.w0 = bestw0;
-            learnIteration(m.leftNode, X, V);
-            learnIteration(m.rightNode, X, V);
-        } else {
-            m.deleteChildren();
-            m.w0 = previous_m_w0;
-        }
-    }
-
-    private double ErrorOfTree(ArrayList<Instance> V) {
+    double ErrorOfTree(ArrayList<Instance> V) {
         double error = 0;
         for (Instance instance : V) {
             if (isClassify) {

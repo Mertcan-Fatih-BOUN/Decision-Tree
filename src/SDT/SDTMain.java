@@ -7,7 +7,7 @@ import java.util.Locale;
 public class SDTMain {
     public static double LEARNING_RATE = 10;
     public static int MAX_STEP = 10;
-    public static int EPOCH = 10;
+    public static int EPOCH = 25;
 
     public static void main(String[] args) throws IOException {
         Locale.setDefault(Locale.US);
