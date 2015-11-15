@@ -11,8 +11,10 @@ public class SDT {
     public static final double LEARNING_RATE = 10;
     public static final int MAX_STEP = 10;
     public static final int EPOCH = 25;
-    public static final String TRAINING_SET_FILENAME = "breast-train-1-1.txt";
-    public static final String VALIDATION_SET_FILENAME = "breast-validation-1-1.txt";
+//    public static final String TRAINING_SET_FILENAME = "breast-train-1-1.txt";
+//    public static final String VALIDATION_SET_FILENAME = "breast-validation-1-1.txt";
+    public static final String TRAINING_SET_FILENAME = "data_set_sdt_2.data.txt";
+    public static final String VALIDATION_SET_FILENAME = "data_set_sdt_2.data.txt";
     public static int ATTRIBUTE_COUNT;
     public static Node ROOT;
 
@@ -115,12 +117,16 @@ public class SDT {
 
         //TODO end
 
+        System.out.println(ErrorOfTree(X));
+        System.out.println(ErrorOfTree(V));
+
         LearnSoftTree(ROOT, X, V);
 
         System.out.println(ErrorOfTree(X));
         System.out.println(ErrorOfTree(V));
 
 
+        print_results(V);
     }
 
     private static void readFile(ArrayList<Instance> I, String filename) throws IOException {
@@ -133,14 +139,18 @@ public class SDT {
         line = br.readLine();
 
         br.close();
-        String[] s = line.split(" ");
+        String[] s;
+        if(!line.contains(","))
+            s = line.split(" ");
+        else
+            s = line.split(",");
 
         ATTRIBUTE_COUNT = s.length - 1;
         Scanner scanner = new Scanner(new File(filename));
         while (scanner.hasNextDouble()) {
             double[] attributes = new double[ATTRIBUTE_COUNT];
             for (int i = 0; i < ATTRIBUTE_COUNT; i++) {
-                attributes[i] = scanner.nextDouble();
+                attributes[i] = scanner.nextDouble() / 100;
             }
             String className = scanner.next();
 
@@ -251,6 +261,26 @@ public class SDT {
 
     }
 
+    private static void print_results(ArrayList<Instance> V) {
+        int i = 0;
+        for (Instance instance : V) {
+            double r = instance.classNumber;
+            double y = ROOT.F(instance);
+            //System.out.println(r + "\t" + y);
+            if (y > 0.5) {
+                if (r != 1)
+                    System.out.println("False:   " + i + "th instance is class 0");
+                else
+                    System.out.println("True:   " + i + "th instance is class 1");
+            } else if (r != 0)
+                System.out.println("False:   " + i + "th instance is class 1");
+            else
+                System.out.println("True:   " + i + "th instance is class 0");
+
+            i++;
+        }
+
+    }
 
     private static double sigmoid(double x) {
         return 1.0 / (1 + Math.exp(-x));
