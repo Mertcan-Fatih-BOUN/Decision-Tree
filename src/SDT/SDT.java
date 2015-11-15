@@ -5,11 +5,8 @@ import Utils.Node;
 import Utils.Util;
 
 import java.io.*;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Locale;
-import java.util.Scanner;
-
 public class SDT {
 
     public static final double LEARNING_RATE = 10;
@@ -54,7 +51,7 @@ public class SDT {
         System.out.println(ErrorOfTree(V));
 
 
-//        print_results(V);
+        print_results(V);
     }
 
     private static void LearnSoftTree(Node m, ArrayList<Instance> X, ArrayList<Instance> V) {
