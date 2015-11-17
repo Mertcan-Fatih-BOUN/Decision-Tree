@@ -3,6 +3,7 @@ package SDT;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 
 import static SDT.Util.dotProduct;
 import static SDT.Util.rand;
@@ -48,10 +49,13 @@ class Node {
         double dw10p = 0, dw20p = 0, dw0p = 0;
         double dw10, dw20, dw0;
 
+
         for (int e = 0; e < MAX_EPOCH; e++) {
+            ArrayList<Integer> indices = new ArrayList<>();
+            for(int i = 0; i < X.size(); i++) indices.add(i);
+            Collections.shuffle(indices);
             for (int i = 0; i < X.size(); i++) {
-                //TODO Shuffle
-                int j = i;
+                int j = indices.get(i);
                 double[] x = X.get(j).attributes;
                 double r = X.get(j).classValue;
                 double y = tree.eval(X.get(j));
@@ -151,8 +155,8 @@ class Node {
         leftNode.w0 = bestw0l;
         rightNode.w0 = bestw0r;
 
-        if (bestErr + 1e-3 < err) {
-
+        if (bestErr + 0.1 < err) {
+           // System.out.println(err - bestErr );
             leftNode.splitNode(X, V, tree);
             rightNode.splitNode(X, V, tree);
         } else {

@@ -43,7 +43,7 @@ public class SDT {
         readFile(V, VALIDATION_SET_FILENAME);
         readFile(T, TEST_SET_FILENAME);
 
-      //  normalize(X, V, T);
+        normalize(X, V, T);
     }
 
     private void normalize(ArrayList<Instance> x, ArrayList<Instance> v, ArrayList<Instance> t) {
@@ -58,7 +58,8 @@ public class SDT {
             for (Instance ins : x) {
                 stdev += (ins.attributes[i] - mean) * (ins.attributes[i] - mean);
             }
-            stdev = Math.sqrt(stdev / (x.size() - 1));
+            stdev /= (x.size() - 1);
+            stdev = Math.sqrt(stdev);
 
             for (Instance ins : x) {
                 ins.attributes[i] -= mean;
@@ -90,7 +91,10 @@ public class SDT {
     }
 
     public String getErrors() {
-        return "Training: " + (1 - ErrorOfTree(X)) + " Validation: " + (1 - ErrorOfTree(V)) + " Test: " + (1 - ErrorOfTree(T));
+        if (isClassify)
+            return "Training: " + (1 - ErrorOfTree(X)) + " Validation: " + (1 - ErrorOfTree(V)) + " Test: " + (1 - ErrorOfTree(T));
+        else
+            return "Training: " + ErrorOfTree(X) + " Validation: " + ErrorOfTree(V) + " Test: " + ErrorOfTree(T);
     }
 
 

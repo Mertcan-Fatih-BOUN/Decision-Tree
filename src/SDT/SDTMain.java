@@ -13,7 +13,7 @@ public class SDTMain {
         Locale.setDefault(Locale.US);
        // String[] CLASSIFY = new String[]{"breast", "spambase", "twonorm", "ringnorm", "german", "magic", "pima", "polyadenylation", "satellite47", "musk2"};
         String[] REGRESS = new String[]{"abalone", "boston", "add10", "comp", "california", "concrete", "puma8fh", "puma8nh", "puma8fm", "puma8nm"};
-        String[] CLASSIFY = new String[]{ "breast"};
+        String[] CLASSIFY = new String[]{ "spambase"};
 
 //        SDT sdt = new SDT("data_sdt\\breast\\breast-train-1-1.txt", "data_sdt\\breast\\breast-validation-1-1.txt", "data_sdt\\breast\\breast-test.txt", true, LEARNING_RATE, EPOCH, MAX_STEP);
 //        sdt.learnTree();
