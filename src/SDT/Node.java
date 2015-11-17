@@ -122,7 +122,6 @@ class Node {
         double newErr;
 
 
-
         double alpha;
         for (int t = 0; t < tree.MAX_STEP; t++) {
             for (int i = 0; i < ATTRIBUTE_COUNT; i++)
@@ -137,6 +136,7 @@ class Node {
             newErr = tree.ErrorOfTree(V);
 
             if (newErr < bestErr) {
+
                 bestw = w;
                 bestw0 = w0;
                 bestw0l = leftNode.w0;
@@ -145,12 +145,14 @@ class Node {
             }
         }
 
+
         w = bestw;
         w0 = bestw0;
         leftNode.w0 = bestw0l;
         rightNode.w0 = bestw0r;
 
         if (bestErr + 1e-3 < err) {
+
             leftNode.splitNode(X, V, tree);
             rightNode.splitNode(X, V, tree);
         } else {

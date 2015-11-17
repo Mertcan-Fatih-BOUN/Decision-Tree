@@ -42,7 +42,40 @@ public class SDT {
         readFile(X, TRAINING_SET_FILENAME);
         readFile(V, VALIDATION_SET_FILENAME);
         readFile(T, TEST_SET_FILENAME);
+
+      //  normalize(X, V, T);
     }
+
+    private void normalize(ArrayList<Instance> x, ArrayList<Instance> v, ArrayList<Instance> t) {
+        for (int i = 0; i < ATTRIBUTE_COUNT; i++) {
+            double mean = 0;
+            for (Instance ins : x) {
+                mean += ins.attributes[i];
+            }
+            mean /= x.size();
+
+            double stdev = 0;
+            for (Instance ins : x) {
+                stdev += (ins.attributes[i] - mean) * (ins.attributes[i] - mean);
+            }
+            stdev = Math.sqrt(stdev / (x.size() - 1));
+
+            for (Instance ins : x) {
+                ins.attributes[i] -= mean;
+                ins.attributes[i] /= stdev;
+            }
+            for (Instance ins : v) {
+                ins.attributes[i] -= mean;
+                ins.attributes[i] /= stdev;
+            }
+            for (Instance ins : t) {
+                ins.attributes[i] -= mean;
+                ins.attributes[i] /= stdev;
+            }
+
+        }
+    }
+
 
     public void learnTree() {
         ROOT = new Node(ATTRIBUTE_COUNT);
@@ -57,7 +90,7 @@ public class SDT {
     }
 
     public String getErrors() {
-        return "Training: " + ErrorOfTree(X) + " Validation: " + ErrorOfTree(V) + " Test: " + ErrorOfTree(T);
+        return "Training: " + (1 - ErrorOfTree(X)) + " Validation: " + (1 - ErrorOfTree(V)) + " Test: " + (1 - ErrorOfTree(T));
     }
 
 
