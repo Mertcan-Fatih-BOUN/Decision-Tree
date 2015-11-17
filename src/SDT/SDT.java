@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 import static SDT.Util.rand;
+import static SDT.Util.sigmoid;
 
 public class SDT {
     public double LEARNING_RATE;
@@ -52,7 +53,7 @@ public class SDT {
         ROOT.w0 /= X.size();
 
 
-        ROOT.splitNode(X,V,this);
+        ROOT.splitNode(X, V, this);
     }
 
     public String getErrors() {
@@ -60,12 +61,19 @@ public class SDT {
     }
 
 
+    double eval(Instance i) {
+        if (isClassify)
+            return sigmoid(ROOT.F(i));
+        else
+            return ROOT.F(i);
+    }
+
     double ErrorOfTree(ArrayList<Instance> V) {
         double error = 0;
         for (Instance instance : V) {
             if (isClassify) {
                 double r = instance.classValue;
-                double y = ROOT.F(instance);
+                double y = eval(instance);
                 if (y > 0.5) {
                     if (r != 1)
                         error++;
@@ -73,7 +81,7 @@ public class SDT {
                     error++;
             } else {
                 double r = instance.classValue;
-                double y = ROOT.F(instance);
+                double y = eval(instance);
                 error += (r - y) * (r - y);
             }
         }

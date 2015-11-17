@@ -22,6 +22,7 @@ public class SDTMain {
 //        SDT sdt = new SDT("data_sdt\\boston\\boston-train-1-1.txt", "data_sdt\\boston\\boston-validation-1-1.txt", "data_sdt\\boston\\boston-test.txt", false, LEARNING_RATE, EPOCH, MAX_STEP);
 //        sdt.learnTree();
 //        System.out.println(sdt.getErrors());
+//        System.out.println(sdt.toString());
 
 //
 //        for (String s : CLASSIFY) {

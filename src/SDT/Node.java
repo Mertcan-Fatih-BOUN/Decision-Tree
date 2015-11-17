@@ -1,7 +1,6 @@
 package SDT;
 
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -20,34 +19,22 @@ class Node {
     double[] w;
 
     double y;
-    double v;
+    double g;
 
     Node(int attribute_count) {
         ATTRIBUTE_COUNT = attribute_count;
-        w = new double[attribute_count];
-        this.w0 = rand(-0.005, 0.005);
     }
 
 
     public double F(Instance instance) {
-        double r;
-        if (this.isLeaf) {
-            r = this.w0;
-        } else {
-            double g = this.g(instance);
-            r = this.leftNode.F(instance) * g + this.rightNode.F(instance) * (1 - g);
+        if (isLeaf)
+            y = w0;
+        else {
+            g = sigmoid(dotProduct(w, instance.attributes) + w0);
+            y = g * (leftNode.F(instance)) + (1 - g) * (rightNode.F(instance));
         }
-        if (this.parent == null)
-            r = sigmoid(r);
-
-        y = r;
         return y;
-    }
 
-
-    double g(Instance instance) {
-        v = sigmoid(dotProduct(this.w, instance.attributes) + this.w0);
-        return v;
     }
 
 
@@ -56,8 +43,8 @@ class Node {
 
         double[] dw = new double[ATTRIBUTE_COUNT];
         double[] dwp = new double[ATTRIBUTE_COUNT];
-        Arrays.fill(dw,0);
-        Arrays.fill(dwp,0);
+        Arrays.fill(dw, 0);
+        Arrays.fill(dwp, 0);
         double dw10p = 0, dw20p = 0, dw0p = 0;
         double dw10, dw20, dw0;
 
@@ -67,7 +54,7 @@ class Node {
                 int j = i;
                 double[] x = X.get(j).attributes;
                 double r = X.get(j).classValue;
-                double y = this.F(X.get(j));
+                double y = tree.eval(X.get(j));
                 double d = y - r;
 
                 double t = alpha * d;
@@ -77,18 +64,18 @@ class Node {
                 while (m.parent != null) {
                     p = m.parent;
                     if (m.isLeft)
-                        t *= p.v;
+                        t *= p.g;
                     else
-                        t *= (1 - p.v);
+                        t *= (1 - p.g);
                     m = m.parent;
                 }
 
                 for (int count = 0; count < ATTRIBUTE_COUNT; count++)
-                    dw[count] = (-t * (leftNode.y - rightNode.y) * v * (1 - v)) * x[count];
+                    dw[count] = (-t * (leftNode.y - rightNode.y) * g * (1 - g)) * x[count];
 
-                dw0 = (-t * (leftNode.y - rightNode.y) * v * (1 - v));
-                dw10 = -t * (v);
-                dw20 = -t * (1 - v);
+                dw0 = (-t * (leftNode.y - rightNode.y) * g * (1 - g));
+                dw10 = -t * (g);
+                dw20 = -t * (1 - g);
 
 
                 for (int count = 0; count < ATTRIBUTE_COUNT; count++)
@@ -100,7 +87,7 @@ class Node {
 
                 dwp = dw;
                 dw0p = dw0;
-                dw10p =dw10;
+                dw10p = dw10;
                 dw20p = dw20;
 
                 alpha *= 0.9999;
@@ -116,22 +103,25 @@ class Node {
 
         double oldw0 = w0;
 
-        isLeft = false;
+        isLeaf = false;
+        w = new double[ATTRIBUTE_COUNT];
+        Arrays.fill(w, 0);
 
         leftNode = new Node(ATTRIBUTE_COUNT);
         leftNode.isLeft = true;
         leftNode.parent = this;
-        isLeaf = true;
+
 
         rightNode = new Node(ATTRIBUTE_COUNT);
         rightNode.isLeft = false;
         rightNode.parent = this;
-        isLeaf = true;
 
         double[] bestw = new double[ATTRIBUTE_COUNT];
         double bestw0 = 0, bestw0l = 0, bestw0r = 0;
         double bestErr = 1e10;
         double newErr;
+
+
 
         double alpha;
         for (int t = 0; t < tree.MAX_STEP; t++) {
@@ -161,13 +151,14 @@ class Node {
         rightNode.w0 = bestw0r;
 
         if (bestErr + 1e-3 < err) {
-            leftNode.splitNode(X,V,tree);
-            rightNode.splitNode(X,V,tree);
+            leftNode.splitNode(X, V, tree);
+            rightNode.splitNode(X, V, tree);
         } else {
             isLeaf = true;
             leftNode = null;
             rightNode = null;
             w0 = oldw0;
+            y = w0;
         }
     }
 

@@ -6,7 +6,7 @@ public class Util {
             double t = e;
             e = s;
             s = t;
-        }
+}
 
         return (e - s) * Math.random() + s;
     }
