@@ -3,6 +3,7 @@ package SDT;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -77,6 +78,9 @@ public class SDT {
         }
     }
 
+    public int size() {
+        return ROOT.size();
+    }
 
     public void learnTree() {
         ROOT = new Node(ATTRIBUTE_COUNT);
@@ -91,10 +95,11 @@ public class SDT {
     }
 
     public String getErrors() {
+        DecimalFormat format = new DecimalFormat("#.###");
         if (isClassify)
-            return "Training: " + (1 - ErrorOfTree(X)) + " Validation: " + (1 - ErrorOfTree(V)) + " Test: " + (1 - ErrorOfTree(T));
+            return "Training: " + format.format(1 - ErrorOfTree(X)) + "\tValidation: " + format.format(1 - ErrorOfTree(V)) + "\tTest: " + format.format(1 - ErrorOfTree(T));
         else
-            return "Training: " + ErrorOfTree(X) + " Validation: " + ErrorOfTree(V) + " Test: " + ErrorOfTree(T);
+            return "Training: " +format.format( ErrorOfTree(X)) + "\tValidation: " +format.format( ErrorOfTree(V) )+ "\tTest: " + format.format(ErrorOfTree(T));
     }
 
 
