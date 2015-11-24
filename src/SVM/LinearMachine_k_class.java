@@ -10,6 +10,7 @@ import matlabcontrol.extensions.MatlabNumericArray;
 import matlabcontrol.extensions.MatlabTypeConverter;
 
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
@@ -440,8 +441,8 @@ public class LinearMachine_k_class {
         }
         if(falses < 5000) {
             for (double d : w)
-                System.out.println(empty + d);
-            System.out.println(empty + "b vector\n" + empty + bb);
+                System.out.println(empty + Util.doubleFormat(d));
+            System.out.println(empty + "b vector\n" + empty + Util.doubleFormat(bb));
             graph(w, bb);
         }else
             classify(n, empty);
@@ -463,34 +464,60 @@ public class LinearMachine_k_class {
             for (int i = 1; i < graphs; i++) {
                 plot += ",xlin,y" + i;
             }
-            plot += ",points_x, points_y, '.')";
-            proxy.eval(plot);
+            String plot2 = "";
+            for(int i = 0; i < Util.CLASS_COUNT; i++){
+                plot2 += ",points_x" + i + ", points_y" + i + ", '.'";
+            }
+            plot2 += ")";
+            proxy.eval(plot + plot2);
 
             proxy.eval("figure");
             proxy.eval("surf(xg,yg,zg)");
-            proxy.eval("figure");
-            proxy.eval("surfc(xg,yg,zg)");
+//            proxy.eval("figure");
+//            proxy.eval("surfc(xg,yg,zg)");
             proxy.eval("figure");
             String v = "[1";
             for(int i = 2; i < Util.CLASS_COUNT; i++)
                 v += " " + i;
             v += "]";
             proxy.eval("contour(xg,yg,zg, " + v + ", 'ShowText','on')");
+            proxy.eval("hold on");
+            plot2 = "(" + plot2.substring(1);
+            proxy.eval("plot" + plot2);
         }
     }
 
     private static void plotPoints() throws MatlabInvocationException {
         if(Util.ATTRIBUTE_COUNT == 2){
-            String points_x = "[" + instances.get(0).attributes[0];
-            String points_y = "[" + instances.get(0).attributes[1];
-            for(int i = 1; i < instances.size(); i++){
-                points_x += "," + instances.get(i).attributes[0];
-                points_y += "," + instances.get(i).attributes[1];
+            String points_x[] = new String[Util.CLASS_COUNT];
+            String points_y[] = new String[Util.CLASS_COUNT];
+            int class_size = instances.size() / Util.CLASS_COUNT;
+            for(int i = 0; i < Util.CLASS_COUNT; i++){
+                points_x[i] = "[" + instances.get(i * instances.size() / Util.CLASS_COUNT).attributes[0];
+                points_y[i] = "[" + instances.get(i * instances.size() / Util.CLASS_COUNT).attributes[1];
+                for(int j = 1 + i * class_size; j < (i + 1) * class_size; j++){
+                    points_x[i] += "," + instances.get(j).attributes[0];
+                    points_y[i] += "," + instances.get(j).attributes[1];
+                }
+                points_x[i] += "]";
+                points_y[i] += "]";
             }
-            points_x += "]";
-            points_y += "]";
-            proxy.eval("points_x = " + points_x);
-            proxy.eval("points_y = " + points_y);
+            for(int i = 0; i < Util.CLASS_COUNT; i++) {
+                proxy.eval("points_x" + i + " = " + points_x[i]);
+                proxy.eval("points_y" + i + " = " + points_y[i]);
+            }
+            String eval1 = "[";
+            String eval2 = "[";
+            for(int i = 0; i < Util.CLASS_COUNT; i++){
+                eval1 += "points_x" + i + " ";
+                eval2 += "points_y" + i + " ";
+            }
+            eval1 += "]";
+            eval2 += "]";
+
+            proxy.eval("points_x = " + eval1);
+            proxy.eval("points_y = " + eval2);
+
             proxy.eval("xmin = min(points_x)");
             proxy.eval("xmax = max(points_x)");
             proxy.eval("difference = xmax - xmin");

@@ -76,4 +76,9 @@ public class Util {
             result += x[i] * y[i];
         return result;
     }
+
+    public static String doubleFormat(double d){
+        double dd = ((int)(100 * d)) / 100.0;
+        return dd + "";
+    }
 }

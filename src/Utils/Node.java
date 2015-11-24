@@ -1,5 +1,7 @@
 package Utils;
 
+import java.text.DecimalFormat;
+
 public class Node {
     public boolean initiallyCreated = false;
     public String name;
@@ -54,7 +56,7 @@ public class Node {
         if (isLeaf)
             s += name;
         else
-            s += "The attribute "  + attributeNumber + " with value " + value + "\n " + leftNode.toString(k+1) + "\n" + rightNode.toString(k+1);
+            s += "The attribute "  + attributeNumber + " with value " + Util.doubleFormat(value) + "\n " + leftNode.toString(k+1) + "\n" + rightNode.toString(k+1);
 
         return s;
     }

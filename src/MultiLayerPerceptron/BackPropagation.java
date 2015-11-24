@@ -23,16 +23,16 @@ public class BackPropagation {
     public final static int hidden_neuron_number = 2;
     public final static int input_dimension = 2;
     public final static int output_dimension = 3;
-    public final static int number_of_epochs = 1000;
+    public final static int number_of_epochs = 100;
     public static ArrayList<Instance> instances = new ArrayList<>();
-    public static double[][] inputs = new double[input_number][input_dimension];
+    public static double[][] inputs = new double[input_number][input_dimension + 1];
     public static double[][] outputs = new double[input_number][output_dimension];
     public static double[][] output_hats = new double[input_number][output_dimension];
 
     public static double[] B2 = new double[output_dimension];
-    public static double[][] G2 = new double[output_dimension][hidden_neuron_number];
-    public static double[] B1 = new double[hidden_neuron_number];
-    public static double[][] G1 = new double[hidden_neuron_number][input_dimension];
+    public static double[][] G2 = new double[output_dimension][hidden_neuron_number + 1];
+    public static double[] B1 = new double[hidden_neuron_number + 1];
+    public static double[][] G1 = new double[hidden_neuron_number + 1][input_dimension + 1];
 
     public static MatlabProxyFactory factory;
     public static MatlabProxy proxy;
@@ -42,7 +42,11 @@ public class BackPropagation {
         factory = new MatlabProxyFactory();
         proxy = factory.getProxy();
         processor = new MatlabTypeConverter(proxy);
-        multi_perceptron = new MultiLayerNetwork(input_dimension,hidden_neuron_number,output_dimension);
+        if(hidden_neuron_number == 0)
+            multi_perceptron = new MultiLayerNetwork(input_dimension + 1,hidden_neuron_number,output_dimension);
+        else
+            multi_perceptron = new MultiLayerNetwork(input_dimension + 1,hidden_neuron_number + 1,output_dimension);
+
 
         try {
 //            Util.readFile(instances, "iris.data.txt");
@@ -65,16 +69,35 @@ public class BackPropagation {
 
     private static void plotPoints() throws MatlabInvocationException {
         if(Util.ATTRIBUTE_COUNT == 2){
-            String points_x = "[" + instances.get(0).attributes[0];
-            String points_y = "[" + instances.get(0).attributes[1];
-            for(int i = 1; i < instances.size(); i++){
-                points_x += "," + instances.get(i).attributes[0];
-                points_y += "," + instances.get(i).attributes[1];
+            String points_x[] = new String[Util.CLASS_COUNT];
+            String points_y[] = new String[Util.CLASS_COUNT];
+            int class_size = instances.size() / Util.CLASS_COUNT;
+            for(int i = 0; i < Util.CLASS_COUNT; i++){
+                points_x[i] = "[" + instances.get(i * instances.size() / Util.CLASS_COUNT).attributes[0];
+                points_y[i] = "[" + instances.get(i * instances.size() / Util.CLASS_COUNT).attributes[1];
+                for(int j = 1 + i * class_size; j < (i + 1) * class_size; j++){
+                    points_x[i] += "," + instances.get(j).attributes[0];
+                    points_y[i] += "," + instances.get(j).attributes[1];
+                }
+                points_x[i] += "]";
+                points_y[i] += "]";
             }
-            points_x += "]";
-            points_y += "]";
-            proxy.eval("points_x = " + points_x);
-            proxy.eval("points_y = " + points_y);
+            for(int i = 0; i < Util.CLASS_COUNT; i++) {
+                proxy.eval("points_x" + i + " = " + points_x[i]);
+                proxy.eval("points_y" + i + " = " + points_y[i]);
+            }
+            String eval1 = "[";
+            String eval2 = "[";
+            for(int i = 0; i < Util.CLASS_COUNT; i++){
+                eval1 += "points_x" + i + " ";
+                eval2 += "points_y" + i + " ";
+            }
+            eval1 += "]";
+            eval2 += "]";
+
+            proxy.eval("points_x = " + eval1);
+            proxy.eval("points_y = " + eval2);
+
             proxy.eval("xmin = min(points_x)");
             proxy.eval("xmax = max(points_x)");
             proxy.eval("difference = xmax - xmin");
@@ -94,7 +117,7 @@ public class BackPropagation {
             double[][] zg = new double[xg.length][xg[0].length];
             for(int i = 0; i < xg.length; i++){
                 for(int j = 0; j < xg[0].length; j++){
-                    zg[i][j] = findClass(new Instance(new double[]{xg[i][j], yg[i][j]}));
+                    zg[i][j] = findClass(new Instance(new double[]{xg[i][j], yg[i][j], 1}));
 //                    System.out.print(zg[i][j]);
                 }
 //                System.out.println();
@@ -105,7 +128,7 @@ public class BackPropagation {
 
     private static double findClass(Instance i) {
         double[] results = feed_forward(i.attributes);
-        System.out.println(toString1dArray(i.attributes) + " " + toString1dArray(results));
+//        System.out.println(toString1dArray(i.attributes) + " " + toString1dArray(results));
         double max = 0;
         int maxIndex = 0;
         for(int j = 0; j < results.length; j++){
@@ -121,8 +144,8 @@ public class BackPropagation {
         if(Util.ATTRIBUTE_COUNT == 2) {
             proxy.eval("figure");
             proxy.eval("surf(xg,yg,zg)");
-            proxy.eval("figure");
-            proxy.eval("surfc(xg,yg,zg)");
+//            proxy.eval("figure");
+//            proxy.eval("surfc(xg,yg,zg)");
 //            proxy.eval("figure");
 //            proxy.eval("surfc(zg)");
             proxy.eval("figure");
@@ -131,6 +154,16 @@ public class BackPropagation {
                 v += " " + i;
             v += "]";
             proxy.eval("contour(xg,yg,zg, " + v + ", 'ShowText','on')");
+
+            String plot2 = "";
+            for(int i = 0; i < Util.CLASS_COUNT; i++){
+                plot2 += ",points_x" + i + ", points_y" + i + ", '.'";
+            }
+            plot2 += ")";
+            proxy.eval("hold on");
+            plot2 = "(" + plot2.substring(1);
+            proxy.eval("plot" + plot2);
+
         }
     }
 
@@ -168,6 +201,7 @@ public class BackPropagation {
             for (int i = 0; i < Util.ATTRIBUTE_COUNT; i++) {
                 inputs[a][i] = T.attributes[i];
             }
+            inputs[a][Util.ATTRIBUTE_COUNT] = 1;
             outputs[a] = new double[Util.CLASS_COUNT];
             Arrays.fill(outputs[a], 0);
             outputs[a][T.classNumber] = 1;
@@ -266,13 +300,15 @@ public class BackPropagation {
         }
 
         if(multi_perceptron.hidden_layer != 0) {
-            for(int i = 0; i < multi_perceptron.hidden_layer; i++){
+            for(int i = 0; i < multi_perceptron.hidden_layer - 1; i++){
                 double sum_hidden_neuron_i = 0;
                 for(int j = 0; j < multi_perceptron.input_layer; j++){
                     sum_hidden_neuron_i += multi_perceptron.input_neurons[j].output * multi_perceptron.W1[i][j];
                 }
                 multi_perceptron.hidden_neurons[i].feed_neuron(sum_hidden_neuron_i);
             }
+            multi_perceptron.hidden_neurons[hidden_neuron_number].output = 1;
+            multi_perceptron.hidden_neurons[hidden_neuron_number].row = 1;
 
             for (int i = 0; i < multi_perceptron.output_layer; i++) {
                 double sum_hidden_neuron_i = 0;
