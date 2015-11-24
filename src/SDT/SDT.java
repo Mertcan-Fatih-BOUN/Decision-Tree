@@ -92,11 +92,11 @@ public class SDT {
 
 //        ROOT.splitNode(X, V, this);
 
-        SDTMain.split_q.add(ROOT);
-        while (!SDTMain.split_q.isEmpty()){
-            Node n = SDTMain.split_q.remove();
-            n.splitNode(X, V, this);
-        }
+//        SDTMain.split_q.add(ROOT);
+//        while (!SDTMain.split_q.isEmpty()){
+//            Node n = SDTMain.split_q.remove();
+//            n.splitNode(X, V, this);
+//        }
     }
 
     public String getErrors() {
