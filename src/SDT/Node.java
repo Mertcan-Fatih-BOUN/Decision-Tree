@@ -38,6 +38,12 @@ class Node {
 
     }
 
+    int size() {
+        if (isLeaf)
+            return 1;
+        else
+            return 1 + leftNode.size() + rightNode.size();
+    }
 
     void learnParameters(ArrayList<Instance> X, ArrayList<Instance> V, double alpha, SDT tree, int MAX_EPOCH) {
         double u = 0.1;
@@ -52,7 +58,7 @@ class Node {
 
         for (int e = 0; e < MAX_EPOCH; e++) {
             ArrayList<Integer> indices = new ArrayList<>();
-            for(int i = 0; i < X.size(); i++) indices.add(i);
+            for (int i = 0; i < X.size(); i++) indices.add(i);
             Collections.shuffle(indices);
             for (int i = 0; i < X.size(); i++) {
                 int j = indices.get(i);
@@ -103,13 +109,11 @@ class Node {
 
     void splitNode(ArrayList<Instance> X, ArrayList<Instance> V, SDT tree) {
         double err = tree.ErrorOfTree(V);
-        double y, r;
 
         double oldw0 = w0;
 
         isLeaf = false;
         w = new double[ATTRIBUTE_COUNT];
-        Arrays.fill(w, 0);
 
         leftNode = new Node(ATTRIBUTE_COUNT);
         leftNode.isLeft = true;
@@ -141,7 +145,7 @@ class Node {
 
             if (newErr < bestErr) {
 
-                bestw = w;
+                bestw = Arrays.copyOf(w, w.length);
                 bestw0 = w0;
                 bestw0l = leftNode.w0;
                 bestw0r = rightNode.w0;
@@ -155,8 +159,7 @@ class Node {
         leftNode.w0 = bestw0l;
         rightNode.w0 = bestw0r;
 
-        if (bestErr + 0.1 < err) {
-           // System.out.println(err - bestErr );
+        if (bestErr + 1e-3 < err) {
             leftNode.splitNode(X, V, tree);
             rightNode.splitNode(X, V, tree);
         } else {

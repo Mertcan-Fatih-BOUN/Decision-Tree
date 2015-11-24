@@ -90,7 +90,7 @@ public class SDT {
             ROOT.w0 += i.classValue;
         ROOT.w0 /= X.size();
 
-//        ROOT.splitNode(X, V, this);
+        ROOT.splitNode(X, V, this);
 
 //        SDTMain.split_q.add(ROOT);
 //        while (!SDTMain.split_q.isEmpty()){
