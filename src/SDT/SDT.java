@@ -5,6 +5,8 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Scanner;
 
 import static SDT.Util.rand;
@@ -19,6 +21,8 @@ public class SDT {
     public String TEST_SET_FILENAME;
     public int ATTRIBUTE_COUNT;
     public ArrayList<String> CLASS_NAMES = new ArrayList<>();
+
+    public static Queue<Node> split_q = new LinkedList<>();
 
     ArrayList<Instance> X = new ArrayList<>();
     ArrayList<Instance> V = new ArrayList<>();
@@ -90,13 +94,13 @@ public class SDT {
             ROOT.w0 += i.classValue;
         ROOT.w0 /= X.size();
 
-        ROOT.splitNode(X, V, this);
+//        ROOT.splitNode(X, V, this);
 
-//        SDTMain.split_q.add(ROOT);
-//        while (!SDTMain.split_q.isEmpty()){
-//            Node n = SDTMain.split_q.remove();
-//            n.splitNode(X, V, this);
-//        }
+        split_q.add(ROOT);
+        while (!split_q.isEmpty()){
+            Node n = split_q.remove();
+            n.splitNode(X, V, this);
+        }
     }
 
     public String getErrors() {

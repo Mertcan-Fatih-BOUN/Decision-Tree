@@ -167,8 +167,10 @@ class Node {
         rightNode.w0 = bestw0r;
 
         if (bestErr + 1e-3 < err) {
-            leftNode.splitNode(X, V, tree);
-            rightNode.splitNode(X, V, tree);
+            SDT.split_q.add(leftNode);
+            SDT.split_q.add(rightNode);
+//            leftNode.splitNode(X, V, tree);
+//            rightNode.splitNode(X, V, tree);
         } else {
             isLeaf = true;
             leftNode = null;
