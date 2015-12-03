@@ -20,10 +20,10 @@ public class BackPropagation {
     public static MultiLayerNetwork multi_perceptron;
     public static Random r = new Random();
     public final static int input_number = 150;
-    public final static int hidden_neuron_number = 2;
+    public final static int hidden_neuron_number = 0;
     public final static int input_dimension = 2;
     public final static int output_dimension = 3;
-    public final static int number_of_epochs = 100;
+    public final static int number_of_epochs = 1000;
     public static ArrayList<Instance> instances = new ArrayList<>();
     public static double[][] inputs = new double[input_number][input_dimension + 1];
     public static double[][] outputs = new double[input_number][output_dimension];
@@ -32,7 +32,7 @@ public class BackPropagation {
     public static double[] B2 = new double[output_dimension];
     public static double[][] G2 = new double[output_dimension][hidden_neuron_number + 1];
     public static double[] B1 = new double[hidden_neuron_number + 1];
-    public static double[][] G1 = new double[hidden_neuron_number + 1][input_dimension + 1];
+    public static double[][] G1 = new double[hidden_neuron_number][input_dimension + 1];
 
     public static MatlabProxyFactory factory;
     public static MatlabProxy proxy;
@@ -54,6 +54,8 @@ public class BackPropagation {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+
 
 
         createArrays();
@@ -241,7 +243,8 @@ public class BackPropagation {
                         for (int t = 0; t < B2.length; t++) {
                             temp += B2[t] * multi_perceptron.W2[t][j];
                         }
-                        temp *= multi_perceptron.hidden_neurons[j].derivative_sigma();
+                        if(j != B1.length - 1)
+                            temp *= multi_perceptron.hidden_neurons[j].derivative_sigma();
                         B1[j] = temp;
                     }
                     for (int j = 0; j < G1.length; j++) {
@@ -262,9 +265,12 @@ public class BackPropagation {
                         }
                     }
                 }else{
-                    G2 = new double[output_dimension][input_dimension];
+                    G2 = new double[output_dimension][input_dimension + 1];
                     for (int j = 0; j < B2.length; j++) {
-                        B2[j] = -2 * (outputs[theInput][j] - output_hat[j]) * multi_perceptron.hidden_neurons[j].derivative_sigma();
+                        if(j != B2.length - 1)
+                            B2[j] = -2 * (outputs[theInput][j] - output_hat[j]) * multi_perceptron.hidden_neurons[j].derivative_sigma();
+                        else
+                            B2[j] = -2 * (outputs[theInput][j] - output_hat[j]);
                     }
                     for (int j = 0; j < G2.length; j++) {
                         for (int t = 0; t < G2[0].length; t++) {
@@ -307,8 +313,8 @@ public class BackPropagation {
                 }
                 multi_perceptron.hidden_neurons[i].feed_neuron(sum_hidden_neuron_i);
             }
-            multi_perceptron.hidden_neurons[hidden_neuron_number].output = 1;
-            multi_perceptron.hidden_neurons[hidden_neuron_number].row = 1;
+            multi_perceptron.hidden_neurons[multi_perceptron.hidden_layer - 1].output = 1;
+            multi_perceptron.hidden_neurons[multi_perceptron.hidden_layer - 1].row = 1;
 
             for (int i = 0; i < multi_perceptron.output_layer; i++) {
                 double sum_hidden_neuron_i = 0;
