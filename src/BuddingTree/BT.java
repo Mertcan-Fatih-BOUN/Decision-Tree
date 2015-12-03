@@ -11,7 +11,6 @@ import static SDT.Util.sigmoid;
 
 public class BT {
     public double LEARNING_RATE;
-    public int MAX_STEP;
     public int EPOCH;
     public String TRAINING_SET_FILENAME;
     public String VALIDATION_SET_FILENAME;
@@ -19,6 +18,8 @@ public class BT {
     public int ATTRIBUTE_COUNT;
     public ArrayList<String> CLASS_NAMES = new ArrayList<>();
     public static double Lambda = 0.001;
+
+    public static int count = 0;
 
     public static Queue<Node> split_q = new LinkedList<>();
 
@@ -30,11 +31,10 @@ public class BT {
 
     public Node ROOT;
 
-    public BT(String training, String validation, String test, boolean isClassify, double learning_rate, int epoch, int max_step) throws IOException {
+    public BT(String training, String validation, String test, boolean isClassify, double learning_rate, int epoch) throws IOException {
 
 
         this.LEARNING_RATE = learning_rate;
-        this.MAX_STEP = max_step;
         this.EPOCH = epoch;
         this.TRAINING_SET_FILENAME = training;
         this.VALIDATION_SET_FILENAME = validation;
@@ -90,6 +90,7 @@ public class BT {
         ArrayList<Integer> indices = new ArrayList<>();
         for (int i = 0; i < X.size(); i++) indices.add(i);
 
+//        EPOCH = 1;
         for (int e = 0; e < EPOCH; e++) {
             Collections.shuffle(indices);
             for (int i = 0; i < X.size(); i++) {
@@ -131,6 +132,7 @@ public class BT {
             } else {
                 double r = instance.classValue;
                 double y = eval(instance);
+//                System.out.println(r + " " + y);
                 error += (r - y) * (r - y);
             }
         }

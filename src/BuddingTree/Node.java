@@ -20,6 +20,7 @@ class Node {
     boolean isLeft;
     double w0;
     double[] w;
+    String name;
     static boolean hardInit = false;
     public double[] gradient;
     public double gradientSum = 0;
@@ -37,11 +38,14 @@ class Node {
         gama = 1;
         gradient = new double[ATTRIBUTE_COUNT + 2];
         Arrays.fill(gradient, 0);
+
+        name = BT.count++ + "abc";
     }
 
 
     public void backPropagate(Instance instance) {
         calculateGradient(instance);
+//        System.out.println(name + " " + gradient[0] + " " + gradient[1] + " " + gradient[2] + " " + gama + " " + delta(instance));
         if (!isLeaf) {
             leftNode.backPropagate(instance);
             rightNode.backPropagate(instance);
@@ -85,9 +89,9 @@ class Node {
         if (parent == null) {
             delta = F(i) - i.classValue;
         } else if (isLeft) {
-            delta = parent.delta(i) * (1 - gama) * G(i);
+            delta = parent.delta(i) * (1 - parent.gama) * parent.G(i);
         } else {
-            delta = parent.delta(i) * (1 - gama) * (1 - G(i));
+            delta = parent.delta(i) * (1 - parent.gama) * (1 - parent.G(i));
         }
         return delta;
     }
@@ -104,7 +108,7 @@ class Node {
         gradient[0] = delta * gama;
         gradient[1] = delta * (-g * leftF - (1 - g) * rightF + w0) - BT.Lambda;
         for (int i = 2; i < ATTRIBUTE_COUNT + 2; i++) {
-            gradient[i] = delta * (1 - gama) * g * (1 - g) * (leftF - rightF) * w[i - 2];
+            gradient[i] = delta * (1 - gama) * g * (1 - g) * (leftF - rightF) * instance.attributes[i - 2];
         }
     }
 
