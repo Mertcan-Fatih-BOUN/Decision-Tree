@@ -44,7 +44,7 @@ public class BTMain {
                 for (int j = 1; j <= 2; j++) {
                     BT sdt = new BT("data_sdt\\" + s + "\\" + s + "-train-" + i + "-" + j + ".txt", "data_sdt\\" + s + "\\" + s + "-validation-" + i + "-" + j + ".txt", "data_sdt\\" + s + "\\" + s + "-test.txt", false, LEARNING_RATE, EPOCH);
                     sdt.learnTree();
-                    System.out.println("Size: " + sdt.size() + "\t" + sdt.getErrors() + "    " + sdt.ROOT.gama);
+                    System.out.println("Size: " + sdt.size() + "\t" + sdt.getErrors());
 //                    break;
                     //   System.out.println(sdt.toString());
                 }
