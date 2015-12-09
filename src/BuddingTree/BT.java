@@ -40,7 +40,7 @@ public class BT {
         this.VALIDATION_SET_FILENAME = validation;
         this.TEST_SET_FILENAME = test;
         this.isClassify = isClassify;
-
+        Node.isClassify = isClassify;
 
         readFile(X, TRAINING_SET_FILENAME);
         readFile(V, VALIDATION_SET_FILENAME);
@@ -84,6 +84,10 @@ public class BT {
 
     public int size() {
         return ROOT.size();
+    }
+
+    public int effSize() {
+        return ROOT.myEffSize();
     }
 
     public void learnTree() {

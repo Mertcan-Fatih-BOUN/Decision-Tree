@@ -7,7 +7,7 @@ import java.util.Locale;
 public class BTMain {
     public static double LEARNING_RATE = 0.2;
 //    public static int MAX_STEP = 10;
-    public static int EPOCH = 25;
+    public static int EPOCH = 200;
 
     public static void main(String[] args) throws IOException {
         Locale.setDefault(Locale.US);
@@ -26,17 +26,17 @@ public class BTMain {
 //        System.out.println(sdt.toString());
 
 //
-//        for (String s : CLASSIFY) {
-//            System.out.println("CLASS " + s);
-//            for (int i = 1; i <= 5; i++) {
-//                for (int j = 1; j <= 2; j++) {
-//                    SDT sdt = new SDT( "data_sdt\\"+ s+ "\\"+s + "-train-" + i + "-" + j + ".txt", "data_sdt\\"+ s+ "\\"+s  + "-validation-" + i + "-" + j + ".txt",  "data_sdt\\"+ s+ "\\"+s +  "-test.txt", true, LEARNING_RATE, EPOCH, MAX_STEP);
-//                    sdt.learnTree();
-//                    System.out.println("Size: " + sdt.size() + "\t" + sdt.getErrors());
-//                    //System.out.println(sdt.toString());
-//                }
-//            }
-//        }
+        for (String s : CLASSIFY) {
+            System.out.println("CLASS " + s);
+            for (int i = 1; i <= 5; i++) {
+                for (int j = 1; j <= 2; j++) {
+                    BT sdt = new BT( "data_sdt\\"+ s+ "\\"+s + "-train-" + i + "-" + j + ".txt", "data_sdt\\"+ s+ "\\"+s  + "-validation-" + i + "-" + j + ".txt",  "data_sdt\\"+ s+ "\\"+s +  "-test.txt", true, LEARNING_RATE, EPOCH);
+                    sdt.learnTree();
+                    System.out.println("Size: " + sdt.size() + "\t" + sdt.getErrors());
+                    //System.out.println(sdt.toString());
+                }
+            }
+        }
 //
         for (String s : REGRESS) {
             System.out.println("REGRESS " + s);
@@ -44,7 +44,7 @@ public class BTMain {
                 for (int j = 1; j <= 2; j++) {
                     BT sdt = new BT("data_sdt\\" + s + "\\" + s + "-train-" + i + "-" + j + ".txt", "data_sdt\\" + s + "\\" + s + "-validation-" + i + "-" + j + ".txt", "data_sdt\\" + s + "\\" + s + "-test.txt", false, LEARNING_RATE, EPOCH);
                     sdt.learnTree();
-                    System.out.println("Size: " + sdt.size() + "\t" + sdt.getErrors());
+                    System.out.println("Size: " + sdt.size() + " " + sdt.effSize() + "\t" + sdt.getErrors());
 //                    break;
                     //   System.out.println(sdt.toString());
                 }

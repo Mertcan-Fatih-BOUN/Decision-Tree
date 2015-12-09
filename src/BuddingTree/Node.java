@@ -23,7 +23,9 @@ class Node {
     String name;
     static boolean hardInit = false;
     public double[] gradient;
+    public double[] gradient_sum;
     public double gradientSum = 0;
+    public static boolean isClassify = false;
 
     double y;
     double g;
@@ -37,7 +39,9 @@ class Node {
         w0 = rand(-0.01, 0.01);
         gama = 1;
         gradient = new double[ATTRIBUTE_COUNT + 2];
+        gradient_sum = new double[ATTRIBUTE_COUNT + 2];
         Arrays.fill(gradient, 0);
+        Arrays.fill(gradient_sum, 0);
 
         name = BT.count++ + "abc";
     }
@@ -87,7 +91,19 @@ class Node {
     public double delta(Instance i) {
         double delta = 0;
         if (parent == null) {
-            delta = F(i) - i.classValue;
+            if (!isClassify)
+                delta = F(i) - i.classValue;
+            else {
+                double y = sigmoid(F(i));
+
+                if (y > 0.5) {
+                    if (i.classValue != 1)
+                        delta = 1;
+                } else if (i.classValue != 0)
+                    delta = 1;
+
+
+            }
         } else if (isLeft) {
             delta = parent.delta(i) * (1 - parent.gama) * parent.G(i);
         } else {
@@ -134,15 +150,28 @@ class Node {
             return 1 + leftNode.size() + rightNode.size();
     }
 
+    int myEffSize() {
+        if (leftNode == null || gama == 1)
+            return 1;
+        else
+            return 1 + leftNode.myEffSize() + rightNode.myEffSize();
+    }
+
     void learnParameters() {
         gradientSum += dotProduct(gradient, gradient);
+        for(int i = 0; i < gradient_sum.length; i++) {
+            //System.out.println(gradient[i]);
+            gradient_sum[i] += gradient[i] * gradient[i];
+            if(gradient_sum[i] == 0)
+                gradient_sum[i] = 0.01;
+        }
 
-        w0 = w0 - BTMain.LEARNING_RATE * gradient[0] / Math.sqrt(gradientSum);
+        w0 = w0 - BTMain.LEARNING_RATE * gradient[0] / Math.sqrt(gradient_sum[0]);
 
-        setGama(gama - BTMain.LEARNING_RATE * gradient[1] / Math.sqrt(gradientSum));
+        setGama(gama - BTMain.LEARNING_RATE * gradient[1] / Math.sqrt(gradient_sum[1]));
 
         for (int j = 2; j < ATTRIBUTE_COUNT + 2; j++) {
-            w[j - 2] = w[j - 2] - BTMain.LEARNING_RATE * gradient[j] / Math.sqrt(gradientSum);
+            w[j - 2] = w[j - 2] - BTMain.LEARNING_RATE * gradient[j] / Math.sqrt(gradient_sum[j]);
         }
     }
 
