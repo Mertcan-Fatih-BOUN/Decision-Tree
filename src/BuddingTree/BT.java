@@ -6,7 +6,6 @@ import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.util.*;
 
-import static SDT.Util.rand;
 import static SDT.Util.sigmoid;
 
 public class BT {
@@ -20,8 +19,6 @@ public class BT {
     public static double Lambda = 0.001;
 
     public static int count = 0;
-
-    public static Queue<Node> split_q = new LinkedList<>();
 
     ArrayList<Instance> X = new ArrayList<>();
     ArrayList<Instance> V = new ArrayList<>();
@@ -48,7 +45,7 @@ public class BT {
 
         normalize(X, V, T);
 
-        ROOT = new Node(ATTRIBUTE_COUNT);
+        ROOT = new Node(ATTRIBUTE_COUNT, isClassify);
     }
 
     private void normalize(ArrayList<Instance> x, ArrayList<Instance> v, ArrayList<Instance> t) {
@@ -86,6 +83,14 @@ public class BT {
         return ROOT.size();
     }
 
+    public double effSize() {
+        return ROOT.effSize();
+    }
+
+    public int myEffSize() {
+        return ROOT.myEffSize();
+    }
+
     public void learnTree() {
         ArrayList<Integer> indices = new ArrayList<>();
         for (int i = 0; i < X.size(); i++) indices.add(i);
@@ -93,7 +98,7 @@ public class BT {
 //        EPOCH = 1;
         for (int e = 0; e < EPOCH; e++) {
             Collections.shuffle(indices);
-            restartGradients(ROOT);
+            // restartGradients(ROOT);
             for (int i = 0; i < X.size(); i++) {
                 int j = indices.get(i);
                 ROOT.backPropagate(X.get(j));
@@ -103,10 +108,14 @@ public class BT {
     }
 
     private void restartGradients(Node root) {
-        root.gradientSum = 0;
-        if(root.leftNode != null){
-            root.leftNode.gradientSum = 0;
-            root.rightNode.gradientSum = 0;
+        root.gradient_w0_sum = 0;
+        Arrays.fill(root.gradient_w_sum, 0);
+        root.gradient_game_sum = 0;
+
+        if (root.leftNode != null) {
+            restartGradients(root.leftNode);
+            restartGradients(root.rightNode);
+
         }
     }
 
@@ -116,7 +125,7 @@ public class BT {
         if (isClassify)
             return "Training: " + format.format(1 - ErrorOfTree(X)) + "\tValidation: " + format.format(1 - ErrorOfTree(V)) + "\tTest: " + format.format(1 - ErrorOfTree(T));
         else
-            return "Training: " +format.format( ErrorOfTree(X)) + "\tValidation: " +format.format( ErrorOfTree(V) )+ "\tTest: " + format.format(ErrorOfTree(T));
+            return "Training: " + format.format(ErrorOfTree(X)) + "\tValidation: " + format.format(ErrorOfTree(V)) + "\tTest: " + format.format(ErrorOfTree(T));
     }
 
 

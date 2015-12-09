@@ -1,11 +1,7 @@
 package BuddingTree;
 
 
-import javafx.util.Pair;
-
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 
 import static SDT.Util.dotProduct;
 import static SDT.Util.rand;
@@ -22,22 +18,38 @@ class Node {
     double[] w;
     String name;
     static boolean hardInit = false;
-    public double[] gradient;
+    public double[] gradient_w;
+    public double[] gradient_w_sum;
+
     public double gradientSum = 0;
+
 
     double y;
     double g;
     double gama = 1;
 
-    Node(int attribute_count) {
+    boolean is_classify = false;
+
+
+    double gradient_game = 0;
+    double gradient_game_sum = 0;
+    double gradient_w0 = 0;
+    double gradient_w0_sum = 0;
+
+    Node(int attribute_count, boolean is_classify) {
+        is_classify = is_classify;
         ATTRIBUTE_COUNT = attribute_count;
         w = new double[attribute_count];
         for (int i = 0; i < ATTRIBUTE_COUNT; i++)
             w[i] = rand(-0.01, 0.01);
         w0 = rand(-0.01, 0.01);
         gama = 1;
-        gradient = new double[ATTRIBUTE_COUNT + 2];
-        Arrays.fill(gradient, 0);
+        gradient_w = new double[ATTRIBUTE_COUNT];
+        Arrays.fill(gradient_w, 0);
+
+        gradient_w_sum = new double[ATTRIBUTE_COUNT];
+        Arrays.fill(gradient_w_sum, 0);
+
 
         name = BT.count++ + "abc";
     }
@@ -45,17 +57,17 @@ class Node {
 
     public void backPropagate(Instance instance) {
         calculateGradient(instance);
-//        System.out.println(name + " " + gradient[0] + " " + gradient[1] + " " + gradient[2] + " " + gama + " " + delta(instance));
-        if (!isLeaf) {
+//        System.out.println(name + " " + gradient_w[0] + " " + gradient_w[1] + " " + gradient_w[2] + " " + gama + " " + delta(instance));
+        if (!isLeaf && gama < 1) {
             leftNode.backPropagate(instance);
             rightNode.backPropagate(instance);
         }
     }
 
-    public void printGradient(){
+    public void printGradient() {
         String s = "";
-        for(int i = 0; i < ATTRIBUTE_COUNT + 2; i++)
-            s += gradient[i] + " ";
+        for (int i = 0; i < ATTRIBUTE_COUNT + 2; i++)
+            s += gradient_w[i] + " ";
         System.out.println(s);
     }
 
@@ -63,12 +75,12 @@ class Node {
         double previous_Gama = gama;
         learnParameters();
 
-        if (!isLeaf){
+        if (!isLeaf && gama < 1) {
             leftNode.update();
             rightNode.update();
         }
 
-        if(previous_Gama == 1 && gama < 1 && leftNode == null) {
+        if (previous_Gama == 1 && gama < 1 && leftNode == null) {
             splitNode();
         }
 
@@ -86,29 +98,47 @@ class Node {
 
     public double delta(Instance i) {
         double delta = 0;
+
+
         if (parent == null) {
-            delta = F(i) - i.classValue;
+            if (!is_classify)
+                delta = F(i) - i.classValue;
+            else {
+                double y = sigmoid(F(i));
+
+                if (y > 0.5) {
+                    if (i.classValue != 1)
+                        delta = 1;
+                } else if (i.classValue != 0)
+                    delta = 1;
+
+
+            }
         } else if (isLeft) {
             delta = parent.delta(i) * (1 - parent.gama) * parent.G(i);
         } else {
             delta = parent.delta(i) * (1 - parent.gama) * (1 - parent.G(i));
         }
+
         return delta;
     }
 
     public void calculateGradient(Instance instance) {
         double delta = delta(instance);
-        double g = G(instance);
+        double g = this.g;
         double leftF = 0;
         double rightF = 0;
         if (leftNode != null)
             leftF = leftNode.F(instance);
         if (rightNode != null)
             rightF = rightNode.F(instance);
-        gradient[0] = delta * gama;
-        gradient[1] = delta * (-g * leftF - (1 - g) * rightF + w0) - BT.Lambda;
-        for (int i = 2; i < ATTRIBUTE_COUNT + 2; i++) {
-            gradient[i] = delta * (1 - gama) * g * (1 - g) * (leftF - rightF) * instance.attributes[i - 2];
+
+        gradient_w0 = delta * gama;
+        gradient_game = delta * (-g * leftF - (1 - g) * rightF + w0) - BT.Lambda;
+        if (!isLeaf && gama < 1) {
+            for (int i = 0; i < ATTRIBUTE_COUNT; i++) {
+                gradient_w[i] = delta * (1 - gama) * g * (1 - g) * (leftF - rightF) * instance.attributes[i];
+            }
         }
     }
 
@@ -134,25 +164,48 @@ class Node {
             return 1 + leftNode.size() + rightNode.size();
     }
 
+    double effSize() {
+        if (isLeaf || gama == 1)
+            return 1;
+        else
+            return 1 + (1-gama)*(leftNode.effSize() + rightNode.effSize());
+    }
+
+    int myEffSize() {
+        if (isLeaf || gama == 1)
+            return 1;
+        else
+            return 1 + leftNode.myEffSize() + rightNode.myEffSize();
+    }
+
     void learnParameters() {
-        gradientSum += dotProduct(gradient, gradient);
+        gradientSum += dotProduct(gradient_w, gradient_w);
 
-        w0 = w0 - BTMain.LEARNING_RATE * gradient[0] / Math.sqrt(gradientSum);
+        gradient_w0_sum += gradient_w0 * gradient_w0;
 
-        setGama(gama - BTMain.LEARNING_RATE * gradient[1] / Math.sqrt(gradientSum));
+        w0 = w0 - BTMain.LEARNING_RATE * gradient_w0 / Math.sqrt(gradient_w0_sum);
 
-        for (int j = 2; j < ATTRIBUTE_COUNT + 2; j++) {
-            w[j - 2] = w[j - 2] - BTMain.LEARNING_RATE * gradient[j] / Math.sqrt(gradientSum);
+        gradient_game_sum += gradient_game * gradient_game;
+
+        setGama(gama - BTMain.LEARNING_RATE * gradient_game / Math.sqrt(gradient_game_sum));
+
+
+        if (!isLeaf && gama < 1) {
+            double sum = 0;
+            for (int j = 0; j < ATTRIBUTE_COUNT; j++) {
+                gradient_w_sum[j] += gradient_w[j] * gradient_w[j];
+                w[j] = w[j] - BTMain.LEARNING_RATE * gradient_w[j] / Math.sqrt(gradient_w_sum[j]);
+            }
         }
     }
 
 
     void splitNode() {
-        leftNode = new Node(ATTRIBUTE_COUNT);
+        leftNode = new Node(ATTRIBUTE_COUNT, is_classify);
         leftNode.parent = this;
         leftNode.isLeft = true;
 
-        rightNode = new Node(ATTRIBUTE_COUNT);
+        rightNode = new Node(ATTRIBUTE_COUNT, is_classify);
         rightNode.parent = this;
         rightNode.isLeft = false;
 
