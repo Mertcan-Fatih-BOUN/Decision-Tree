@@ -1,4 +1,4 @@
-package SDT;
+package SDTUpgrade;
 
 import java.io.IOException;
 import java.util.Locale;
@@ -8,6 +8,14 @@ public class SDTMain {
     public static double LEARNING_RATE = 10;
     public static int MAX_STEP = 10;
     public static int EPOCH = 25;
+    public static boolean isClassify = true;
+
+    public static double leftBound = 0.333;
+    public static double rightBound = 0.666;
+
+    public static double splitRate = 1e-4;
+
+    public static SDT sdt;
 
     public static void main(String[] args) throws IOException {
         Locale.setDefault(Locale.US);
@@ -30,24 +38,26 @@ public class SDTMain {
             System.out.println("CLASS " + s);
             for (int i = 1; i <= 5; i++) {
                 for (int j = 1; j <= 2; j++) {
-                    SDT sdt = new SDT( "data_sdt\\"+ s+ "\\"+s + "-train-" + i + "-" + j + ".txt", "data_sdt\\"+ s+ "\\"+s  + "-validation-" + i + "-" + j + ".txt",  "data_sdt\\"+ s+ "\\"+s +  "-test.txt", true, LEARNING_RATE, EPOCH, MAX_STEP);
-                    sdt.learnTree();
-                    System.out.println("Size: " + sdt.size() + "\t" + sdt.getErrors());
-                    //System.out.println(sdt.toString());
+                    sdt = null;
+                    sdt = new SDT( "data_sdt\\"+ s+ "\\"+s + "-train-" + i + "-" + j + ".txt", "data_sdt\\"+ s+ "\\"+s  + "-validation-" + i + "-" + j + ".txt",  "data_sdt\\"+ s+ "\\"+s +  "-test.txt");
+                    sdt.splitTree();
+                    System.out.println("Eff Size: " + sdt.effSize() + "\t " + "Size: " + sdt.size() + "\t" + sdt.getErrors());
+//                    System.out.println(sdt.toString());
                 }
             }
         }
 //
-        for (String s : REGRESS) {
-            System.out.println("REGRESS " + s);
-            for (int i = 1; i <= 5; i++) {
-                for (int j = 1; j <= 2; j++) {
-                    SDT sdt = new SDT("data_sdt\\" + s + "\\" + s + "-train-" + i + "-" + j + ".txt", "data_sdt\\" + s + "\\" + s + "-validation-" + i + "-" + j + ".txt", "data_sdt\\" + s + "\\" + s + "-test.txt", false, LEARNING_RATE, EPOCH, MAX_STEP);
-                    sdt.learnTree();
-                    System.out.println("Size: " + sdt.size() + "\t" + sdt.getErrors());
-                    //   System.out.println(sdt.toString());
-                }
-            }
-        }
+//        isClassify = false;
+//        for (String s : REGRESS) {
+//            System.out.println("REGRESS " + s);
+//            for (int i = 1; i <= 5; i++) {
+//                for (int j = 1; j <= 2; j++) {
+//                    SDT sdt = new SDT("data_sdt\\" + s + "\\" + s + "-train-" + i + "-" + j + ".txt", "data_sdt\\" + s + "\\" + s + "-validation-" + i + "-" + j + ".txt", "data_sdt\\" + s + "\\" + s + "-test.txt");
+//                    sdt.splitTree();
+//                    System.out.println("Size: " + sdt.size() + "\t" + sdt.getErrors());
+//                    //   System.out.println(sdt.toString());
+//                }
+//            }
+//        }
     }
 }

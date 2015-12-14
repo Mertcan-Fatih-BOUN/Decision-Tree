@@ -1,4 +1,4 @@
-package SDT;
+package SDTUpgrade;
 
 
 import javafx.util.Pair;
@@ -7,9 +7,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
-import static SDT.Util.dotProduct;
-import static SDT.Util.rand;
-import static SDT.Util.sigmoid;
+
+import static SDTUpgrade.Util.dotProduct;
+import static SDTUpgrade.Util.rand;
+import static SDTUpgrade.Util.sigmoid;
+
 
 class Node {
     int ATTRIBUTE_COUNT;
@@ -48,7 +50,7 @@ class Node {
             return 1 + leftNode.size() + rightNode.size();
     }
 
-    void learnParameters(ArrayList<Instance> X, ArrayList<Instance> V, double alpha, SDT tree, int MAX_EPOCH) {
+    void learnParameters(ArrayList<Instance> X, ArrayList<Instance> V, double alpha, SDT sdt) {
         double u = 0.1;
 
         double[] dw = new double[ATTRIBUTE_COUNT];
@@ -59,7 +61,7 @@ class Node {
         double dw10, dw20, dw0;
 
 
-        for (int e = 0; e < MAX_EPOCH; e++) {
+        for (int e = 0; e < SDTMain.EPOCH; e++) {
             ArrayList<Integer> indices = new ArrayList<>();
             for (int i = 0; i < X.size(); i++) indices.add(i);
             Collections.shuffle(indices);
@@ -67,7 +69,7 @@ class Node {
                 int j = indices.get(i);
                 double[] x = X.get(j).attributes;
                 double r = X.get(j).classValue;
-                double y = tree.eval(X.get(j));
+                double y = sdt.eval(X.get(j));
                 double d = y - r;
 
                 double t = alpha * d;
@@ -110,8 +112,8 @@ class Node {
         }
     }
 
-    void splitNode(ArrayList<Instance> X, ArrayList<Instance> V, SDT tree) {
-        double err = tree.ErrorOfTree(V);
+    void splitNode(ArrayList<Instance> X, ArrayList<Instance> V, SDT sdt) {
+        double err = sdt.ErrorOfTree(V);
 
         double oldw0 = w0;
 
@@ -134,7 +136,7 @@ class Node {
 
 
         double alpha;
-        for (int t = 0; t < tree.MAX_STEP; t++) {
+        for (int t = 0; t < SDTUpgrade.SDTMain.MAX_STEP; t++) {
             if(hardInit)
                 hardinit(X, V);
             else {
@@ -145,10 +147,10 @@ class Node {
                 rightNode.w0 = rand(-0.005, 0.005);
             }
 
-            alpha = (tree.LEARNING_RATE + 0.0) / Math.pow(2, t + 1);
-            learnParameters(X, V, alpha, tree, tree.EPOCH);
+            alpha = (SDTUpgrade.SDTMain.LEARNING_RATE + 0.0) / Math.pow(2, t + 1);
+            learnParameters(X, V, alpha, sdt);
 
-            newErr = tree.ErrorOfTree(V);
+            newErr = sdt.ErrorOfTree(V);
 
             if (newErr < bestErr) {
 
@@ -167,10 +169,10 @@ class Node {
         rightNode.w0 = bestw0r;
 
         if (bestErr + 1e-3 < err) {
-//            SDT.split_q.add(leftNode);
-//            SDT.split_q.add(rightNode);
-            leftNode.splitNode(X, V, tree);
-            rightNode.splitNode(X, V, tree);
+//            split_q.add(leftNode);
+//            split_q.add(rightNode);
+//            leftNode.splitNode(X, V, sdt);
+//            rightNode.splitNode(X, V, sdt);
         } else {
             isLeaf = true;
             leftNode = null;
