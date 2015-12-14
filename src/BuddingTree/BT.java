@@ -120,7 +120,8 @@ public class BT {
         if (isClassify)
             return "Training: " + format.format(1 - ErrorOfTree(X)) + "\tValidation: " + format.format(1 - ErrorOfTree(V)) + "\tTest: " + format.format(1 - ErrorOfTree(T));
         else
-            return "Training: " +format.format( ErrorOfTree(X)) + "\tValidation: " +format.format( ErrorOfTree(V) )+ "\tTest: " + format.format(ErrorOfTree(T));
+//            return "Training: " +format.format( ErrorOfTree(X)) + "\tValidation: " +format.format( ErrorOfTree(V) )+ "\tTest: " + format.format(ErrorOfTree(T));
+            return format.format( ErrorOfTree(X)) + "\t" +format.format( ErrorOfTree(V) )+ "\t " + format.format(ErrorOfTree(T));
     }
 
 

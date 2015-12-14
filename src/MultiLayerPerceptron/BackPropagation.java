@@ -19,8 +19,8 @@ public class BackPropagation {
 
     public static MultiLayerNetwork multi_perceptron;
     public static Random r = new Random();
-    public final static int input_number = 150;
-    public final static int hidden_neuron_number = 0;
+    public final static int input_number = 300;
+    public final static int hidden_neuron_number = 5;
     public final static int input_dimension = 2;
     public final static int output_dimension = 3;
     public final static int number_of_epochs = 1000;
@@ -50,7 +50,8 @@ public class BackPropagation {
 
         try {
 //            Util.readFile(instances, "iris.data.txt");
-            Util.readFile(instances, "iris.data.v2.txt");
+//            Util.readFile(instances, "iris.data.v2.txt");
+            Util.readFile(instances, "data_set_nonlinear_1.data.txt");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -189,7 +190,7 @@ public class BackPropagation {
 //                trues++;
 //            else
 //                falses++;
-            if(maxIndex == i / 50)
+            if(maxIndex == i / (input_number / Util.CLASS_COUNT))
                 trues++;
             else
                 falses++;
