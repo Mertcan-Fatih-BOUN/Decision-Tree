@@ -128,6 +128,9 @@ public class SDT {
             ROOT.w0 += i.classValue;
         ROOT.w0 /= X.size();
 
+        if(parent != null)
+            ROOT.w0 = parent.ROOT.w0;
+
         ROOT.splitNode(X, V, this);
 
 //        split_q.add(ROOT);

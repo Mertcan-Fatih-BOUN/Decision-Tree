@@ -95,12 +95,13 @@ class Node {
                 delta = F(i) - i.classValue;
             else {
                 double y = sigmoid(F(i));
-
-                if (y > 0.5) {
-                    if (i.classValue != 1)
-                        delta = 1;
-                } else if (i.classValue != 0)
-                    delta = 1;
+                delta = sigmoid(F(i)) - i.classValue;
+//                if (y > 0.5) {
+////                    if (i.classValue != 1)
+//                        delta = 1;
+//                } else
+////                if (i.classValue != 0)
+//                    delta = 1;
 
 
             }

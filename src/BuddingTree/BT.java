@@ -97,7 +97,7 @@ public class BT {
 //        EPOCH = 1;
         for (int e = 0; e < EPOCH; e++) {
             Collections.shuffle(indices);
-            restartGradients(ROOT);
+//            restartGradients(ROOT);
             for (int i = 0; i < X.size(); i++) {
                 int j = indices.get(i);
                 ROOT.backPropagate(X.get(j));
