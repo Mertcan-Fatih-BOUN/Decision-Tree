@@ -6,7 +6,6 @@ import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.util.*;
 
-import static SDT.Util.rand;
 import static SDT.Util.sigmoid;
 
 public class BT {
@@ -90,7 +89,7 @@ public class BT {
         return ROOT.myEffSize();
     }
 
-    public void learnTree() {
+    public void learnTree() throws IOException {
         ArrayList<Integer> indices = new ArrayList<>();
         for (int i = 0; i < X.size(); i++) indices.add(i);
 
@@ -103,6 +102,7 @@ public class BT {
                 ROOT.backPropagate(X.get(j));
                 ROOT.update();
             }
+            this.printAllData("out"+ e +".txt");
         }
     }
 
@@ -197,4 +197,35 @@ public class BT {
         }
 
     }
+
+    public double calculatedValue(Instance i) {
+        double value = eval(i);
+        if (isClassify) {
+            if (value > 0.5)
+                value = 1;
+            else
+                value = 0;
+        }
+        return value;
+    }
+
+    public void printAllData(String filename) throws IOException {
+        File regress_out = new File(filename);
+        BufferedWriter regressWriter = new BufferedWriter(new FileWriter(regress_out, false));
+
+        for (int a = 0; a < ATTRIBUTE_COUNT; a++)
+            regressWriter.write("x" + a + " ");
+
+        regressWriter.write("y z\n");
+
+        for (Instance i : X) {
+            for (int a = 0; a < ATTRIBUTE_COUNT; a++)
+                regressWriter.write(i.attributes[a] + " ");
+            regressWriter.write(i.classValue + " " + calculatedValue(i) + "\n");
+        }
+
+        regressWriter.flush();
+    }
+
+
 }

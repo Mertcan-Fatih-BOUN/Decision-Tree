@@ -5,9 +5,9 @@ import java.util.Locale;
 
 
 public class BTMain {
-    public static double LEARNING_RATE = 0.2;
-//    public static int MAX_STEP = 10;
-    public static int EPOCH = 25;
+    public static double LEARNING_RATE = 1;
+    //    public static int MAX_STEP = 10;
+    public static int EPOCH =20;
 
     public static void main(String[] args) throws IOException {
         Locale.setDefault(Locale.US);
@@ -26,30 +26,39 @@ public class BTMain {
 //        System.out.println(sdt.toString());
 
 //
-        for (String s : CLASSIFY) {
-            System.out.println("CLASS " + s);
-            for (int i = 1; i <= 5; i++) {
-                for (int j = 1; j <= 2; j++) {
-                    BT sdt = new BT( "data_sdt\\"+ s+ "\\"+s + "-train-" + i + "-" + j + ".txt", "data_sdt\\"+ s+ "\\"+s  + "-validation-" + i + "-" + j + ".txt",  "data_sdt\\"+ s+ "\\"+s +  "-test.txt", true, LEARNING_RATE, EPOCH);
-                    sdt.learnTree();
-                    System.out.println(sdt.size() + "\t" + sdt.effSize() + "\t" + sdt.getErrors());
-                    //System.out.println(sdt.toString());
-                }
-            }
-        }
-//
-        for (String s : REGRESS) {
-            System.out.println("REGRESS " + s);
-            for (int i = 1; i <= 5; i++) {
-                for (int j = 1; j <= 2; j++) {
-                    BT sdt = new BT("data_sdt\\" + s + "\\" + s + "-train-" + i + "-" + j + ".txt", "data_sdt\\" + s + "\\" + s + "-validation-" + i + "-" + j + ".txt", "data_sdt\\" + s + "\\" + s + "-test.txt", false, LEARNING_RATE, EPOCH);
-                    sdt.learnTree();
-                    System.out.println(sdt.size() + "\t" + sdt.effSize() + "\t" + sdt.getErrors());
-//                    break;
-                    //   System.out.println(sdt.toString());
-                }
-//                break;
-            }
-        }
+//        for (String s : CLASSIFY) {
+//            System.out.println("CLASS " + s);
+//            for (int i = 1; i <= 5; i++) {
+//                for (int j = 1; j <= 2; j++) {
+//                    BT sdt = new BT( "data_sdt\\"+ s+ "\\"+s + "-train-" + i + "-" + j + ".txt", "data_sdt\\"+ s+ "\\"+s  + "-validation-" + i + "-" + j + ".txt",  "data_sdt\\"+ s+ "\\"+s +  "-test.txt", true, LEARNING_RATE, EPOCH);
+//                    sdt.learnTree();
+//                    System.out.println(sdt.size() + "\t" + sdt.effSize() + "\t" + sdt.getErrors());
+//                    //System.out.println(sdt.toString());
+//                }
+//            }
+//        }
+
+        BT bt = new BT("data_set_nonlinear_2.data.txt", "data_set_nonlinear_2_val.data.txt", "data_set_nonlinear_2_test.data.txt", true, LEARNING_RATE, EPOCH);
+        bt.learnTree();
+        System.out.println("Size: " + bt.size() + "\t" + bt.getErrors());
+
+        System.out.println(bt.size() + "\t" + bt.effSize() + "\t" + bt.getErrors());
+
+////
+//        for (String s : REGRESS) {
+//            System.out.println("REGRESS " + s);
+//            for (int i = 1; i <= 5; i++) {
+//                for (int j = 1; j <= 2; j++) {
+//                    BT sdt = new BT("data_sdt\\" + s + "\\" + s + "-train-" + i + "-" + j + ".txt", "data_sdt\\" + s + "\\" + s + "-validation-" + i + "-" + j + ".txt", "data_sdt\\" + s + "\\" + s + "-test.txt", false, LEARNING_RATE, EPOCH);
+//                    sdt.learnTree();
+//                    System.out.println(sdt.size() + "\t" + sdt.effSize() + "\t" + sdt.getErrors());
+////                    break;
+//                    //   System.out.println(sdt.toString());
+//                }
+////                break;
+//            }
+        //   }
     }
+
+
 }
