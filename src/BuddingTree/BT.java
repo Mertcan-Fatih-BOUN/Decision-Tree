@@ -132,7 +132,7 @@ public class BT {
             return ROOT.F(i);
     }
 
-    double ErrorOfTree(ArrayList<Instance> V) {
+    public double ErrorOfTree(ArrayList<Instance> V) {
         double error = 0;
         for (Instance instance : V) {
             if (isClassify) {

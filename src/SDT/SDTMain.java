@@ -34,6 +34,7 @@ public class SDTMain {
                     sdt.learnTree();
                     System.out.println("Size: " + sdt.size() + "\t" + sdt.getErrors());
                     //System.out.println(sdt.toString());
+
                 }
             }
         }
