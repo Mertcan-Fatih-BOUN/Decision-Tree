@@ -25,31 +25,56 @@ public class BTMain {
 //        System.out.println(sdt.getErrors());
 //        System.out.println(sdt.toString());
 
-//
+//        CLASSIFY = new String[]{"breast"};
+        double[][] results = new double[5][10];
         for (String s : CLASSIFY) {
-            System.out.println("CLASS " + s);
+//            System.out.println("CLASS " + s);
             for (int i = 1; i <= 5; i++) {
                 for (int j = 1; j <= 2; j++) {
                     BT sdt = new BT( "data_sdt\\"+ s+ "\\"+s + "-train-" + i + "-" + j + ".txt", "data_sdt\\"+ s+ "\\"+s  + "-validation-" + i + "-" + j + ".txt",  "data_sdt\\"+ s+ "\\"+s +  "-test.txt", true, LEARNING_RATE, EPOCH);
                     sdt.learnTree();
-                    System.out.println(sdt.size() + "\t" + sdt.effSize() + "\t" + sdt.getErrors());
+//                    System.out.println(sdt.size() + "\t" + sdt.effSize() + "\t" + sdt.getErrors());
+                    results[0][i * 2 - 3 + j] = sdt.size();
+                    results[1][i * 2 - 3 + j] = sdt.effSize();
+                    results[2][i * 2 - 3 + j] = 1 - sdt.ErrorOfTree(sdt.X);
+                    results[3][i * 2 - 3 + j] = 1 - sdt.ErrorOfTree(sdt.V);
+                    results[4][i * 2 - 3 + j] = 1 - sdt.ErrorOfTree(sdt.T);
                     //System.out.println(sdt.toString());
                 }
             }
+            double[] statistics = findStatistcis(results);
+            System.out.println(statistics[0] + "\t" + statistics[1] + "\t" + statistics[2] + "\t" + statistics[3] + "\t" + statistics[4]);
+
         }
+
 //
-        for (String s : REGRESS) {
-            System.out.println("REGRESS " + s);
-            for (int i = 1; i <= 5; i++) {
-                for (int j = 1; j <= 2; j++) {
-                    BT sdt = new BT("data_sdt\\" + s + "\\" + s + "-train-" + i + "-" + j + ".txt", "data_sdt\\" + s + "\\" + s + "-validation-" + i + "-" + j + ".txt", "data_sdt\\" + s + "\\" + s + "-test.txt", false, LEARNING_RATE, EPOCH);
-                    sdt.learnTree();
-                    System.out.println(sdt.size() + "\t" + sdt.effSize() + "\t" + sdt.getErrors());
-//                    break;
-                    //   System.out.println(sdt.toString());
-                }
-//                break;
-            }
+//        for (String s : REGRESS) {
+//            System.out.println("REGRESS " + s);
+//            for (int i = 1; i <= 5; i++) {
+//                for (int j = 1; j <= 2; j++) {
+//                    BT sdt = new BT("data_sdt\\" + s + "\\" + s + "-train-" + i + "-" + j + ".txt", "data_sdt\\" + s + "\\" + s + "-validation-" + i + "-" + j + ".txt", "data_sdt\\" + s + "\\" + s + "-test.txt", false, LEARNING_RATE, EPOCH);
+//                    sdt.learnTree();
+//                    System.out.println(sdt.size() + "\t" + sdt.effSize() + "\t" + sdt.getErrors());
+////                    break;
+//                    //   System.out.println(sdt.toString());
+//                }
+////                break;
+//            }
+//        }
+    }
+
+    private static double[] findStatistcis(double[][] results) {
+        double[] resultGeneral = new double[5];
+        for(int i = 0; i < 10; i++){
+            resultGeneral[0] += results[0][i];
+            resultGeneral[1] += results[1][i];
+            resultGeneral[2] += results[2][i];
+            resultGeneral[3] += results[3][i];
+            resultGeneral[4] += results[3][i];
         }
+        for(int i = 0; i < 5; i++){
+            resultGeneral[i] /= 10;
+        }
+        return resultGeneral;
     }
 }
