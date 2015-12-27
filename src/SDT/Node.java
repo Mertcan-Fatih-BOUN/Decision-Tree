@@ -232,7 +232,6 @@ class Node {
             learnParameters(X, V, alpha, tree, tree.EPOCH);
 
             newErr = tree.ErrorOfTree(V);
-
             if (newErr < bestErr) {
 
                 bestw = Arrays.copyOf(w, w.length);

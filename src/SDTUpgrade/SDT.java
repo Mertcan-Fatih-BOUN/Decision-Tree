@@ -40,14 +40,15 @@ public class SDT {
         this.VALIDATION_SET_FILENAME = validation;
         this.TEST_SET_FILENAME = test;
 
-        ATTRIBUTE_COUNT = 0;
+//        ATTRIBUTE_COUNT = 0;
         CLASS_NAMES = new ArrayList<>();
 
         readFile(X, TRAINING_SET_FILENAME);
         readFile(V, VALIDATION_SET_FILENAME);
         readFile(T, TEST_SET_FILENAME);
 
-//        normalize(X, V, T);
+        if(!SDTMain.isMnist)
+            normalize(X, V, T);
 
         isLeaf = true;
 
@@ -58,7 +59,7 @@ public class SDT {
         this.X = X;
         this.V = V;
         this.T = T;
-
+        isLeaf = true;
         learnTree();
     }
 
@@ -120,13 +121,22 @@ public class SDT {
     public void learnTree() {
         ROOT = new Node(ATTRIBUTE_COUNT);
 
-        ROOT.w0 = 0;
-        for (Instance i : X)
-            ROOT.w0 += i.classValue;
-        ROOT.w0 /= X.size();
+        if(SDTMain.isClassify && CLASS_NAMES.size() > 1){
+//            SDTMain.leftBound = 0.45;
+//            SDTMain.rightBound = 0.85;
+            ROOT.rho = new double[CLASS_NAMES.size()];
+            for (Instance i : X)
+                ROOT.rho[(int)i.classValue] += 1.0/X.size();
+        }else {
+            ROOT.rho = new double[1];
+            ROOT.rho[0] = 0;
+            for (Instance i : X)
+                ROOT.rho[0] += i.classValue;
+            ROOT.rho[0] /= X.size();
+        }
 
         if(parent != null)
-            ROOT.w0 = parent.ROOT.w0;
+            ROOT.rho = Arrays.copyOf(parent.ROOT.rho, parent.ROOT.rho.length);
 
         ROOT.splitNode(X, V, this);
 
@@ -154,14 +164,26 @@ public class SDT {
 
         for (int j = 0; j < shuffler.size(); j++) {
             Instance i = X.get(shuffler.get(j));
-            double t = eval(i);
-            if (t < SDTMain.leftBound)
-                X1.add(i);
-            else if (t < SDTMain.rightBound)
-                X2.add(i);
-            else
-                X3.add(i);
+            if(ROOT.rho.length == 1) {
+                double t = eval(i);
+                if (t < SDTMain.leftBound)
+                    X1.add(i);
+                else if (t < SDTMain.rightBound)
+                    X2.add(i);
+                else
+                    X3.add(i);
+            }else{
+                double[] softmax = ROOT.sigmoid_F_rho(i);
+                if (Util.max_value(softmax) < SDTMain.leftBound) {
+                    X1.add(i);
+                } else if (Util.max_value(softmax) > SDTMain.leftBound && Util.max_value(softmax) < SDTMain.rightBound) {
+                    X2.add(i);
+                } else if (Util.max_value(softmax) > SDTMain.rightBound) {
+                    X3.add(i);
+                }
+            }
         }
+        //System.out.println(X1.size() + " " + X2.size() + " " + X3.size() + " " + (X1.size() + X2.size() + X3.size()) + " " + X.size());
 
         shuffler = new ArrayList<>();
         for(int i = 0; i < V.size(); i++) shuffler.add(i);
@@ -169,13 +191,24 @@ public class SDT {
 
         for (int j = 0; j < shuffler.size(); j++) {
             Instance i = V.get(shuffler.get(j));
-            double t = eval(i);
-            if (t < SDTMain.leftBound)
-                V1.add(i);
-            else if (t < SDTMain.rightBound)
-                V2.add(i);
-            else
-                V3.add(i);
+            if(ROOT.rho.length == 1) {
+                double t = eval(i);
+                if (t < SDTMain.leftBound)
+                    V1.add(i);
+                else if (t < SDTMain.rightBound)
+                    V2.add(i);
+                else
+                    V3.add(i);
+            }else {
+                double[] softmax = ROOT.sigmoid_F_rho(i);
+                if (Util.max_value(softmax) < SDTMain.leftBound) {
+                    V1.add(i);
+                } else if (Util.max_value(softmax) > SDTMain.leftBound && Util.max_value(softmax) < SDTMain.rightBound) {
+                    V2.add(i);
+                } else if (Util.max_value(softmax) > SDTMain.rightBound) {
+                    V3.add(i);
+                }
+            }
         }
         isLeaf = false;
 
@@ -228,6 +261,7 @@ public class SDT {
 
     }
 
+
     public String getErrors() {
         DecimalFormat format = new DecimalFormat("#.###");
         if (SDTMain.isClassify)
@@ -239,30 +273,61 @@ public class SDT {
 
     double eval(Instance i) {
         if (SDTMain.isClassify) {
-            double s = sigmoid(ROOT.F(i));
-            if (s < SDTMain.leftBound && leftSDT != null) {
-                return leftSDT.eval(i);
-            } else if (s > SDTMain.leftBound && s < SDTMain.rightBound && middleSDT != null) {
-                return middleSDT.eval(i);
-            } else if (s > SDTMain.rightBound && rightSDT != null) {
-                return rightSDT.eval(i);
-            } else
-                return s;
+            if(ROOT.rho.length == 1) {
+                double s = sigmoid(ROOT.F(i));
+                //System.out.println(s);
+                if (s < SDTMain.leftBound && leftSDT != null) {
+                    return leftSDT.eval(i);
+                } else if (s > SDTMain.leftBound && s < SDTMain.rightBound && middleSDT != null) {
+                    return middleSDT.eval(i);
+                } else if (s > SDTMain.rightBound && rightSDT != null) {
+                    return rightSDT.eval(i);
+                } else
+                    return s;
+            }else{
+                double[] softmax = Util.softmax(ROOT.sigmoid_F_rho(i));
+                if (Util.max_value(softmax) < SDTMain.leftBound && leftSDT != null) {
+                    return leftSDT.eval(i);
+                } else if (Util.max_value(softmax) > SDTMain.leftBound && Util.max_value(softmax) < SDTMain.rightBound && middleSDT != null) {
+                    return middleSDT.eval(i);
+                } else if (Util.max_value(softmax) > SDTMain.rightBound && rightSDT != null) {
+                    return rightSDT.eval(i);
+                } else
+                    return Util.argMax(softmax);
+            }
         } else
             return ROOT.F(i);
     }
+
+//    double eval(Instance i) {
+//        if (isClassify) {
+//            if(ROOT.rho.length == 1) {
+//                return sigmoid(ROOT.F(i));
+//            }else{
+//                return Util.argMax(Util.softmax((ROOT.sigmoid_F_rho(i))));
+//            }
+//        }else
+//            return ROOT.F(i);
+//    }
 
     double ErrorOfTree(ArrayList<Instance> V) {
         double error = 0;
         for (Instance instance : V) {
             if (SDTMain.isClassify) {
-                double r = instance.classValue;
-                double y = eval(instance);
-                if (y > 0.5) {
-                    if (r != 1)
+                if(ROOT.rho.length == 1) {
+                    double r = instance.classValue;
+                    double y = eval(instance);
+                    if (y > 0.5) {
+                        if (r != 1)
+                            error++;
+                    } else if (r != 0)
                         error++;
-                } else if (r != 0)
-                    error++;
+                }else{
+                    double r = instance.classValue;
+                    double y = eval(instance);
+                    if(y != r)
+                        error++;
+                }
             } else {
                 double r = instance.classValue;
                 double y = eval(instance);
@@ -315,6 +380,8 @@ public class SDT {
             double[] attributes = new double[ATTRIBUTE_COUNT];
             for (int i = 0; i < ATTRIBUTE_COUNT; i++) {
                 attributes[i] = Double.parseDouble(s[i]);
+                if(SDTMain.isMnist)
+                    attributes[i] /= 255.0;
             }
             String className = s[ATTRIBUTE_COUNT];
 

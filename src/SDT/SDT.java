@@ -48,7 +48,7 @@ public class SDT {
         readFile(V, VALIDATION_SET_FILENAME);
         readFile(T, TEST_SET_FILENAME);
 
-        normalize(X, V, T);
+//        normalize(X, V, T);
     }
 
     private void normalize(ArrayList<Instance> x, ArrayList<Instance> v, ArrayList<Instance> t) {
@@ -188,7 +188,7 @@ public class SDT {
 
             double[] attributes = new double[ATTRIBUTE_COUNT];
             for (int i = 0; i < ATTRIBUTE_COUNT; i++) {
-                attributes[i] = Double.parseDouble(s[i]);
+                attributes[i] = Double.parseDouble(s[i]) / 255;
             }
             String className = s[ATTRIBUTE_COUNT];
 

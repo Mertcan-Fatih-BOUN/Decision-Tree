@@ -26,13 +26,14 @@ public class SDTMain {
 //        System.out.println(sdt.toString());
 //
 
-        SDT sdt4 = new SDT( "iris.data.txt", "iris.data.txt", "iris.data.txt", true, LEARNING_RATE, EPOCH, MAX_STEP);
-        sdt4.learnTree();
-        System.out.println("Size: " + sdt4.size() + "\t" + sdt4.getErrors());
+//        SDT sdt4 = new SDT( "iris.data.txt", "iris.data.txt", "iris.data.txt", true, LEARNING_RATE, EPOCH, MAX_STEP);
+//        sdt4.learnTree();
+//        System.out.println("Size: " + sdt4.size() + "\t" + sdt4.getErrors());
 
-//        SDT sdt3 = new SDT( "data_sdt\\mnist\\mnist_ordered_01.txt", "data_sdt\\mnist\\mnist_ordered_01.txt", "data_sdt\\mnist\\mnist_ordered_01.txt", true, LEARNING_RATE, EPOCH, MAX_STEP);
-//        sdt3.learnTree();
-//        System.out.println("Size: " + sdt3.size() + "\t" + sdt3.getErrors());
+       // SDT sdt3 = new SDT("data_sdt\\mnist\\mnist.txt", "data_sdt\\mnist\\mnist.txt", "data_sdt\\mnist\\mnist.txt", true, LEARNING_RATE, EPOCH, MAX_STEP);
+        SDT sdt3 = new SDT("data_sdt\\mnist\\mnist_ordered_01.txt", "data_sdt\\mnist\\mnist_ordered_01.txt", "data_sdt\\mnist\\mnist_ordered_01.txt", true, LEARNING_RATE, EPOCH, MAX_STEP);
+        sdt3.learnTree();
+        System.out.println("Size: " + sdt3.size() + "\t" + sdt3.getErrors());
 //
 //        SDT sdt2 = new SDT( "data_set_nonlinear_1.data.txt", "data_set_nonlinear_1.data.txt", "data_set_nonlinear_1.data.txt", true, LEARNING_RATE, EPOCH, MAX_STEP);
 //        sdt2.learnTree();
