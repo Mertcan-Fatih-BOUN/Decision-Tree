@@ -4,10 +4,7 @@ package SDTUpgrade;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Scanner;
+import java.util.*;
 
 import static SDTUpgrade.Util.sigmoid;
 
@@ -50,7 +47,7 @@ public class SDT {
         readFile(V, VALIDATION_SET_FILENAME);
         readFile(T, TEST_SET_FILENAME);
 
-        normalize(X, V, T);
+//        normalize(X, V, T);
 
         isLeaf = true;
 
@@ -151,7 +148,12 @@ public class SDT {
         ArrayList<Instance> V2 = new ArrayList<>();
         ArrayList<Instance> V3 = new ArrayList<>();
 
-        for (Instance i : X) {
+        ArrayList<Integer> shuffler = new ArrayList<>();
+        for(int i = 0; i < X.size(); i++) shuffler.add(i);
+        Collections.shuffle(shuffler);
+
+        for (int j = 0; j < shuffler.size(); j++) {
+            Instance i = X.get(shuffler.get(j));
             double t = eval(i);
             if (t < SDTMain.leftBound)
                 X1.add(i);
@@ -160,7 +162,13 @@ public class SDT {
             else
                 X3.add(i);
         }
-        for (Instance i : V) {
+
+        shuffler = new ArrayList<>();
+        for(int i = 0; i < V.size(); i++) shuffler.add(i);
+        Collections.shuffle(shuffler);
+
+        for (int j = 0; j < shuffler.size(); j++) {
+            Instance i = V.get(shuffler.get(j));
             double t = eval(i);
             if (t < SDTMain.leftBound)
                 V1.add(i);
@@ -289,14 +297,14 @@ public class SDT {
         line = br.readLine();
 
         br.close();
-        String[] s = line.split(" ");
+        String[] s = line.split("\\s+");
 
         ATTRIBUTE_COUNT = s.length - 1;
         Scanner scanner = new Scanner(new File(filename));
         while (scanner.hasNext()) {
             double[] attributes = new double[ATTRIBUTE_COUNT];
             for (int i = 0; i < ATTRIBUTE_COUNT; i++) {
-                attributes[i] = scanner.nextDouble();
+                attributes[i] = scanner.nextDouble()/255;
 
             }
             double classValue;
@@ -316,6 +324,5 @@ public class SDT {
 
             I.add(new Instance(classValue, attributes));
         }
-
     }
 }

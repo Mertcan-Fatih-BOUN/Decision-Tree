@@ -26,12 +26,13 @@ public class Util {
         String[] s;
         String splitter;
         if(!line.contains(","))
-            splitter = " ";
+            splitter = "\\s+";
         else
             splitter = ",";
         s = line.split(splitter);
 
         ATTRIBUTE_COUNT = s.length - 1;
+//        System.out.println(ATTRIBUTE_COUNT + line);
         Scanner scanner = new Scanner(new File(filename));
         while (scanner.hasNextLine()) {
             line = scanner.nextLine();
@@ -39,7 +40,7 @@ public class Util {
 
             double[] attributes = new double[ATTRIBUTE_COUNT];
             for (int i = 0; i < ATTRIBUTE_COUNT; i++) {
-                attributes[i] = Double.parseDouble(s[i]);
+                attributes[i] = Double.parseDouble(s[i]) / 255;
             }
             String className = s[ATTRIBUTE_COUNT];
 

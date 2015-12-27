@@ -33,26 +33,31 @@ public class SDTMain {
 //        System.out.println(sdt.getErrors());
 //        System.out.println(sdt.toString());
 
-        double[][] results = new double[5][10];
-        for (String s : CLASSIFY) {
-//            System.out.println("CLASS " + s);
-            for (int i = 1; i <= 5; i++) {
-                for (int j = 1; j <= 2; j++) {
-                    sdt = null;
-                    sdt = new SDT( "data_sdt\\"+ s+ "\\"+s + "-train-" + i + "-" + j + ".txt", "data_sdt\\"+ s+ "\\"+s  + "-validation-" + i + "-" + j + ".txt",  "data_sdt\\"+ s+ "\\"+s +  "-test.txt");
-                    sdt.splitTree();
-//                    System.out.println("Eff Size: " + sdt.effSize() + "\t " + "Size: " + sdt.size() + "\t" + sdt.getErrors());
-//                    System.out.println(sdt.toString());
-                    results[0][i * 2 - 3 + j] = sdt.size();
-                    results[1][i * 2 - 3 + j] = sdt.effSize();
-                    results[2][i * 2 - 3 + j] = 1 - sdt.ErrorOfTree(sdt.X);
-                    results[3][i * 2 - 3 + j] = 1 - sdt.ErrorOfTree(sdt.V);
-                    results[4][i * 2 - 3 + j] = 1 - sdt.ErrorOfTree(sdt.T);
-                }
-            }
-            double[] statistics = findStatistcis(results);
-            System.out.println(statistics[0] + "\t" + statistics[1] + "\t" + statistics[2] + "\t" + statistics[3] + "\t" + statistics[4]);
-        }
+        sdt = new SDT( "data_sdt\\mnist\\mnist_ordered_01.txt", "data_sdt\\mnist\\mnist_ordered_01.txt", "data_sdt\\mnist\\mnist_ordered_01.txt");
+        sdt.splitTree();
+        System.out.println(sdt.size() + "\t" + sdt.effSize() + "\t" + (1 - sdt.ErrorOfTree(sdt.X)) + "\t" + (1 - sdt.ErrorOfTree(sdt.V)) + "\t" + (1 - sdt.ErrorOfTree(sdt.T)));
+
+//        double[][] results = new double[5][10];
+//        for (String s : CLASSIFY) {
+////            System.out.println("CLASS " + s);
+//            for (int i = 1; i <= 5; i++) {
+//                for (int j = 1; j <= 2; j++) {
+//                    sdt = null;
+//                    sdt = new SDT( "data_sdt\\"+ s+ "\\"+s + "-train-" + i + "-" + j + ".txt", "data_sdt\\"+ s+ "\\"+s  + "-validation-" + i + "-" + j + ".txt",  "data_sdt\\"+ s+ "\\"+s +  "-test.txt");
+//                    sdt.splitTree();
+////                    System.out.println("Eff Size: " + sdt.effSize() + "\t " + "Size: " + sdt.size() + "\t" + sdt.getErrors());
+////                    System.out.println(sdt.toString());
+//                    results[0][i * 2 - 3 + j] = sdt.size();
+//                    results[1][i * 2 - 3 + j] = sdt.effSize();
+//                    results[2][i * 2 - 3 + j] = 1 - sdt.ErrorOfTree(sdt.X);
+//                    results[3][i * 2 - 3 + j] = 1 - sdt.ErrorOfTree(sdt.V);
+//                    results[4][i * 2 - 3 + j] = 1 - sdt.ErrorOfTree(sdt.T);
+//                   // System.out.println(sdt.size() + "\t" + sdt.effSize() + "\t" + (1 - sdt.ErrorOfTree(sdt.X)) + "\t" + (1 - sdt.ErrorOfTree(sdt.V)) + "\t" + (1 - sdt.ErrorOfTree(sdt.T)));
+//                }
+//            }
+//            double[] statistics = findStatistcis(results);
+//            System.out.println(statistics[0] + "\t" + statistics[1] + "\t" + statistics[2] + "\t" + statistics[3] + "\t" + statistics[4]);
+//        }
 
 
 //

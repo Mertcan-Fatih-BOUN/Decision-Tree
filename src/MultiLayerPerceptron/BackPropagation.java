@@ -19,11 +19,11 @@ public class BackPropagation {
 
     public static MultiLayerNetwork multi_perceptron;
     public static Random r = new Random();
-    public final static int input_number = 300;
-    public final static int hidden_neuron_number = 5;
-    public final static int input_dimension = 2;
-    public final static int output_dimension = 3;
-    public final static int number_of_epochs = 1000;
+    public final static int input_number = 60000;
+    public final static int hidden_neuron_number = 28*28*2/3;
+    public final static int input_dimension = 28*28;
+    public final static int output_dimension = 10;
+    public final static int number_of_epochs = 100;
     public static ArrayList<Instance> instances = new ArrayList<>();
     public static double[][] inputs = new double[input_number][input_dimension + 1];
     public static double[][] outputs = new double[input_number][output_dimension];
@@ -39,9 +39,7 @@ public class BackPropagation {
     public static MatlabTypeConverter processor;
 
     public static void main(String[] args) throws MatlabConnectionException, MatlabInvocationException {
-        factory = new MatlabProxyFactory();
-        proxy = factory.getProxy();
-        processor = new MatlabTypeConverter(proxy);
+
         if(hidden_neuron_number == 0)
             multi_perceptron = new MultiLayerNetwork(input_dimension + 1,hidden_neuron_number,output_dimension);
         else
@@ -51,9 +49,16 @@ public class BackPropagation {
         try {
 //            Util.readFile(instances, "iris.data.txt");
 //            Util.readFile(instances, "iris.data.v2.txt");
-            Util.readFile(instances, "data_set_nonlinear_1.data.txt");
+//            Util.readFile(instances, "data_set_nonlinear_1.data.txt");
+            Util.readFile(instances, "data_sdt\\mnist\\mnist.txt");
+//            Util.readFile(instances, "data_sdt\\mnist\\mnist_ordered_01.txt");
         } catch (IOException e) {
             e.printStackTrace();
+        }
+        if(Util.ATTRIBUTE_COUNT == 2){
+            factory = new MatlabProxyFactory();
+            proxy = factory.getProxy();
+            processor = new MatlabTypeConverter(proxy);
         }
 
 
@@ -190,7 +195,8 @@ public class BackPropagation {
 //                trues++;
 //            else
 //                falses++;
-            if(maxIndex == i / (input_number / Util.CLASS_COUNT))
+//            if(maxIndex == i / (input_number / Util.CLASS_COUNT))
+            if(outputs[i][maxIndex] == 1)
                 trues++;
             else
                 falses++;
@@ -212,11 +218,11 @@ public class BackPropagation {
     }
 
     private static void train_backPropagate() {
-        System.out.println("W1: " + toString2dArray(multi_perceptron.W1));
-
-        System.out.println("W2: " + toString2dArray(multi_perceptron.W2));
-
-        System.out.println("inputs: " + toString2dArray(inputs));
+//        System.out.println("W1: " + toString2dArray(multi_perceptron.W1));
+//
+//        System.out.println("W2: " + toString2dArray(multi_perceptron.W2));
+//
+//        System.out.println("inputs: " + toString2dArray(inputs));
 
 
         ArrayList<Integer> shuffler = new ArrayList<>();
@@ -286,15 +292,16 @@ public class BackPropagation {
                 }
 
             }
+            test();
         }
 
-        System.out.println("W1: " + toString2dArray(multi_perceptron.W1));
-
-        System.out.println("W2: " + toString2dArray(multi_perceptron.W2));
-
-        System.out.println("real outputs: " + toString2dArray(outputs));
-
-        System.out.println("outputs: " + toString2dArray(output_hats));
+//        System.out.println("W1: " + toString2dArray(multi_perceptron.W1));
+//
+//        System.out.println("W2: " + toString2dArray(multi_perceptron.W2));
+//
+//        System.out.println("real outputs: " + toString2dArray(outputs));
+//
+//        System.out.println("outputs: " + toString2dArray(output_hats));
 
 
     }

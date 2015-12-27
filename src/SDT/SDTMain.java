@@ -25,6 +25,9 @@ public class SDTMain {
 //        System.out.println(sdt.getErrors());
 //        System.out.println(sdt.toString());
 
+        SDT sdt2 = new SDT( "data_sdt\\mnist\\mnist_ordered_01.txt", "data_sdt\\mnist\\mnist_ordered_01.txt", "data_sdt\\mnist\\mnist_ordered_01.txt", true, LEARNING_RATE, EPOCH, MAX_STEP);
+        sdt2.learnTree();
+        System.out.println("Size: " + sdt2.size() + "\t" + sdt2.getErrors());
 //
         for (String s : CLASSIFY) {
             System.out.println("CLASS " + s);

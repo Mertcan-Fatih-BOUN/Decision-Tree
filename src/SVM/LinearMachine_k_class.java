@@ -43,7 +43,8 @@ public class LinearMachine_k_class {
         try {
 //            Util.readFile(instances, "data_set_66.data.txt");
 //            Util.readFile(instances, "iris.data.txt");
-            Util.readFile(instances, "iris.data.v2.txt");
+//            Util.readFile(instances, "iris.data.v2.txt");
+            Util.readFile(instances, "data_sdt\\mnist\\mnist_ordered_small.txt");
         } catch (IOException e) {
             e.printStackTrace();
         }

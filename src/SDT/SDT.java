@@ -48,7 +48,7 @@ public class SDT {
         readFile(V, VALIDATION_SET_FILENAME);
         readFile(T, TEST_SET_FILENAME);
 
-        normalize(X, V, T);
+//        normalize(X, V, T);
     }
 
     private void normalize(ArrayList<Instance> x, ArrayList<Instance> v, ArrayList<Instance> t) {
@@ -94,13 +94,13 @@ public class SDT {
             ROOT.w0 += i.classValue;
         ROOT.w0 /= X.size();
 
-//        ROOT.splitNode(X, V, this);
+        ROOT.splitNode(X, V, this);
 
-        split_q.add(ROOT);
-        while (!split_q.isEmpty()){
-            Node n = split_q.remove();
-            n.splitNode(X, V, this);
-        }
+//        split_q.add(ROOT);
+//        while (!split_q.isEmpty()){
+//            Node n = split_q.remove();
+//            n.splitNode(X, V, this);
+//        }
     }
 
     public String getErrors() {
@@ -161,7 +161,7 @@ public class SDT {
         while (scanner.hasNext()) {
             double[] attributes = new double[ATTRIBUTE_COUNT];
             for (int i = 0; i < ATTRIBUTE_COUNT; i++) {
-                attributes[i] = scanner.nextDouble();
+                attributes[i] = scanner.nextDouble()/255;
 
             }
             double classValue;
