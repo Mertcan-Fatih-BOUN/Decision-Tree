@@ -5,9 +5,9 @@ import java.util.Locale;
 
 
 public class BTMain {
-    public static double LEARNING_RATE = 1;
+    public static double LEARNING_RATE = 10;
     //    public static int MAX_STEP = 10;
-    public static int EPOCH =2;
+    public static int EPOCH =200;
 
     public static void main(String[] args) throws IOException {
         Locale.setDefault(Locale.US);
@@ -37,12 +37,14 @@ public class BTMain {
 //                }
 //            }
 //        }
-
-//        BT bt = new BT("data_set_nonlinear_2.data.txt", "data_set_nonlinear_2_val.data.txt", "data_set_nonlinear_2_test.data.txt", true, LEARNING_RATE, EPOCH);
-//        BT bt = new BT("data_set_nonlinear_1.data.txt", "data_set_nonlinear_1.data.txt", "data_set_nonlinear_1.data.txt", true, LEARNING_RATE, EPOCH);
-        BT bt = new BT("data_sdt\\mnist\\mnist.txt", "data_sdt\\mnist\\mnist.txt", "data_sdt\\mnist\\mnist.txt", true, LEARNING_RATE, EPOCH);
+        BT bt = new BT( "iris.data.txt", "iris.data.txt", "iris.data.txt", true, LEARNING_RATE, EPOCH);
         bt.learnTree();
         System.out.println("Size: " + bt.size() + "\t" + bt.getErrors());
+//        BT bt = new BT("data_set_nonlinear_2.data.txt", "data_set_nonlinear_2_val.data.txt", "data_set_nonlinear_2_test.data.txt", true, LEARNING_RATE, EPOCH);
+//        BT bt = new BT("data_set_nonlinear_1.data.txt", "data_set_nonlinear_1.data.txt", "data_set_nonlinear_1.data.txt", true, LEARNING_RATE, EPOCH);
+//        BT bt = new BT("data_sdt\\mnist\\mnist.txt", "data_sdt\\mnist\\mnist.txt", "data_sdt\\mnist\\mnist.txt", true, LEARNING_RATE, EPOCH);
+//        bt.learnTree();
+//        System.out.println("Size: " + bt.size() + "\t" + bt.getErrors());
 
         System.out.println(bt.size() + "\t" + bt.effSize() + "\t" + bt.getErrors());
 

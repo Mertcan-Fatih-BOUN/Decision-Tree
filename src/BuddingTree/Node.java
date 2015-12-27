@@ -235,7 +235,7 @@ class Node {
         }
         _sigmoids = f;
         softmax_sigmoids = Util.softmax(_sigmoids);
-        //System.out.println(s + " " + rho[0] + " " + rho[1] + " " + instance.classValue);
+//        System.out.println(s + " " + rho[0] + " " + rho[1] + " " + rho[2] + " " + instance.classValue);
         return f;
     }
 

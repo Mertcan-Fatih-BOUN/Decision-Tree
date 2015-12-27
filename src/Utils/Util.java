@@ -40,7 +40,7 @@ public class Util {
 
             double[] attributes = new double[ATTRIBUTE_COUNT];
             for (int i = 0; i < ATTRIBUTE_COUNT; i++) {
-                attributes[i] = Double.parseDouble(s[i]) / 255;
+                attributes[i] = Double.parseDouble(s[i]);
             }
             String className = s[ATTRIBUTE_COUNT];
 
