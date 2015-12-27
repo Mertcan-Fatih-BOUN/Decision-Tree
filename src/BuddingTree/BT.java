@@ -6,7 +6,6 @@ import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.util.*;
 
-import static SDT.Util.sigmoid;
 
 public class BT {
     public double LEARNING_RATE;
@@ -15,7 +14,7 @@ public class BT {
     public String VALIDATION_SET_FILENAME;
     public String TEST_SET_FILENAME;
     public int ATTRIBUTE_COUNT;
-    public ArrayList<String> CLASS_NAMES = new ArrayList<>();
+    public static ArrayList<String> CLASS_NAMES = new ArrayList<>();
     public static double Lambda = 0.001;
 
     public static int count = 0;
@@ -40,6 +39,7 @@ public class BT {
         this.TEST_SET_FILENAME = test;
         this.isClassify = isClassify;
         Node.isClassify = isClassify;
+        CLASS_NAMES = new ArrayList<>();
 
         readFile(X, TRAINING_SET_FILENAME);
         readFile(V, VALIDATION_SET_FILENAME);
@@ -96,7 +96,7 @@ public class BT {
 //        EPOCH = 1;
         for (int e = 0; e < EPOCH; e++) {
             Collections.shuffle(indices);
-//            restartGradients(ROOT);
+            restartGradients(ROOT);
             for (int i = 0; i < X.size(); i++) {
                 int j = indices.get(i);
                 ROOT.backPropagate(X.get(j));
@@ -126,9 +126,12 @@ public class BT {
 
 
     double eval(Instance i) {
-        if (isClassify)
-            return sigmoid(ROOT.F(i));
-        else
+        if (isClassify) {
+            if(!Node.is_k_Classify)
+                return Util.sigmoid(ROOT.F(i));
+            else
+                return Util.argMax(Util.softmax((ROOT.sigmoid_F_rho(i))));
+        }else
             return ROOT.F(i);
     }
 
@@ -136,13 +139,20 @@ public class BT {
         double error = 0;
         for (Instance instance : V) {
             if (isClassify) {
-                double r = instance.classValue;
-                double y = eval(instance);
-                if (y > 0.5) {
-                    if (r != 1)
+                if(!Node.is_k_Classify) {
+                    double r = instance.classValue;
+                    double y = eval(instance);
+                    if (y > 0.5) {
+                        if (r != 1)
+                            error++;
+                    } else if (r != 0)
                         error++;
-                } else if (r != 0)
-                    error++;
+                }else{
+                    double r = instance.classValue;
+                    double y = eval(instance);
+                    if(y != r)
+                        error++;
+                }
             } else {
                 double r = instance.classValue;
                 double y = eval(instance);
@@ -201,10 +211,12 @@ public class BT {
     public double calculatedValue(Instance i) {
         double value = eval(i);
         if (isClassify) {
-            if (value > 0.5)
-                value = 1;
-            else
-                value = 0;
+            if(!Node.is_k_Classify) {
+                if (value > 0.5)
+                    value = 1;
+                else
+                    value = 0;
+            }
         }
         return value;
     }

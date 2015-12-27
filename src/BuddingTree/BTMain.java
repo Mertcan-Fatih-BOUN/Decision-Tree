@@ -38,7 +38,8 @@ public class BTMain {
 //            }
 //        }
 
-        BT bt = new BT("data_set_nonlinear_2.data.txt", "data_set_nonlinear_2_val.data.txt", "data_set_nonlinear_2_test.data.txt", true, LEARNING_RATE, EPOCH);
+//        BT bt = new BT("data_set_nonlinear_2.data.txt", "data_set_nonlinear_2_val.data.txt", "data_set_nonlinear_2_test.data.txt", true, LEARNING_RATE, EPOCH);
+        BT bt = new BT("data_set_nonlinear_1.data.txt", "data_set_nonlinear_1.data.txt", "data_set_nonlinear_1.data.txt", true, LEARNING_RATE, EPOCH);
         bt.learnTree();
         System.out.println("Size: " + bt.size() + "\t" + bt.getErrors());
 

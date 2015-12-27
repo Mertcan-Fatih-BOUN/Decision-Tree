@@ -17,11 +17,45 @@ public class Util {
         return 1.0 / (1 + Math.exp(-x));
     }
 
+    public static double[] sigmoid(double[] x) {
+        double[] tmp = new double[x.length];
+        for(int i = 0; i < x.length; i++)
+            tmp[i] = sigmoid(x[i]);
+        return tmp;
+    }
+
     public static double dotProduct(double[] x, double[] y) {
         double result = 0;
         for (int i = 0; i < x.length; i++)
             result += x[i] * y[i];
         return result;
+    }
+
+    public static double[] softmax(double[] sigmoid) {
+        double[] ratios = new double[sigmoid.length];
+        double total = exp_total(sigmoid);
+        for(int i = 0; i < sigmoid.length; i++)
+            ratios[i] = Math.exp(sigmoid[i]) / total;
+        return ratios;
+    }
+
+    public static int argMax(double[] d){
+        double tmp = d[0];
+        int tmpIndex = 0;
+        for(int i = 1; i < d.length; i++){
+            if(d[i] > tmp){
+                tmp = d[i];
+                tmpIndex = i;
+            }
+        }
+        return tmpIndex;
+    }
+
+    public static double exp_total(double[] t){
+        double total = 0;
+        for(int i = 0; i < t.length; i++)
+            total += Math.exp(t[i]);
+        return total;
     }
 
     public static class ArrayIndexComparator implements Comparator<Integer>
