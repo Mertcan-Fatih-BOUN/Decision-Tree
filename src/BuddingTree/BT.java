@@ -27,7 +27,7 @@ public class BT {
 
     public boolean isClassify;
 
-    public Node ROOT;
+    public static Node ROOT;
 
     public BT(String training, String validation, String test, boolean isClassify, double learning_rate, int epoch) throws IOException {
 
@@ -45,7 +45,7 @@ public class BT {
         readFile(V, VALIDATION_SET_FILENAME);
         readFile(T, TEST_SET_FILENAME);
 
-        normalize(X, V, T);
+        //normalize(X, V, T);
 
         ROOT = new Node(ATTRIBUTE_COUNT);
     }
@@ -96,13 +96,17 @@ public class BT {
 //        EPOCH = 1;
         for (int e = 0; e < EPOCH; e++) {
             Collections.shuffle(indices);
-            restartGradients(ROOT);
+//            restartGradients(ROOT);
             for (int i = 0; i < X.size(); i++) {
                 int j = indices.get(i);
+
+                ROOT.sigmoid_F_rho(X.get(j));
+
                 ROOT.backPropagate(X.get(j));
                 ROOT.update();
             }
-            this.printAllData("out"+ e +".txt");
+            System.out.println("Size: " + size() + "\t" + getErrors());
+//            this.printAllData("out"+ e +".txt");
         }
     }
 
@@ -131,6 +135,7 @@ public class BT {
                 return Util.sigmoid(ROOT.F(i));
             else
                 return Util.argMax(Util.softmax((ROOT.sigmoid_F_rho(i))));
+//                return Util.argMax(ROOT.softmax_sigmoids);
         }else
             return ROOT.F(i);
     }

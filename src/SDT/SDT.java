@@ -20,7 +20,7 @@ public class SDT {
     public String VALIDATION_SET_FILENAME;
     public String TEST_SET_FILENAME;
     public int ATTRIBUTE_COUNT;
-    public ArrayList<String> CLASS_NAMES = new ArrayList<>();
+    public static ArrayList<String> CLASS_NAMES = new ArrayList<>();
 
     public static Queue<Node> split_q = new LinkedList<>();
 
@@ -28,13 +28,13 @@ public class SDT {
     ArrayList<Instance> V = new ArrayList<>();
     ArrayList<Instance> T = new ArrayList<>();
 
-    public boolean isClassify;
+    public static boolean isClassify;
 
     public Node ROOT;
 
     public SDT(String training, String validation, String test, boolean isClassify, double learning_rate, int epıch, int max_step) throws IOException {
 
-
+        CLASS_NAMES = new ArrayList<>();
         this.LEARNING_RATE = learning_rate;
         this.MAX_STEP = max_step;
         this.EPOCH = epıch;
@@ -48,7 +48,7 @@ public class SDT {
         readFile(V, VALIDATION_SET_FILENAME);
         readFile(T, TEST_SET_FILENAME);
 
-//        normalize(X, V, T);
+        normalize(X, V, T);
     }
 
     private void normalize(ArrayList<Instance> x, ArrayList<Instance> v, ArrayList<Instance> t) {
@@ -89,11 +89,17 @@ public class SDT {
     public void learnTree() {
         ROOT = new Node(ATTRIBUTE_COUNT);
 
-        ROOT.w0 = 0;
-        for (Instance i : X)
-            ROOT.w0 += i.classValue;
-        ROOT.w0 /= X.size();
-
+        if(isClassify && CLASS_NAMES.size() > 2){
+            ROOT.rho = new double[CLASS_NAMES.size()];
+            for (Instance i : X)
+                ROOT.rho[(int)i.classValue] += 1.0/X.size();
+        }else {
+            ROOT.rho = new double[1];
+            ROOT.rho[0] = 0;
+            for (Instance i : X)
+                ROOT.rho[0] += i.classValue;
+            ROOT.rho[0] /= X.size();
+        }
         ROOT.splitNode(X, V, this);
 
 //        split_q.add(ROOT);
@@ -113,9 +119,13 @@ public class SDT {
 
 
     double eval(Instance i) {
-        if (isClassify)
-            return sigmoid(ROOT.F(i));
-        else
+        if (isClassify) {
+            if(ROOT.rho.length == 1) {
+                return sigmoid(ROOT.F(i));
+            }else{
+                return Util.argMax(Util.softmax((ROOT.sigmoid_F_rho(i))));
+            }
+        }else
             return ROOT.F(i);
     }
 
@@ -123,13 +133,20 @@ public class SDT {
         double error = 0;
         for (Instance instance : V) {
             if (isClassify) {
-                double r = instance.classValue;
-                double y = eval(instance);
-                if (y > 0.5) {
-                    if (r != 1)
+                if(ROOT.rho.length == 1) {
+                    double r = instance.classValue;
+                    double y = eval(instance);
+                    if (y > 0.5) {
+                        if (r != 1)
+                            error++;
+                    } else if (r != 0)
                         error++;
-                } else if (r != 0)
-                    error++;
+                }else{
+                    double r = instance.classValue;
+                    double y = eval(instance);
+                    if(y != r)
+                        error++;
+                }
             } else {
                 double r = instance.classValue;
                 double y = eval(instance);

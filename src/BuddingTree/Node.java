@@ -32,6 +32,12 @@ class Node {
     public static boolean isClassify = false;
     public static boolean is_k_Classify = false;
 
+    public double[] deltas;
+    public double[] ys;
+
+    public double[] softmax_sigmoids;
+    public double[] _sigmoids;
+
     double y;
     double g;
     double gama = 1;
@@ -56,6 +62,9 @@ class Node {
         }else{
             rho = new double[1];
         }
+        deltas = new double[rho.length];
+        ys = new double[rho.length];
+
         for (int i = 0; i < rho.length; i++)
             rho[i] = rand(-0.01, 0.01);
 
@@ -74,10 +83,13 @@ class Node {
         calculateGradient(instance);
 //        System.out.println(name + " " + gradient[0] + " " + gradient[1] + " " + gradient[2] + " " + gama + " " + delta(instance));
         if (!isLeaf) {
+            //leftNode.G(instance);
+            //rightNode.G(instance);
             leftNode.backPropagate(instance);
             rightNode.backPropagate(instance);
         }
     }
+
 
     public void printGradient(){
         String s = "";
@@ -115,13 +127,14 @@ class Node {
         double delta = 0;
         if (parent == null) {
             if (!isClassify)
-                delta = F(i) - i.classValue;
+                delta = y - i.classValue;
             else {
                 if(!is_k_Classify)
-                    delta = sigmoid(F(i)) - i.classValue;
+                    delta = sigmoid(y) - i.classValue;
                 else
 //                    delta = sigmoid(F(i)) - i.classValue;
-                    delta = sigmoid(F(i)) - 1;
+//                    delta = sigmoid(F(i)) - 1;
+                    delta = BT.ROOT.softmax_sigmoids[(int) i.classValue] - 1;
 
             }
         } else if (isLeft) {
@@ -134,11 +147,15 @@ class Node {
     public double delta(Instance i, int index) {
         double delta = 0;
         if (parent == null) {
-//          delta = sigmoid(F(i)) - i.classValue;
+////          delta = sigmoid(F(i)) - i.classValue;
+//            if(index == (int)i.classValue)
+//                delta = sigmoid(F(i)) - 1;
+//            else
+//                delta = sigmoid(F(i, index)) - 0;
             if(index == (int)i.classValue)
-                delta = sigmoid(F(i)) - 1;
+                delta = BT.ROOT.softmax_sigmoids[index] - 1;
             else
-                delta = sigmoid(F(i, index)) - 0;
+                delta = BT.ROOT.softmax_sigmoids[index];
         } else if (isLeft) {
             delta = parent.delta(i, index) * (1 - parent.gama) * parent.G(i);
         } else {
@@ -150,13 +167,19 @@ class Node {
 
     public void calculateGradient(Instance instance) {
         double delta = delta(instance);
-        double g = G(instance);
         double leftF = 0;
         double rightF = 0;
-        if (leftNode != null)
-            leftF = leftNode.F(instance);
-        if (rightNode != null)
-            rightF = rightNode.F(instance);
+        if (leftNode != null) {
+            if(rho.length == 1)
+                leftF = leftNode.ys[0];
+            else
+                leftF = leftNode.ys[(int) instance.classValue];
+        }if (rightNode != null) {
+            if(rho.length == 1)
+                rightF = rightNode.ys[0];
+            else
+                rightF = rightNode.ys[(int) instance.classValue];
+        }
         gradient[0] = delta * gama;
         if(!is_k_Classify)
             gradient[1] = delta * (-g * leftF - (1 - g) * rightF + rho[0]) - BT.Lambda;
@@ -179,7 +202,8 @@ class Node {
     }
 
     public double F(Instance instance) {
-        g = sigmoid(dotProduct(w, instance.attributes) + w0);
+        double g = sigmoid(dotProduct(w, instance.attributes) + w0);
+        double y;
         double rho_current = rho[0];
         if(is_k_Classify)
             rho_current = rho[(int)instance.classValue];
@@ -192,11 +216,13 @@ class Node {
 
     public double F(Instance instance, int index) {
         g = sigmoid(dotProduct(w, instance.attributes) + w0);
+        double y;
         double rho_current = rho[index];
         if (leftNode == null || rightNode == null)
             y = gama * rho_current;
         else
             y = (1 - gama) * (g * (leftNode.F(instance, index)) + (1 - g) * (rightNode.F(instance, index))) + gama * rho_current;
+        ys[index] = y;
         return y;
     }
 
@@ -207,6 +233,8 @@ class Node {
             f[i] = sigmoid(F(instance, i));
             s += f[i] + " ";
         }
+        _sigmoids = f;
+        softmax_sigmoids = Util.softmax(_sigmoids);
         //System.out.println(s + " " + rho[0] + " " + rho[1] + " " + instance.classValue);
         return f;
     }
