@@ -1,4 +1,4 @@
-package SDTUpgrade;
+package SDTUpgrade2Old;
 
 
 import java.io.*;
@@ -6,7 +6,8 @@ import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.util.*;
 
-import static SDT.Util.sigmoid;
+import static SDTUpgrade.Util.sigmoid;
+
 
 public class SDT {
     SDT leftSDT;
@@ -15,15 +16,11 @@ public class SDT {
 
     SDT parent;
 
-    public boolean isLeaf = true;
 
-    public double LEARNING_RATE;
-    public int MAX_STEP;
-    public int EPOCH;
     public String TRAINING_SET_FILENAME;
     public String VALIDATION_SET_FILENAME;
     public String TEST_SET_FILENAME;
-    public int ATTRIBUTE_COUNT;
+    public static int ATTRIBUTE_COUNT;
     public static ArrayList<String> CLASS_NAMES = new ArrayList<>();
 
     public static Queue<Node> split_q = new LinkedList<>();
@@ -32,43 +29,36 @@ public class SDT {
     ArrayList<Instance> V = new ArrayList<>();
     ArrayList<Instance> T = new ArrayList<>();
 
-    public static boolean isClassify;
+
+    public boolean isLeaf = true;
 
     public Node ROOT;
 
-    public SDT(String training, String validation, String test, boolean isClassify, double learning_rate, int epıch, int max_step) throws IOException {
+    public SDT(String training, String validation, String test) throws IOException {
 
-        CLASS_NAMES = new ArrayList<>();
-        this.LEARNING_RATE = learning_rate;
-        this.MAX_STEP = max_step;
-        this.EPOCH = epıch;
         this.TRAINING_SET_FILENAME = training;
         this.VALIDATION_SET_FILENAME = validation;
         this.TEST_SET_FILENAME = test;
-        this.isClassify = isClassify;
 
+        ATTRIBUTE_COUNT = 0;
+        CLASS_NAMES = new ArrayList<>();
 
         readFile(X, TRAINING_SET_FILENAME);
         readFile(V, VALIDATION_SET_FILENAME);
         readFile(T, TEST_SET_FILENAME);
 
-        if(!SDTMain.isMnist)
-            normalize(X, V, T);
+        normalize(X, V, T);
 
         isLeaf = true;
 
         learnTree();
     }
 
-    public SDT(ArrayList<Instance> X, ArrayList<Instance> V, ArrayList<Instance> T, boolean isClassify, double learning_rate, int epıch, int max_step) {
+    public SDT(ArrayList<Instance> X, ArrayList<Instance> V, ArrayList<Instance> T) {
         this.X = X;
         this.V = V;
         this.T = T;
-        isLeaf = true;
-        this.isClassify = isClassify;
-        this.LEARNING_RATE = learning_rate;
-        this.MAX_STEP = max_step;
-        this.EPOCH = epıch;
+
         learnTree();
     }
 
@@ -130,20 +120,15 @@ public class SDT {
     public void learnTree() {
         ROOT = new Node(ATTRIBUTE_COUNT);
 
-        if(isClassify && CLASS_NAMES.size() > 2){
-            ROOT.rho = new double[CLASS_NAMES.size()];
-            for (Instance i : X)
-                ROOT.rho[(int)i.classValue] += 1.0/X.size();
-        }else {
-            ROOT.rho = new double[1];
-            ROOT.rho[0] = 0;
-            for (Instance i : X)
-                ROOT.rho[0] += i.classValue;
-            ROOT.rho[0] /= X.size();
+        ROOT.rho = new double[1];
+        ROOT.rho[0] = 0;
+        for (Instance i : X)
+            ROOT.rho[0] += i.classValue;
+        ROOT.rho[0] /= X.size();
 
-            if(parent != null)
-                ROOT.rho[0] = parent.ROOT.rho[0];
-        }
+        if(parent != null)
+            ROOT.rho[0] = parent.ROOT.rho[0];
+
         ROOT.splitNode(X, V, this);
 
 //        split_q.add(ROOT);
@@ -164,74 +149,53 @@ public class SDT {
         ArrayList<Instance> V2 = new ArrayList<>();
         ArrayList<Instance> V3 = new ArrayList<>();
 
+
         ArrayList<Integer> shuffler = new ArrayList<>();
         for(int i = 0; i < X.size(); i++) shuffler.add(i);
         Collections.shuffle(shuffler);
 
         for (int j = 0; j < shuffler.size(); j++) {
             Instance i = X.get(shuffler.get(j));
-            if(ROOT.rho.length == 1) {
-                double t = eval(i);
-                if (t < SDTMain.leftBound)
-                    X1.add(i);
-                else if (t < SDTMain.rightBound)
-                    X2.add(i);
-                else
-                    X3.add(i);
-            }else{
-                double[] softmax = (ROOT.sigmoid_F_rho(i));
-                if (Util.max_value(softmax) < SDTMain.leftBound) {
-                    X1.add(i);
-                } else if (Util.max_value(softmax) > SDTMain.leftBound && Util.max_value(softmax) < SDTMain.rightBound) {
-                    X2.add(i);
-                } else if (Util.max_value(softmax) > SDTMain.rightBound) {
-                    X3.add(i);
-                }
-            }
+            double t = eval(i);
+            if (t < SDTMain.leftBound)
+                X1.add(i);
+            else if (t < SDTMain.rightBound)
+                X2.add(i);
+            else
+                X3.add(i);
         }
-        //System.out.println(X1.size() + " " + X2.size() + " " + X3.size() + " " + (X1.size() + X2.size() + X3.size()) + " " + X.size());
-
         shuffler = new ArrayList<>();
         for(int i = 0; i < V.size(); i++) shuffler.add(i);
         Collections.shuffle(shuffler);
 
         for (int j = 0; j < shuffler.size(); j++) {
             Instance i = V.get(shuffler.get(j));
-            if(ROOT.rho.length == 1) {
-                double t = eval(i);
-                if (t < SDTMain.leftBound)
-                    V1.add(i);
-                else if (t < SDTMain.rightBound)
-                    V2.add(i);
-                else
-                    V3.add(i);
-            }else {
-                double[] softmax = ROOT.sigmoid_F_rho(i);
-                if (Util.max_value(softmax) < SDTMain.leftBound) {
-                    V1.add(i);
-                } else if (Util.max_value(softmax) > SDTMain.leftBound && Util.max_value(softmax) < SDTMain.rightBound) {
-                    V2.add(i);
-                } else if (Util.max_value(softmax) > SDTMain.rightBound) {
-                    V3.add(i);
-                }
-            }
+            double t = eval(i);
+            if (t < SDTMain.leftBound)
+                V1.add(i);
+            else if (t < SDTMain.rightBound)
+                V2.add(i);
+            else
+                V3.add(i);
         }
         isLeaf = false;
-        leftSDT = new SDT(X1, V1, T,true, LEARNING_RATE, EPOCH, MAX_STEP);
+
+        leftSDT = new SDT(X1, V1, T);
         leftSDT.parent = this;
         double newErrLeft = ErrorOfTree(V);
 
         SDT tempLeft = leftSDT;
         leftSDT = null;
 
-        middleSDT = new SDT(X2, V2, T,true, LEARNING_RATE, EPOCH, MAX_STEP);
+
+        middleSDT = new SDT(X2, V2, T);
         middleSDT.parent = this;
         double newErrMiddle = ErrorOfTree(V);
 
         SDT tempMiddle = middleSDT;
         middleSDT = null;
 
-        rightSDT = new SDT(X3, V3, T,true, LEARNING_RATE, EPOCH, MAX_STEP);
+        rightSDT = new SDT(X3, V3, T);
         rightSDT.parent = this;
         double newErrRight = ErrorOfTree(V);
 
@@ -267,59 +231,39 @@ public class SDT {
 
     public String getErrors() {
         DecimalFormat format = new DecimalFormat("#.###");
-        if (isClassify)
+        if (SDTMain.isClassify)
             return "Training: " + format.format(1 - ErrorOfTree(X)) + "\tValidation: " + format.format(1 - ErrorOfTree(V)) + "\tTest: " + format.format(1 - ErrorOfTree(T));
         else
-            return "Training: " +format.format( ErrorOfTree(X)) + "\tValidation: " +format.format( ErrorOfTree(V) )+ "\tTest: " + format.format(ErrorOfTree(T));
+            return "Training: " + format.format(ErrorOfTree(X)) + "\tValidation: " + format.format(ErrorOfTree(V)) + "\tTest: " + format.format(ErrorOfTree(T));
     }
 
 
-    public double eval(Instance i) {
-        if (isClassify) {
-            if(ROOT.rho.length == 1) {
-                double s = sigmoid(ROOT.F(i));
-                if (s < SDTMain.leftBound && leftSDT != null) {
-                    return leftSDT.eval(i);
-                } else if (s > SDTMain.leftBound && s < SDTMain.rightBound && middleSDT != null) {
-                    return middleSDT.eval(i);
-                } else if (s > SDTMain.rightBound && rightSDT != null) {
-                    return rightSDT.eval(i);
-                } else
-                    return s;
-            }else{
-                double[] softmax = (ROOT.sigmoid_F_rho(i));
-                if (Util.max_value(softmax) < SDTMain.leftBound && leftSDT != null) {
-                    return leftSDT.eval(i);
-                } else if (Util.max_value(softmax) > SDTMain.leftBound && Util.max_value(softmax) < SDTMain.rightBound && middleSDT != null) {
-                    return middleSDT.eval(i);
-                } else if (Util.max_value(softmax) > SDTMain.rightBound && rightSDT != null) {
-                    return rightSDT.eval(i);
-                } else
-                    return Util.argMax(softmax);
-            }
+    double eval(Instance i) {
+        if (SDTMain.isClassify) {
+            double s = sigmoid(ROOT.F(i));
+            if (s < SDTMain.leftBound && leftSDT != null) {
+                return leftSDT.eval(i);
+            } else if (s > SDTMain.leftBound && s < SDTMain.rightBound && middleSDT != null) {
+                return middleSDT.eval(i);
+            } else if (s > SDTMain.rightBound && rightSDT != null) {
+                return rightSDT.eval(i);
+            } else
+                return s;
         } else
             return ROOT.F(i);
     }
 
-
-    public double ErrorOfTree(ArrayList<Instance> V) {
+    double ErrorOfTree(ArrayList<Instance> V) {
         double error = 0;
         for (Instance instance : V) {
-            if (isClassify) {
-                if(ROOT.rho.length == 1) {
-                    double r = instance.classValue;
-                    double y = eval(instance);
-                    if (y > 0.5) {
-                        if (r != 1)
-                            error++;
-                    } else if (r != 0)
+            if (SDTMain.isClassify) {
+                double r = instance.classValue;
+                double y = eval(instance);
+                if (y > 0.5) {
+                    if (r != 1)
                         error++;
-                }else{
-                    double r = instance.classValue;
-                    double y = eval(instance);
-                    if(y != r)
-                        error++;
-                }
+                } else if (r != 0)
+                    error++;
             } else {
                 double r = instance.classValue;
                 double y = eval(instance);
@@ -331,7 +275,17 @@ public class SDT {
     }
 
     public String toString() {
-        return ROOT.toString(1);
+        String s = ROOT.toString(1) + "\n\n";
+        if (leftSDT != null) {
+            s += "\t" + leftSDT.toString() + "\n";
+        }
+        if (middleSDT != null) {
+            s += "\t" + middleSDT.toString() + "\n";
+        }
+        if (rightSDT != null) {
+            s += "\t" + rightSDT.toString() + "\n";
+        }
+        return s;
     }
 
     private void readFile(ArrayList<Instance> I, String filename) throws IOException {
@@ -362,8 +316,6 @@ public class SDT {
             double[] attributes = new double[ATTRIBUTE_COUNT];
             for (int i = 0; i < ATTRIBUTE_COUNT; i++) {
                 attributes[i] = Double.parseDouble(s[i]);
-                if(SDTMain.isMnist)
-                    attributes[i] /= 255;
             }
             String className = s[ATTRIBUTE_COUNT];
 
