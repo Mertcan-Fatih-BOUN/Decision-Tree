@@ -44,18 +44,6 @@ public class Util {
         return tmpIndex;
     }
 
-//    public static double min_value(double[] d){
-//        double tmp = d[0];
-//        int tmpIndex = 0;
-//        for(int i = 1; i < d.length; i++){
-//            if(d[i] < tmp){
-//                tmp = d[i];
-//                tmpIndex = i;
-//            }
-//        }
-//        return tmp;
-//    }
-
     public static double max_value(double[] d){
         double tmp = d[0];
         int tmpIndex = 0;

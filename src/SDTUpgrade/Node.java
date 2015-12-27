@@ -1,17 +1,13 @@
 package SDTUpgrade;
 
 
-import javafx.util.Pair;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
-
-import static SDTUpgrade.Util.dotProduct;
-import static SDTUpgrade.Util.rand;
-import static SDTUpgrade.Util.sigmoid;
-
+import static SDT.Util.dotProduct;
+import static SDT.Util.rand;
+import static SDT.Util.sigmoid;
 
 class Node {
     int ATTRIBUTE_COUNT;
@@ -189,6 +185,7 @@ class Node {
 
         double[] oldw0 = Arrays.copyOf(rho, rho.length);;
 
+
         w = new double[ATTRIBUTE_COUNT];
 
         double err = tree.ErrorOfTree(V);
@@ -214,7 +211,7 @@ class Node {
 
 
         double alpha;
-        for (int t = 0; t < SDTMain.MAX_STEP; t++) {
+        for (int t = 0; t < tree.MAX_STEP; t++) {
             if(hardInit);
                 //hardinit(X, V);
             else {
@@ -229,13 +226,10 @@ class Node {
                 }
             }
 
-            alpha = (SDTMain.LEARNING_RATE + 0.0) / Math.pow(2, t + 1);
-            learnParameters(X, V, alpha, tree, SDTMain.EPOCH);
+            alpha = (tree.LEARNING_RATE + 0.0) / Math.pow(2, t + 1);
+            learnParameters(X, V, alpha, tree, tree.EPOCH);
 
             newErr = tree.ErrorOfTree(V);
-
-            //System.out.println(newErr + " " + bestErr);
-
             if (newErr < bestErr) {
 
                 bestw = Arrays.copyOf(w, w.length);
