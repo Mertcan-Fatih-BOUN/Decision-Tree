@@ -57,7 +57,7 @@ class Node {
         double[] f = new double[rho.length];
         String s = "";
         for(int i = 0; i < rho.length; i++) {
-            f[i] = sigmoid(F(instance, i));
+            f[i] = (F(instance, i));
             s += f[i] + " ";
         }
         //System.out.println(s + " " + rho[0] + " " + rho[1] + " " + rho[2] + " " + instance.classValue);

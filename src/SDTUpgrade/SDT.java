@@ -89,15 +89,18 @@ public class SDT {
 
             for (Instance ins : x) {
                 ins.attributes[i] -= mean;
-                ins.attributes[i] /= stdev;
+                if(stdev != 0)
+                    ins.attributes[i] /= stdev;
             }
             for (Instance ins : v) {
                 ins.attributes[i] -= mean;
-                ins.attributes[i] /= stdev;
+                if(stdev != 0)
+                    ins.attributes[i] /= stdev;
             }
             for (Instance ins : t) {
                 ins.attributes[i] -= mean;
-                ins.attributes[i] /= stdev;
+                if(stdev != 0)
+                    ins.attributes[i] /= stdev;
             }
 
         }

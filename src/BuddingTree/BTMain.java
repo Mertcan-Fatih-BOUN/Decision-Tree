@@ -5,14 +5,16 @@ import java.util.Locale;
 
 
 public class BTMain {
-    public static double LEARNING_RATE = 10;
+    public static double LEARNING_RATE = 0.35;
     //    public static int MAX_STEP = 10;
     public static int EPOCH =20;
+    public static boolean isMnist = false;
 
     public static void main(String[] args) throws IOException {
         Locale.setDefault(Locale.US);
         String[] CLASSIFY = new String[]{"breast", "spambase", "twonorm", "ringnorm", "german", "magic", "pima", "polyadenylation", "satellite47", "musk2"};
         String[] REGRESS = new String[]{"abalone", "boston", "add10", "comp", "california", "concrete", "puma8fh", "puma8nh", "puma8fm", "puma8nm"};
+        System.out.println("Learning rate: " + LEARNING_RATE);
         //  String[] CLASSIFY = new String[]{ "breast"};
 //        REGRESS = new String[]{"abalone"};
 //        SDT sdt = new SDT("data_sdt\\breast\\breast-train-1-1.txt", "data_sdt\\breast\\breast-validation-1-1.txt", "data_sdt\\breast\\breast-test.txt", true, LEARNING_RATE, EPOCH, MAX_STEP);
@@ -37,12 +39,15 @@ public class BTMain {
 //                }
 //            }
 //        }
+        isMnist = true;
 //        BT bt = new BT( "iris.data.txt", "iris.data.txt", "iris.data.txt", true, LEARNING_RATE, EPOCH);
 //        bt.learnTree();
 //        System.out.println("Size: " + bt.size() + "\t" + bt.getErrors());
 //        BT bt = new BT("data_set_nonlinear_2.data.txt", "data_set_nonlinear_2_val.data.txt", "data_set_nonlinear_2_test.data.txt", true, LEARNING_RATE, EPOCH);
 //        BT bt = new BT("data_set_nonlinear_1.data.txt", "data_set_nonlinear_1.data.txt", "data_set_nonlinear_1.data.txt", true, LEARNING_RATE, EPOCH);
         BT bt = new BT("data_sdt\\mnist\\mnist.txt", "data_sdt\\mnist\\mnist.txt", "data_sdt\\mnist\\mnist.txt", true, LEARNING_RATE, EPOCH);
+//        BT bt = new BT("data_sdt\\mnist\\mnist_ordered_03.txt", "data_sdt\\mnist\\mnist_ordered_03.txt", "data_sdt\\mnist\\mnist_ordered_03.txt", true, LEARNING_RATE, EPOCH);
+//        BT bt = new BT("data_sdt\\optdigits\\train.txt", "data_sdt\\optdigits\\validation.txt", "data_sdt\\optdigits\\test.txt", true, LEARNING_RATE, EPOCH);
         bt.learnTree();
         System.out.println("Size: " + bt.size() + "\t" + bt.getErrors());
 

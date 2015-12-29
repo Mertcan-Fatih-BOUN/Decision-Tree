@@ -34,8 +34,11 @@ public class Util {
     public static double[] softmax(double[] sigmoid) {
         double[] ratios = new double[sigmoid.length];
         double total = exp_total(sigmoid);
-        for(int i = 0; i < sigmoid.length; i++)
+        for(int i = 0; i < sigmoid.length; i++) {
             ratios[i] = Math.exp(sigmoid[i]) / total;
+//            System.out.print(ratios[i] + " ");
+        }
+//        System.out.println();
         return ratios;
     }
 
@@ -48,6 +51,7 @@ public class Util {
                 tmpIndex = i;
             }
         }
+//        System.out.println(tmpIndex);
         return tmpIndex;
     }
 

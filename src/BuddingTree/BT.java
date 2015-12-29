@@ -45,7 +45,8 @@ public class BT {
         readFile(V, VALIDATION_SET_FILENAME);
         readFile(T, TEST_SET_FILENAME);
 
-        //normalize(X, V, T);
+        if(!BTMain.isMnist);
+            normalize(X, V, T);
 
         ROOT = new Node(ATTRIBUTE_COUNT);
     }
@@ -67,15 +68,18 @@ public class BT {
 
             for (Instance ins : x) {
                 ins.attributes[i] -= mean;
-                ins.attributes[i] /= stdev;
+                if(stdev != 0)
+                    ins.attributes[i] /= stdev;
             }
             for (Instance ins : v) {
                 ins.attributes[i] -= mean;
-                ins.attributes[i] /= stdev;
+                if(stdev != 0)
+                    ins.attributes[i] /= stdev;
             }
             for (Instance ins : t) {
                 ins.attributes[i] -= mean;
-                ins.attributes[i] /= stdev;
+                if(stdev != 0)
+                    ins.attributes[i] /= stdev;
             }
 
         }
@@ -98,14 +102,17 @@ public class BT {
             Collections.shuffle(indices);
 //            restartGradients(ROOT);
             for (int i = 0; i < X.size(); i++) {
-                int j = indices.get(i);
+//                if(i % 50 == 0) {
+                    int j = indices.get(i);
 
-                ROOT.sigmoid_F_rho(X.get(j));
+                    ROOT.sigmoid_F_rho(X.get(j));
 
-                ROOT.backPropagate(X.get(j));
-                ROOT.update();
+                    ROOT.backPropagate(X.get(j));
+//                if(i % 50 == 0)
+                    ROOT.update();
+//                }
             }
-            System.out.println("Size: " + size() + "\t" + getErrors());
+            System.out.println("Epoch " + e + " Size: " + size() + "\t" + effSize() + " \t" + getErrors());
 //            this.printAllData("out"+ e +".txt");
         }
     }
@@ -155,6 +162,8 @@ public class BT {
                 }else{
                     double r = instance.classValue;
                     double y = eval(instance);
+
+//                    System.out.println(r + " " + y);
                     if(y != r)
                         error++;
                 }
@@ -192,7 +201,7 @@ public class BT {
         s = line.split(splitter);
 
         ATTRIBUTE_COUNT = s.length - 1;
-//        System.out.println(ATTRIBUTE_COUNT + line);
+//        System.out.println(ATTRIBUTE_COUNT + " " + line);
         Scanner scanner = new Scanner(new File(filename));
         while (scanner.hasNextLine()) {
             line = scanner.nextLine();
@@ -200,8 +209,11 @@ public class BT {
 
             double[] attributes = new double[ATTRIBUTE_COUNT];
             for (int i = 0; i < ATTRIBUTE_COUNT; i++) {
-                attributes[i] = Double.parseDouble(s[i]) / 255;
+                attributes[i] = Double.parseDouble(s[i]);
+                if(BTMain.isMnist)
+                    attributes[i] /= 255;
             }
+//            System.out.println();
             String className = s[ATTRIBUTE_COUNT];
 
             int classNumber;

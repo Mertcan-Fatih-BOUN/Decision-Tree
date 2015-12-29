@@ -49,7 +49,7 @@ class Node {
             w[i] = rand(-0.01, 0.01);
         w0 = rand(-0.01, 0.01);
         if(isClassify){
-            if(BT.CLASS_NAMES.size() == 1)
+            if(BT.CLASS_NAMES.size() == 2)
                 rho = new double[1];
             else {
                 rho = new double[BT.CLASS_NAMES.size()];
@@ -166,6 +166,7 @@ class Node {
 
 
     public void calculateGradient(Instance instance) {
+        double g = sigmoid(dotProduct(w, instance.attributes) + w0);
         double delta = delta(instance);
         double leftF = 0;
         double rightF = 0;
@@ -189,6 +190,7 @@ class Node {
             }
             gradient[1] = delta * (-g * leftF - (1 - g) * rightF + rho[(int) instance.classValue]) - BT.Lambda;
         }
+//        System.out.println(delta + " " + leftF + " " + rightF + " " + g);
         gradient[2] = delta * (1 - gama) * g * (1 - g) * (leftF - rightF);
         for (int i = 3; i < ATTRIBUTE_COUNT + 3; i++) {
             gradient[i] = delta * (1 - gama) * g * (1 - g) * (leftF - rightF) * instance.attributes[i - 3];
@@ -216,6 +218,7 @@ class Node {
 
     public double F(Instance instance, int index) {
         g = sigmoid(dotProduct(w, instance.attributes) + w0);
+//        System.out.println(w0);
         double y;
         double rho_current = rho[index];
         if (leftNode == null || rightNode == null)
@@ -230,12 +233,12 @@ class Node {
         double[] f = new double[rho.length];
         String s = "";
         for(int i = 0; i < rho.length; i++) {
-            f[i] = sigmoid(F(instance, i));
+            f[i] = (F(instance, i));
             s += f[i] + " ";
         }
         _sigmoids = f;
         softmax_sigmoids = Util.softmax(_sigmoids);
-//        System.out.println(s + " " + rho[0] + " " + rho[1] + " " + rho[2] + " " + instance.classValue);
+//        System.out.println(s + " " + rho[0] + " " + rho[1] + " " + rho[2] + " " + rho[3] + " " + instance.classValue);
         return f;
     }
 
@@ -277,8 +280,9 @@ class Node {
 //                rho[lastIndex_rho] = rho[lastIndex_rho] - BTMain.LEARNING_RATE * gradient[0] / Math.sqrt(gradient_sum[0]);
         }
         setGama(gama - BTMain.LEARNING_RATE * gradient[1] / Math.sqrt(gradient_sum[1]));
-
+//        System.out.println(gradient[2]);
         w0 = w0 - BTMain.LEARNING_RATE * gradient[2] / Math.sqrt(gradient_sum[2]);
+//        System.out.println(w0);
 
         for (int j = 3; j < ATTRIBUTE_COUNT + 3; j++) {
             w[j - 3] = w[j - 3] - BTMain.LEARNING_RATE * gradient[j] / Math.sqrt(gradient_sum[j]);

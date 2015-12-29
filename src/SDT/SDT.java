@@ -48,7 +48,8 @@ public class SDT {
         readFile(V, VALIDATION_SET_FILENAME);
         readFile(T, TEST_SET_FILENAME);
 
-        normalize(X, V, T);
+        if(!SDTMain.isMnist)
+            normalize(X, V, T);
     }
 
     private void normalize(ArrayList<Instance> x, ArrayList<Instance> v, ArrayList<Instance> t) {
@@ -68,15 +69,18 @@ public class SDT {
 
             for (Instance ins : x) {
                 ins.attributes[i] -= mean;
-                ins.attributes[i] /= stdev;
+                if(stdev != 0)
+                    ins.attributes[i] /= stdev;
             }
             for (Instance ins : v) {
                 ins.attributes[i] -= mean;
-                ins.attributes[i] /= stdev;
+                if(stdev != 0)
+                    ins.attributes[i] /= stdev;
             }
             for (Instance ins : t) {
                 ins.attributes[i] -= mean;
-                ins.attributes[i] /= stdev;
+                if(stdev != 0)
+                    ins.attributes[i] /= stdev;
             }
 
         }
@@ -189,6 +193,8 @@ public class SDT {
             double[] attributes = new double[ATTRIBUTE_COUNT];
             for (int i = 0; i < ATTRIBUTE_COUNT; i++) {
                 attributes[i] = Double.parseDouble(s[i]);
+                if(SDTMain.isMnist)
+                    attributes[i] /= 255;
             }
             String className = s[ATTRIBUTE_COUNT];
 
