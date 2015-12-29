@@ -6,6 +6,7 @@ import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.util.*;
 
+import static mains.TreeRunner.isMnist;
 
 public class BT {
     public double LEARNING_RATE;
@@ -45,10 +46,10 @@ public class BT {
         readFile(V, VALIDATION_SET_FILENAME);
         readFile(T, TEST_SET_FILENAME);
 
-        if(!BTMain.isMnist);
-            normalize(X, V, T);
+        if (isMnist) ;
+        normalize(X, V, T);
 
-        ROOT = new Node(ATTRIBUTE_COUNT);
+        ROOT = new Node(this);
     }
 
     private void normalize(ArrayList<Instance> x, ArrayList<Instance> v, ArrayList<Instance> t) {
@@ -68,17 +69,17 @@ public class BT {
 
             for (Instance ins : x) {
                 ins.attributes[i] -= mean;
-                if(stdev != 0)
+                if (stdev != 0)
                     ins.attributes[i] /= stdev;
             }
             for (Instance ins : v) {
                 ins.attributes[i] -= mean;
-                if(stdev != 0)
+                if (stdev != 0)
                     ins.attributes[i] /= stdev;
             }
             for (Instance ins : t) {
                 ins.attributes[i] -= mean;
-                if(stdev != 0)
+                if (stdev != 0)
                     ins.attributes[i] /= stdev;
             }
 
@@ -103,13 +104,13 @@ public class BT {
 //            restartGradients(ROOT);
             for (int i = 0; i < X.size(); i++) {
 //                if(i % 50 == 0) {
-                    int j = indices.get(i);
+                int j = indices.get(i);
 
-                    ROOT.sigmoid_F_rho(X.get(j));
+                ROOT.sigmoid_F_rho(X.get(j));
 
-                    ROOT.backPropagate(X.get(j));
+                ROOT.backPropagate(X.get(j));
 //                if(i % 50 == 0)
-                    ROOT.update();
+                ROOT.update();
 //                }
             }
             System.out.println("Epoch " + e + " Size: " + size() + "\t" + effSize() + " \t" + getErrors());
@@ -119,7 +120,7 @@ public class BT {
 
     private void restartGradients(Node root) {
         root.gradientSum = 0;
-        if(root.leftNode != null){
+        if (root.leftNode != null) {
             root.leftNode.gradientSum = 0;
             root.rightNode.gradientSum = 0;
         }
@@ -132,18 +133,18 @@ public class BT {
             return "Training: " + format.format(1 - ErrorOfTree(X)) + "\tValidation: " + format.format(1 - ErrorOfTree(V)) + "\tTest: " + format.format(1 - ErrorOfTree(T));
         else
 //            return "Training: " +format.format( ErrorOfTree(X)) + "\tValidation: " +format.format( ErrorOfTree(V) )+ "\tTest: " + format.format(ErrorOfTree(T));
-            return format.format( ErrorOfTree(X)) + "\t" +format.format( ErrorOfTree(V) )+ "\t " + format.format(ErrorOfTree(T));
+            return format.format(ErrorOfTree(X)) + "\t" + format.format(ErrorOfTree(V)) + "\t " + format.format(ErrorOfTree(T));
     }
 
 
     double eval(Instance i) {
         if (isClassify) {
-            if(!Node.is_k_Classify)
+            if (!Node.is_k_Classify)
                 return Util.sigmoid(ROOT.F(i));
             else
                 return Util.argMax(Util.softmax((ROOT.sigmoid_F_rho(i))));
 //                return Util.argMax(ROOT.softmax_sigmoids);
-        }else
+        } else
             return ROOT.F(i);
     }
 
@@ -151,7 +152,7 @@ public class BT {
         double error = 0;
         for (Instance instance : V) {
             if (isClassify) {
-                if(!Node.is_k_Classify) {
+                if (!Node.is_k_Classify) {
                     double r = instance.classValue;
                     double y = eval(instance);
                     if (y > 0.5) {
@@ -159,12 +160,12 @@ public class BT {
                             error++;
                     } else if (r != 0)
                         error++;
-                }else{
+                } else {
                     double r = instance.classValue;
                     double y = eval(instance);
 
 //                    System.out.println(r + " " + y);
-                    if(y != r)
+                    if (y != r)
                         error++;
                 }
             } else {
@@ -194,7 +195,7 @@ public class BT {
         br.close();
         String[] s;
         String splitter;
-        if(!line.contains(","))
+        if (!line.contains(","))
             splitter = "\\s+";
         else
             splitter = ",";
@@ -210,7 +211,7 @@ public class BT {
             double[] attributes = new double[ATTRIBUTE_COUNT];
             for (int i = 0; i < ATTRIBUTE_COUNT; i++) {
                 attributes[i] = Double.parseDouble(s[i]);
-                if(BTMain.isMnist)
+                if (isMnist)
                     attributes[i] /= 255;
             }
 //            System.out.println();
@@ -231,7 +232,7 @@ public class BT {
     public double calculatedValue(Instance i) {
         double value = eval(i);
         if (isClassify) {
-            if(!Node.is_k_Classify) {
+            if (!Node.is_k_Classify) {
                 if (value > 0.5)
                     value = 1;
                 else
