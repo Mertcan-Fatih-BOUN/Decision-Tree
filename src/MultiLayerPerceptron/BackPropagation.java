@@ -292,6 +292,7 @@ public class BackPropagation {
                 }
 
             }
+            System.out.print("Epoch: " + trial + " ");
             test();
         }
 

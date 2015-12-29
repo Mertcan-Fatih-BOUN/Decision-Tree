@@ -1,4 +1,4 @@
-package BuddingTree;
+package SDTUpgrade2Old;
 
 import java.util.Comparator;
 
@@ -8,20 +8,13 @@ public class Util {
             double t = e;
             e = s;
             s = t;
-        }
+}
 
         return (e - s) * Math.random() + s;
     }
 
     public static double sigmoid(double x) {
         return 1.0 / (1 + Math.exp(-x));
-    }
-
-    public static double[] sigmoid(double[] x) {
-        double[] tmp = new double[x.length];
-        for(int i = 0; i < x.length; i++)
-            tmp[i] = sigmoid(x[i]);
-        return tmp;
     }
 
     public static double dotProduct(double[] x, double[] y) {
@@ -34,11 +27,8 @@ public class Util {
     public static double[] softmax(double[] sigmoid) {
         double[] ratios = new double[sigmoid.length];
         double total = exp_total(sigmoid);
-        for(int i = 0; i < sigmoid.length; i++) {
+        for(int i = 0; i < sigmoid.length; i++)
             ratios[i] = Math.exp(sigmoid[i]) / total;
-//            System.out.print(ratios[i] + " ");
-        }
-//        System.out.println();
         return ratios;
     }
 
@@ -51,8 +41,19 @@ public class Util {
                 tmpIndex = i;
             }
         }
-//        System.out.println(tmpIndex);
         return tmpIndex;
+    }
+
+    public static double max_value(double[] d){
+        double tmp = d[0];
+        int tmpIndex = 0;
+        for(int i = 1; i < d.length; i++){
+            if(d[i] > tmp){
+                tmp = d[i];
+                tmpIndex = i;
+            }
+        }
+        return tmp;
     }
 
     public static double exp_total(double[] t){

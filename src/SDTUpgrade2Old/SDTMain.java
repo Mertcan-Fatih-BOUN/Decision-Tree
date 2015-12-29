@@ -1,28 +1,25 @@
-package SDTUpgrade;
+package SDTUpgrade2Old;
 
 import java.io.IOException;
 import java.util.Locale;
 
 
 public class SDTMain {
-    public static double LEARNING_RATE = 0.35;
-    public static int MAX_STEP = 2;
-    public static int EPOCH = 10;
-
-    public static boolean isMnist = false;
+    public static double LEARNING_RATE = 10;
+    public static int MAX_STEP = 10;
+    public static int EPOCH = 25;
+    public static boolean isClassify = true;
 
     public static double leftBound = 0.333;
-    public static double rightBound = 0.667;
+    public static double rightBound = 0.666;
 
-    public static double splitRate = 1e-5;
+    public static double splitRate = 1e-4;
 
     public static SDT sdt;
 
     public static void main(String[] args) throws IOException {
         Locale.setDefault(Locale.US);
-        System.out.println("mnist_small, LR: " + LEARNING_RATE + ", MAX_STEP: " + MAX_STEP + ", EPOCH: " + EPOCH + ", LEFT-RIGHT: " + leftBound + "-" + rightBound);
-
-        String[] CLASSIFY = new String[]{"ringnorm", "breast", "spambase", "twonorm", "ringnorm", "german", "magic", "pima", "polyadenylation", "satellite47", "musk2"};
+        String[] CLASSIFY = new String[]{"breast", "spambase", "twonorm", "ringnorm", "german", "magic", "pima", "polyadenylation", "satellite47", "musk2"};
         String[] REGRESS = new String[]{"abalone", "boston", "add10", "comp", "california", "concrete", "puma8fh", "puma8nh", "puma8fm", "puma8nm"};
         //  String[] CLASSIFY = new String[]{ "breast"};
 
@@ -35,25 +32,19 @@ public class SDTMain {
 //        sdt.learnTree();
 //        System.out.println(sdt.getErrors());
 //        System.out.println(sdt.toString());
-//
-//        isMnist = true;
-//        sdt = new SDT( "data_sdt\\mnist\\mnist.txt", "data_sdt\\mnist\\mnist.txt", "data_sdt\\mnist\\mnist.txt", true, LEARNING_RATE, EPOCH, MAX_STEP);
 
-//        sdt = new SDT("data_sdt\\optdigits\\train.txt", "data_sdt\\optdigits\\validation.txt", "data_sdt\\optdigits\\test.txt", true, LEARNING_RATE, EPOCH, MAX_STEP);
-//        sdt = new SDT( "data_sdt\\mnist\\mnist_ordered_03.txt", "data_sdt\\mnist\\mnist_ordered_03.txt", "data_sdt\\mnist\\mnist_ordered_03.txt", true, LEARNING_RATE, EPOCH, MAX_STEP);
-//        sdt = new SDT( "data_sdt\\mnist\\mnist_ordered_small.txt", "data_sdt\\mnist\\mnist_ordered_small.txt", "data_sdt\\mnist\\mnist_ordered_small.txt", true, LEARNING_RATE, EPOCH, MAX_STEP);
-        sdt = new SDT("iris.data.txt", "iris.data.txt", "iris.data.txt", true, LEARNING_RATE, EPOCH, MAX_STEP);
-        sdt.splitTree();
-        System.out.println(sdt.size() + "\t" + sdt.effSize() + "\t" + (1 - sdt.ErrorOfTree(sdt.X)) + "\t" + (1 - sdt.ErrorOfTree(sdt.V)) + "\t" + (1 - sdt.ErrorOfTree(sdt.T)));
-//
-//        isMnist = false;
+        SDT sdt3 = new SDT("data_sdt\\optdigits\\train.txt", "data_sdt\\optdigits\\validation.txt", "data_sdt\\optdigits\\test.txt");
+
+        sdt3.splitTree();
+        System.out.println("Size: " + sdt3.size() + "\t" + sdt3.effSize() + "\t" + sdt3.getErrors());
+
 //        double[][] results = new double[5][10];
 //        for (String s : CLASSIFY) {
 ////            System.out.println("CLASS " + s);
 //            for (int i = 1; i <= 5; i++) {
 //                for (int j = 1; j <= 2; j++) {
 //                    sdt = null;
-//                    sdt = new SDT( "data_sdt\\"+ s+ "\\"+s + "-train-" + i + "-" + j + ".txt", "data_sdt\\"+ s+ "\\"+s  + "-validation-" + i + "-" + j + ".txt",  "data_sdt\\"+ s+ "\\"+s +  "-test.txt", true, LEARNING_RATE, EPOCH, MAX_STEP);
+//                    sdt = new SDT( "data_sdt\\"+ s+ "\\"+s + "-train-" + i + "-" + j + ".txt", "data_sdt\\"+ s+ "\\"+s  + "-validation-" + i + "-" + j + ".txt",  "data_sdt\\"+ s+ "\\"+s +  "-test.txt");
 //                    sdt.splitTree();
 ////                    System.out.println("Eff Size: " + sdt.effSize() + "\t " + "Size: " + sdt.size() + "\t" + sdt.getErrors());
 ////                    System.out.println(sdt.toString());
@@ -62,7 +53,6 @@ public class SDTMain {
 //                    results[2][i * 2 - 3 + j] = 1 - sdt.ErrorOfTree(sdt.X);
 //                    results[3][i * 2 - 3 + j] = 1 - sdt.ErrorOfTree(sdt.V);
 //                    results[4][i * 2 - 3 + j] = 1 - sdt.ErrorOfTree(sdt.T);
-//                     System.out.println(sdt.size() + "\t" + sdt.effSize() + "\t" + (1 - sdt.ErrorOfTree(sdt.X)) + "\t" + (1 - sdt.ErrorOfTree(sdt.V)) + "\t" + (1 - sdt.ErrorOfTree(sdt.T)));
 //                }
 //            }
 //            double[] statistics = findStatistcis(results);
@@ -84,6 +74,7 @@ public class SDTMain {
 //            }
 //        }
     }
+
     private static double[] findStatistcis(double[][] results) {
         double[] resultGeneral = new double[5];
         for(int i = 0; i < 10; i++){

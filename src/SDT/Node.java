@@ -59,7 +59,7 @@ class Node {
         double[] f = new double[rho.length];
         String s = "";
         for(int i = 0; i < rho.length; i++) {
-            f[i] = sigmoid(F(instance, i));
+            f[i] = (F(instance, i));
             s += f[i] + " ";
         }
         //System.out.println(s + " " + rho[0] + " " + rho[1] + " " + rho[2] + " " + instance.classValue);
@@ -232,7 +232,6 @@ class Node {
             learnParameters(X, V, alpha, tree, tree.EPOCH);
 
             newErr = tree.ErrorOfTree(V);
-
             if (newErr < bestErr) {
 
                 bestw = Arrays.copyOf(w, w.length);

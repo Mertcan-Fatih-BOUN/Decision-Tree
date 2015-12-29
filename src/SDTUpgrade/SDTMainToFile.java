@@ -28,7 +28,7 @@ public class SDTMainToFile {
                         regressWriter.flush();
                         for (int i = 1; i <= 5; i++) {
                             for (int j = 1; j <= 2; j++) {
-                                SDT sdt = new SDT("data_sdt\\" + s + "\\" + s + "-train-" + i + "-" + j + ".txt", "data_sdt\\" + s + "\\" + s + "-validation-" + i + "-" + j + ".txt", "data_sdt\\" + s + "\\" + s + "-test.txt");
+                                SDT sdt = new SDT("data_sdt\\" + s + "\\" + s + "-train-" + i + "-" + j + ".txt", "data_sdt\\" + s + "\\" + s + "-validation-" + i + "-" + j + ".txt", "data_sdt\\" + s + "\\" + s + "-test.txt", false, LEARNING_RATE, EPOCH, MAX_STEP);
                                 sdt.learnTree();
                                 regressWriter.write("Size: " + sdt.size() + "\t" + sdt.getErrors() + "\n");
                                 regressWriter.flush();
@@ -52,7 +52,7 @@ public class SDTMainToFile {
                         regressWriter.flush();
                         for (int i = 1; i <= 5; i++) {
                             for (int j = 1; j <= 2; j++) {
-                                SDT sdt = new SDT("data_sdt\\" + s + "\\" + s + "-train-" + i + "-" + j + ".txt", "data_sdt\\" + s + "\\" + s + "-validation-" + i + "-" + j + ".txt", "data_sdt\\" + s + "\\" + s + "-test.txt");
+                                SDT sdt = new SDT("data_sdt\\" + s + "\\" + s + "-train-" + i + "-" + j + ".txt", "data_sdt\\" + s + "\\" + s + "-validation-" + i + "-" + j + ".txt", "data_sdt\\" + s + "\\" + s + "-test.txt", false, LEARNING_RATE, EPOCH, MAX_STEP);
                                 sdt.learnTree();
                                 regressWriter.write("Size: " + sdt.size() + "\t" + sdt.getErrors() + "\n");
                                 regressWriter.flush();

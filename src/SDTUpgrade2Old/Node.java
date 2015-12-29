@@ -1,5 +1,4 @@
-package SDTUpgrade;
-
+package SDTUpgrade2Old;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,11 +30,11 @@ class Node {
 
     public double F(Instance instance) {
         if (isLeaf) {
-            if(rho.length == 1)
+            if (rho.length == 1)
                 y = rho[0];
             else
-                y = rho[(int)instance.classValue];
-        }else {
+                y = rho[(int) instance.classValue];
+        } else {
             g = sigmoid(dotProduct(w, instance.attributes) + w0);
             y = g * (leftNode.F(instance)) + (1 - g) * (rightNode.F(instance));
         }
@@ -50,13 +49,14 @@ class Node {
         else {
             g = sigmoid(dotProduct(w, instance.attributes) + w0);
             y = g * (leftNode.F(instance, index)) + (1 - g) * (rightNode.F(instance, index));
-        }return y;
+        }
+        return y;
     }
 
     public double[] sigmoid_F_rho(Instance instance) {
         double[] f = new double[rho.length];
         String s = "";
-        for(int i = 0; i < rho.length; i++) {
+        for (int i = 0; i < rho.length; i++) {
             f[i] = (F(instance, i));
             s += f[i] + " ";
         }
@@ -83,8 +83,8 @@ class Node {
         double[] dwleft = new double[rho.length];
         double[] dwright = new double[rho.length];
 
-        double  dw0p = 0;
-        double  dw0 = 0;
+        double dw0p = 0;
+        double dw0 = 0;
 
 
         for (int e = 0; e < MAX_EPOCH; e++) {
@@ -111,7 +111,7 @@ class Node {
                     m = m.parent;
                 }
 
-                if(rho.length == 1) {
+                if (rho.length == 1) {
                     t *= d;
 
                     for (int count = 0; count < ATTRIBUTE_COUNT; count++)
@@ -129,11 +129,11 @@ class Node {
                     leftNode.rho[0] += dwleft[0] + u * dwleftp[0];
                     rightNode.rho[0] += dwright[0] + u * dwrightp[0];
 
-                }else{
+                } else {
                     double[] sigmoids = sigmoid_F_rho(X.get(j));
                     double[] softmaxs = Util.softmax(sigmoids);
 //                    y = sigmoid(F(X.get(j)));
-                    y = softmaxs[(int)r];
+                    y = softmaxs[(int) r];
                     d = y - 1;
                     double t1 = t;
                     t = t1 * d;
@@ -148,17 +148,17 @@ class Node {
                         w[count] += dw[count] + u * dwp[count];
 
                     w0 += dw0 + u * dw0p;
-                    dwleft[(int)r] = -t * (g);
-                    dwright[(int)r] = -t * (1 - g);
-                    leftNode.rho[(int)r] += dwleft[(int)r] + u * dwleftp[(int)r];
-                    rightNode.rho[(int)r] += dwright[(int)r] + u * dwrightp[(int)r];
+                    dwleft[(int) r] = -t * (g);
+                    dwright[(int) r] = -t * (1 - g);
+                    leftNode.rho[(int) r] += dwleft[(int) r] + u * dwleftp[(int) r];
+                    rightNode.rho[(int) r] += dwright[(int) r] + u * dwrightp[(int) r];
 
-                    for(int k = 0; k < rho.length; k++) {
+                    for (int k = 0; k < rho.length; k++) {
                         y = softmaxs[k];
 //                        d = sigmoid(F(X.get(j), k));
                         d = y;
                         t = t1 * d;
-                        if((int)r != k){
+                        if ((int) r != k) {
                             dwleft[k] = -t * (g);
                             dwright[k] = -t * (1 - g);
                             leftNode.rho[k] += dwleft[k] + u * dwleftp[k];
@@ -183,7 +183,8 @@ class Node {
 
     void splitNode(ArrayList<Instance> X, ArrayList<Instance> V, SDT tree) {
 
-        double[] oldw0 = Arrays.copyOf(rho, rho.length);;
+        double[] oldw0 = Arrays.copyOf(rho, rho.length);
+        ;
 
 
         w = new double[ATTRIBUTE_COUNT];
@@ -211,30 +212,30 @@ class Node {
 
 
         double alpha;
-        for (int t = 0; t < tree.MAX_STEP; t++) {
-            if(hardInit);
+        for (int t = 0; t < SDTMain.MAX_STEP; t++) {
+            if (hardInit) ;
                 //hardinit(X, V);
             else {
                 for (int i = 0; i < ATTRIBUTE_COUNT; i++)
                     w[i] = rand(-0.005, 0.005);
                 w0 = rand(-0.005, 0.005);
 
-                for(int i = 0; i < rho.length; i++) {
+                for (int i = 0; i < rho.length; i++) {
                     rho[i] = rand(-0.005, 0.005);
                     leftNode.rho[i] = rand(-0.005, 0.005);
                     rightNode.rho[i] = rand(-0.005, 0.005);
                 }
             }
 
-            alpha = (tree.LEARNING_RATE + 0.0) / Math.pow(2, t + 1);
-            learnParameters(X, V, alpha, tree, tree.EPOCH);
+            alpha = (SDTMain.LEARNING_RATE + 0.0) / Math.pow(2, t + 1);
+            learnParameters(X, V, alpha, tree, SDTMain.EPOCH);
 
             newErr = tree.ErrorOfTree(V);
             if (newErr < bestErr) {
 
                 bestw = Arrays.copyOf(w, w.length);
                 bestw0 = w0;
-                bestw0l =  Arrays.copyOf(leftNode.rho, rho.length);
+                bestw0l = Arrays.copyOf(leftNode.rho, rho.length);
                 bestw0r = Arrays.copyOf(rightNode.rho, rho.length);
                 bestErr = newErr;
             }

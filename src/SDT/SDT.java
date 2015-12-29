@@ -48,7 +48,8 @@ public class SDT {
         readFile(V, VALIDATION_SET_FILENAME);
         readFile(T, TEST_SET_FILENAME);
 
-        normalize(X, V, T);
+        if(!SDTMain.isMnist)
+            normalize(X, V, T);
     }
 
     private void normalize(ArrayList<Instance> x, ArrayList<Instance> v, ArrayList<Instance> t) {
@@ -68,15 +69,18 @@ public class SDT {
 
             for (Instance ins : x) {
                 ins.attributes[i] -= mean;
-                ins.attributes[i] /= stdev;
+                if(stdev != 0)
+                    ins.attributes[i] /= stdev;
             }
             for (Instance ins : v) {
                 ins.attributes[i] -= mean;
-                ins.attributes[i] /= stdev;
+                if(stdev != 0)
+                    ins.attributes[i] /= stdev;
             }
             for (Instance ins : t) {
                 ins.attributes[i] -= mean;
-                ins.attributes[i] /= stdev;
+                if(stdev != 0)
+                    ins.attributes[i] /= stdev;
             }
 
         }
@@ -171,32 +175,37 @@ public class SDT {
         line = br.readLine();
 
         br.close();
-        String[] s = line.split(" ");
+        String[] s;
+        String splitter;
+        if(!line.contains(","))
+            splitter = "\\s+";
+        else
+            splitter = ",";
+        s = line.split(splitter);
 
         ATTRIBUTE_COUNT = s.length - 1;
+//        System.out.println(ATTRIBUTE_COUNT + line);
         Scanner scanner = new Scanner(new File(filename));
-        while (scanner.hasNext()) {
+        while (scanner.hasNextLine()) {
+            line = scanner.nextLine();
+            s = line.split(splitter);
+
             double[] attributes = new double[ATTRIBUTE_COUNT];
             for (int i = 0; i < ATTRIBUTE_COUNT; i++) {
-                attributes[i] = scanner.nextDouble()/255;
-
+                attributes[i] = Double.parseDouble(s[i]);
+                if(SDTMain.isMnist)
+                    attributes[i] /= 255;
             }
-            double classValue;
+            String className = s[ATTRIBUTE_COUNT];
 
-
-            if (isClassify) {
-                String className = scanner.next();
-                if (CLASS_NAMES.contains(className)) {
-                    classValue = CLASS_NAMES.indexOf(className);
-                } else {
-                    CLASS_NAMES.add(className);
-                    classValue = CLASS_NAMES.indexOf(className);
-                }
-            } else
-                classValue = scanner.nextDouble();
-
-
-            I.add(new Instance(classValue, attributes));
+            int classNumber;
+            if (CLASS_NAMES.contains(className)) {
+                classNumber = CLASS_NAMES.indexOf(className);
+            } else {
+                CLASS_NAMES.add(className);
+                classNumber = CLASS_NAMES.indexOf(className);
+            }
+            I.add(new Instance(classNumber, attributes));
         }
 
     }
