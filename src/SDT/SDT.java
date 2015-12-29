@@ -9,8 +9,8 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Scanner;
 
-import static SDT.Util.rand;
 import static SDT.Util.sigmoid;
+import static mains.TreeRunner.isMnist;
 
 public class SDT {
     public double LEARNING_RATE;
@@ -48,7 +48,7 @@ public class SDT {
         readFile(V, VALIDATION_SET_FILENAME);
         readFile(T, TEST_SET_FILENAME);
 
-        if(!SDTMain.isMnist)
+        if (isMnist)
             normalize(X, V, T);
     }
 
@@ -69,17 +69,17 @@ public class SDT {
 
             for (Instance ins : x) {
                 ins.attributes[i] -= mean;
-                if(stdev != 0)
+                if (stdev != 0)
                     ins.attributes[i] /= stdev;
             }
             for (Instance ins : v) {
                 ins.attributes[i] -= mean;
-                if(stdev != 0)
+                if (stdev != 0)
                     ins.attributes[i] /= stdev;
             }
             for (Instance ins : t) {
                 ins.attributes[i] -= mean;
-                if(stdev != 0)
+                if (stdev != 0)
                     ins.attributes[i] /= stdev;
             }
 
@@ -93,11 +93,11 @@ public class SDT {
     public void learnTree() {
         ROOT = new Node(ATTRIBUTE_COUNT);
 
-        if(isClassify && CLASS_NAMES.size() > 2){
+        if (isClassify && CLASS_NAMES.size() > 2) {
             ROOT.rho = new double[CLASS_NAMES.size()];
             for (Instance i : X)
-                ROOT.rho[(int)i.classValue] += 1.0/X.size();
-        }else {
+                ROOT.rho[(int) i.classValue] += 1.0 / X.size();
+        } else {
             ROOT.rho = new double[1];
             ROOT.rho[0] = 0;
             for (Instance i : X)
@@ -118,18 +118,18 @@ public class SDT {
         if (isClassify)
             return "Training: " + format.format(1 - ErrorOfTree(X)) + "\tValidation: " + format.format(1 - ErrorOfTree(V)) + "\tTest: " + format.format(1 - ErrorOfTree(T));
         else
-            return "Training: " +format.format( ErrorOfTree(X)) + "\tValidation: " +format.format( ErrorOfTree(V) )+ "\tTest: " + format.format(ErrorOfTree(T));
+            return "Training: " + format.format(ErrorOfTree(X)) + "\tValidation: " + format.format(ErrorOfTree(V)) + "\tTest: " + format.format(ErrorOfTree(T));
     }
 
 
     double eval(Instance i) {
         if (isClassify) {
-            if(ROOT.rho.length == 1) {
+            if (ROOT.rho.length == 1) {
                 return sigmoid(ROOT.F(i));
-            }else{
+            } else {
                 return Util.argMax(Util.softmax((ROOT.sigmoid_F_rho(i))));
             }
-        }else
+        } else
             return ROOT.F(i);
     }
 
@@ -137,7 +137,7 @@ public class SDT {
         double error = 0;
         for (Instance instance : V) {
             if (isClassify) {
-                if(ROOT.rho.length == 1) {
+                if (ROOT.rho.length == 1) {
                     double r = instance.classValue;
                     double y = eval(instance);
                     if (y > 0.5) {
@@ -145,10 +145,10 @@ public class SDT {
                             error++;
                     } else if (r != 0)
                         error++;
-                }else{
+                } else {
                     double r = instance.classValue;
                     double y = eval(instance);
-                    if(y != r)
+                    if (y != r)
                         error++;
                 }
             } else {
@@ -177,7 +177,7 @@ public class SDT {
         br.close();
         String[] s;
         String splitter;
-        if(!line.contains(","))
+        if (!line.contains(","))
             splitter = "\\s+";
         else
             splitter = ",";
@@ -193,7 +193,7 @@ public class SDT {
             double[] attributes = new double[ATTRIBUTE_COUNT];
             for (int i = 0; i < ATTRIBUTE_COUNT; i++) {
                 attributes[i] = Double.parseDouble(s[i]);
-                if(SDTMain.isMnist)
+                if (isMnist)
                     attributes[i] /= 255;
             }
             String className = s[ATTRIBUTE_COUNT];
