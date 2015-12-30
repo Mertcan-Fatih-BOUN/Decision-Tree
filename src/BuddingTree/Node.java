@@ -1,10 +1,11 @@
 package BuddingTree;
 
+import misc.Instance;
+
 import java.util.Arrays;
-import java.util.DoubleSummaryStatistics;
 import java.util.HashMap;
 
-import static SDT.Util.*;
+import static misc.Util.*;
 
 class Node {
     Node parent = null;
@@ -19,12 +20,6 @@ class Node {
     double gama = 1;
     double[] y;
     double g;
-
-
-    boolean is_g_uptodate = false;
-    boolean is_y_uptodate = false;
-    Instance last_g_instance = null;
-    Instance last_y_instance = null;
 
     double[] sum_grad_rho;
     double[] sum_grad_w;
@@ -149,19 +144,6 @@ class Node {
             }
         }
         return delta;
-    }
-
-    public double[] softmax(double[] input) {
-        double[] result = new double[input.length];
-        double sum = 0;
-        for (int i = 0; i < input.length; i++) {
-            result[i] = Math.exp(input[i]);
-            sum += result[i];
-        }
-        for (int i = 0; i < input.length; i++) {
-            result[i] = result[i] / sum;
-        }
-        return result;
     }
 
 

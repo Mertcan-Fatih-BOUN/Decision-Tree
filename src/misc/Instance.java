@@ -1,4 +1,4 @@
-package BuddingTree;
+package misc;
 
 public class Instance {
     public double classValue;

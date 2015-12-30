@@ -28,10 +28,10 @@ public class TreeRunner {
         //System.out.println("-----SDT-----");
         //run_single_multi_class_set(SDT.class, "balance-scale.data");
 
-     run_all_multi_classes(BT.class);
+        run_all_multi_classes(BT.class);
 
-       //run_single_multi_class_set(BT.class, "page-blocks.data");
-       //run_single_multi_class_set(BT.class, "pendigits.data");
+        //run_single_multi_class_set(BT.class, "page-blocks.data");
+        //run_single_multi_class_set(BT.class, "pendigits.data");
         //run_single_multi_class_set(BT.class, "yeast.data");
         //run_single_multi_class_set(BT.class, "segment.data");
 

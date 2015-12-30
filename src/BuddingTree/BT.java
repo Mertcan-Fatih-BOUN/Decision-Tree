@@ -6,8 +6,10 @@ import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.util.*;
 
-import mains.Graphable;
-import mains.Graph;
+import graph.Graphable;
+import graph.Graph;
+import misc.Instance;
+import misc.Util;
 
 import static mains.TreeRunner.isMnist;
 
