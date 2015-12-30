@@ -9,9 +9,9 @@ import SDT.SDT;
 
 @SuppressWarnings({"unused", "Duplicates"})
 public class TreeRunner {
-    public static double LEARNING_RATE = 0.35;
+    public static double LEARNING_RATE = 1;
     public static int EPOCH = 20;
-    public static int MAX_STEP = 2;
+    public static int MAX_STEP = 10;
     public static boolean isMnist = false;
 
     static final String[] MULTICLASS = new String[]{"balance-scale.data", "cmc.data", "dermatology.data", "ecoli.data", "glass.data", "optdigits.data", "page-blocks.data", "pendigits.data", "yeast.data", "segment.data"};
@@ -22,17 +22,31 @@ public class TreeRunner {
         Locale.setDefault(Locale.US);
 
         System.out.println("Learning rate: " + LEARNING_RATE);
-        //run_all_multi_classes(BT.class);
+
+        //System.out.println("-----BT-----");
+        //run_single_multi_class_set(BT.class, "balance-scale.data");
+        //System.out.println("-----SDT-----");
+        //run_single_multi_class_set(SDT.class, "balance-scale.data");
+
+     run_all_multi_classes(BT.class);
+
+       //run_single_multi_class_set(BT.class, "page-blocks.data");
+       //run_single_multi_class_set(BT.class, "pendigits.data");
+        //run_single_multi_class_set(BT.class, "yeast.data");
+        //run_single_multi_class_set(BT.class, "segment.data");
+
+
+        //run_single_multi_class_set(BT.class,"ecoli.data");
         //run_all_binary_classes();
         //run_all_regressions();
-        run_single_binary_classification_set_fold(SDT.class, "breast", 1, 1);
-        run_single_binary_classification_set_fold(BT.class, "breast", 1, 1);
+        //run_single_binary_classification_set_fold(SDT.class, "breast", 1, 1);
+        //run_single_binary_classification_set_fold(BT.class, "breast", 1, 1);
         //run_single_regression_set_fold("boston", 1, 1);
 
         //isMnist = true; // Make BT and SDT classes check this
         //run_classification_by_filename("data_sdt\\mnist\\mnist.txt");
 
-        //run_classification_by_filename(BT.class, "iris.data.txt");
+        run_classification_by_filename(BT.class, "iris.data.v2.txt");
         //run_classification_by_filename(SDT.class, "iris.data.txt");
     }
 

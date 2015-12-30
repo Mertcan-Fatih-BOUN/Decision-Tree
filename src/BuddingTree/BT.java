@@ -6,29 +6,31 @@ import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.util.*;
 
+import mains.Evaluable;
+import mains.Graph;
+
 import static mains.TreeRunner.isMnist;
 
-public class BT {
+public class BT implements Evaluable {
     public double LEARNING_RATE;
     public int EPOCH;
     public String TRAINING_SET_FILENAME;
     public String VALIDATION_SET_FILENAME;
     public String TEST_SET_FILENAME;
     public int ATTRIBUTE_COUNT;
-    public static ArrayList<String> CLASS_NAMES = new ArrayList<>();
-    public static double Lambda = 0.001;
-
-    public static int count = 0;
-
-    public static Queue<Node> split_q = new LinkedList<>();
+    public int CLASS_COUNT;
+    public ArrayList<String> CLASS_NAMES = new ArrayList<>();
+    public double Lambda = 0.001;
 
     ArrayList<Instance> X = new ArrayList<>();
     ArrayList<Instance> V = new ArrayList<>();
     ArrayList<Instance> T = new ArrayList<>();
 
     public boolean isClassify;
+    public boolean is_k_Classify;
 
     public static Node ROOT;
+    Graph graph;
 
     public BT(String training, String validation, String test, boolean isClassify, double learning_rate, int epoch) throws IOException {
 
@@ -39,16 +41,21 @@ public class BT {
         this.VALIDATION_SET_FILENAME = validation;
         this.TEST_SET_FILENAME = test;
         this.isClassify = isClassify;
-        Node.isClassify = isClassify;
         CLASS_NAMES = new ArrayList<>();
 
         readFile(X, TRAINING_SET_FILENAME);
         readFile(V, VALIDATION_SET_FILENAME);
         readFile(T, TEST_SET_FILENAME);
 
-        if (isMnist) ;
+        is_k_Classify = X.size() > 1;
         normalize(X, V, T);
+        if (isClassify && is_k_Classify)
+            CLASS_COUNT = CLASS_NAMES.size();
+        else
+            CLASS_COUNT = 1;
 
+
+        graph = new Graph((new Date().getTime()/100) % 100000 + "", this, 10);
         ROOT = new Node(this);
     }
 
@@ -98,31 +105,16 @@ public class BT {
         ArrayList<Integer> indices = new ArrayList<>();
         for (int i = 0; i < X.size(); i++) indices.add(i);
 
-//        EPOCH = 1;
         for (int e = 0; e < EPOCH; e++) {
             Collections.shuffle(indices);
-//            restartGradients(ROOT);
             for (int i = 0; i < X.size(); i++) {
-//                if(i % 50 == 0) {
                 int j = indices.get(i);
-
-                ROOT.sigmoid_F_rho(X.get(j));
-
                 ROOT.backPropagate(X.get(j));
-//                if(i % 50 == 0)
                 ROOT.update();
-//                }
             }
-            System.out.println("Epoch " + e + " Size: " + size() + "\t" + effSize() + " \t" + getErrors());
-//            this.printAllData("out"+ e +".txt");
-        }
-    }
-
-    private void restartGradients(Node root) {
-        root.gradientSum = 0;
-        if (root.leftNode != null) {
-            root.leftNode.gradientSum = 0;
-            root.rightNode.gradientSum = 0;
+            graph.addEpoch(e);
+            //System.out.println("Epoch " + e + " Size: " + size() + "\t" + effSize() + " \t" + getErrors());
+            LEARNING_RATE *= 0.8;
         }
     }
 
@@ -137,46 +129,49 @@ public class BT {
     }
 
 
-    double eval(Instance i) {
+    public double eval(Instance i) {
+        double[] y = ROOT.F_last(i);
         if (isClassify) {
-            if (!Node.is_k_Classify)
-                return Util.sigmoid(ROOT.F(i));
+            if (is_k_Classify)
+                return Util.argMax(y);
             else
-                return Util.argMax(Util.softmax((ROOT.sigmoid_F_rho(i))));
-//                return Util.argMax(ROOT.softmax_sigmoids);
-        } else
-            return ROOT.F(i);
+                return y[0];
+        } else return y[0];
+    }
+
+    @Override
+    public double predicted_class(Instance instance) {
+        return eval(instance);
+    }
+
+    @Override
+    public int getClassCount() {
+        return CLASS_COUNT;
+    }
+
+    @Override
+    public int getAttributeCount() {
+        return ATTRIBUTE_COUNT;
+    }
+
+    @Override
+    public ArrayList<Instance> getInstances() {
+        return X;
     }
 
     public double ErrorOfTree(ArrayList<Instance> V) {
         double error = 0;
         for (Instance instance : V) {
+            double y = eval(instance);
             if (isClassify) {
-                if (!Node.is_k_Classify) {
-                    double r = instance.classValue;
-                    double y = eval(instance);
-                    if (y > 0.5) {
-                        if (r != 1)
-                            error++;
-                    } else if (r != 0)
-                        error++;
-                } else {
-                    double r = instance.classValue;
-                    double y = eval(instance);
-
-//                    System.out.println(r + " " + y);
-                    if (y != r)
-                        error++;
-                }
+                if (y != instance.classValue)
+                    error++;
             } else {
                 double r = instance.classValue;
-                double y = eval(instance);
-//                System.out.println(r + " " + y);
                 error += (r - y) * (r - y);
             }
         }
         return error / V.size();
-
     }
 
     public String toString() {
@@ -228,37 +223,4 @@ public class BT {
         }
 
     }
-
-    public double calculatedValue(Instance i) {
-        double value = eval(i);
-        if (isClassify) {
-            if (!Node.is_k_Classify) {
-                if (value > 0.5)
-                    value = 1;
-                else
-                    value = 0;
-            }
-        }
-        return value;
-    }
-
-    public void printAllData(String filename) throws IOException {
-        File regress_out = new File(filename);
-        BufferedWriter regressWriter = new BufferedWriter(new FileWriter(regress_out, false));
-
-        for (int a = 0; a < ATTRIBUTE_COUNT; a++)
-            regressWriter.write("x" + a + " ");
-
-        regressWriter.write("y z\n");
-
-        for (Instance i : X) {
-            for (int a = 0; a < ATTRIBUTE_COUNT; a++)
-                regressWriter.write(i.attributes[a] + " ");
-            regressWriter.write(i.classValue + " " + calculatedValue(i) + "\n");
-        }
-
-        regressWriter.flush();
-    }
-
-
 }

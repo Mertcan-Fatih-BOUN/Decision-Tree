@@ -1,8 +1,8 @@
 package BuddingTree;
 
 public class Instance {
-    double classValue;
-    double[] attributes;
+    public double classValue;
+    public double[] attributes;
 
     public Instance(double classValue, double[] attributes) {
         this.classValue = classValue;
