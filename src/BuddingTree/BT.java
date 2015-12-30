@@ -112,7 +112,7 @@ public class BT {
                     ROOT.update();
 //                }
             }
-            System.out.println("Epoch " + e + " Size: " + size() + "\t" + effSize() + " \t" + getErrors());
+            //System.out.println("Epoch " + e + " Size: " + size() + "\t" + effSize() + " \t" + getErrors());
 //            this.printAllData("out"+ e +".txt");
         }
     }

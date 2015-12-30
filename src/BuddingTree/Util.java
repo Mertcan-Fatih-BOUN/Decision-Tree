@@ -31,11 +31,11 @@ public class Util {
         return result;
     }
 
-    public static double[] softmax(double[] sigmoid) {
-        double[] ratios = new double[sigmoid.length];
-        double total = exp_total(sigmoid);
-        for(int i = 0; i < sigmoid.length; i++) {
-            ratios[i] = Math.exp(sigmoid[i]) / total;
+    public static double[] softmax(double[] arr) {
+        double[] ratios = new double[arr.length];
+        double total = exp_total(arr);
+        for(int i = 0; i < arr.length; i++) {
+            ratios[i] = Math.exp(arr[i]) / total;
 //            System.out.print(ratios[i] + " ");
         }
 //        System.out.println();

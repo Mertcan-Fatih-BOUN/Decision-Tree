@@ -133,19 +133,24 @@ public class SDT {
     public void learnTree() {
         ROOT = new Node(ATTRIBUTE_COUNT);
 
+
+
         if(isClassify && CLASS_NAMES.size() > 2){
             ROOT.rho = new double[CLASS_NAMES.size()];
             for (Instance i : X)
                 ROOT.rho[(int)i.classValue] += 1.0/X.size();
         }else {
-            ROOT.rho = new double[1];
-            ROOT.rho[0] = 0;
-            for (Instance i : X)
-                ROOT.rho[0] += i.classValue;
-            ROOT.rho[0] /= X.size();
-
             if(parent != null)
                 ROOT.rho[0] = parent.ROOT.rho[0];
+            else{
+                ROOT.rho = new double[1];
+                ROOT.rho[0] = 0;
+                for (Instance i : X)
+                    ROOT.rho[0] += i.classValue;
+                if(X.size() != 0)
+                    ROOT.rho[0] /= X.size();
+            }
+//            System.out.println(ROOT.rho[0] + " " + X.size());
         }
         ROOT.splitNode(X, V, this);
 
@@ -219,28 +224,40 @@ public class SDT {
                 }
             }
         }
+        //System.out.println(X1.size() + " " + X2.size() + " " + X3.size());
+        double newErrLeft = 0;
         isLeaf = false;
-        leftSDT = new SDT(X1, V1, T,true, LEARNING_RATE, EPOCH, MAX_STEP);
-        leftSDT.parent = this;
-        double newErrLeft = ErrorOfTree(V);
+        SDT tempLeft = null;
+        if(X1.size() > 0) {
+            leftSDT = new SDT(X1, V1, T, true, LEARNING_RATE, EPOCH, MAX_STEP);
+            leftSDT.parent = this;
+            newErrLeft = ErrorOfTree(V);
+            System.out.println(err + " " + newErrLeft + " " + leftSDT.ErrorOfTree(V));
+            tempLeft = leftSDT;
+            leftSDT = null;
+        }
 
-        SDT tempLeft = leftSDT;
-        leftSDT = null;
+        SDT tempMiddle = null;
+        double newErrMiddle = 0;
+        if(X2.size() > 0) {
+            middleSDT = new SDT(X2, V2, T, true, LEARNING_RATE, EPOCH, MAX_STEP);
+            middleSDT.parent = this;
+            newErrMiddle = ErrorOfTree(V);
 
-        middleSDT = new SDT(X2, V2, T,true, LEARNING_RATE, EPOCH, MAX_STEP);
-        middleSDT.parent = this;
-        double newErrMiddle = ErrorOfTree(V);
+            tempMiddle = middleSDT;
+            middleSDT = null;
+        }
 
-        SDT tempMiddle = middleSDT;
-        middleSDT = null;
+        SDT tempRight = null;
+        double newErrRight = 0;
+        if(X3.size() > 0) {
+            rightSDT = new SDT(X3, V3, T, true, LEARNING_RATE, EPOCH, MAX_STEP);
+            rightSDT.parent = this;
+            newErrRight = ErrorOfTree(V);
 
-        rightSDT = new SDT(X3, V3, T,true, LEARNING_RATE, EPOCH, MAX_STEP);
-        rightSDT.parent = this;
-        double newErrRight = ErrorOfTree(V);
-
-        SDT tempRight = rightSDT;
-        rightSDT = null;
-
+            tempRight = rightSDT;
+            rightSDT = null;
+        }
 
         double newErr = ErrorOfTree(V);
 
@@ -248,19 +265,22 @@ public class SDT {
 
         isLeaf = true;
 
-        if (err - newErrLeft > SDTMain.splitRate) {
+        if (err - newErrLeft > SDTMain.splitRate && X1.size() > 0) {
+            System.out.println("left");
             leftSDT = tempLeft;
             leftSDT.splitTree();
             isLeaf = false;
         }
 
-        if (err - newErrMiddle > SDTMain.splitRate) {
+        if (err - newErrMiddle > SDTMain.splitRate && X2.size() > 0) {
+            System.out.println("middle");
             middleSDT = tempMiddle;
             middleSDT.splitTree();
             isLeaf = false;
         }
 
-        if (err - newErrRight > SDTMain.splitRate) {
+        if (err - newErrRight > SDTMain.splitRate && X3.size() > 0) {
+            System.out.println("right");
             rightSDT = tempRight;
             rightSDT.splitTree();
             isLeaf = false;

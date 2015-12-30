@@ -213,18 +213,21 @@ public class SDT {
         isLeaf = true;
 
         if (err - newErrLeft > SDTMain.splitRate) {
+            System.out.println("left");
             leftSDT = tempLeft;
             leftSDT.splitTree();
             isLeaf = false;
         }
 
         if (err - newErrMiddle > SDTMain.splitRate) {
+            System.out.println("middle");
             middleSDT = tempMiddle;
             middleSDT.splitTree();
             isLeaf = false;
         }
 
         if (err - newErrRight > SDTMain.splitRate) {
+            System.out.println("right");
             rightSDT = tempRight;
             rightSDT.splitTree();
             isLeaf = false;
