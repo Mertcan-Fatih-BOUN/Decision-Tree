@@ -32,8 +32,8 @@ class Node {
     double gradient_gama = 0;
 
     BT tree;
-    HashMap<Instance, Double> gs = new HashMap<>();
-    HashMap<Instance, double[]> ys = new HashMap<>();
+    Instance last_y_instance = null;
+    Instance last_g_instance = null;
 
     Node(BT tree) {
         this.tree = tree;
@@ -73,17 +73,18 @@ class Node {
 
 
     public double g(Instance instance) {
-        if (gs.containsKey(instance))
-            return gs.get(instance);
+        if (last_g_instance == instance)
+            return g;
 
         g = sigmoid(dotProduct(w, instance.attributes) + w0);
-        gs.put(instance, g);
+        last_g_instance = instance;
         return g;
     }
 
     public double[] F(Instance instance) {
-        if (ys.containsKey(instance))
-            return ys.get(instance);
+        if (last_y_instance == instance) {
+            return y;
+        }
 
 
         if (this.leftNode == null) {
@@ -98,7 +99,7 @@ class Node {
                 y[i] = (1 - gama) * ((mg * _yL[i]) + ((1 - mg) * _yR[i])) + gama * rho[i];
             }
         }
-        ys.put(instance, y);
+        last_y_instance = instance;
         return y;
     }
 
@@ -271,8 +272,8 @@ class Node {
                 sum_grad_rho[i] = 0.01;
             rho[i] = rho[i] - tree.LEARNING_RATE * gradient_rho[i] / Math.sqrt(sum_grad_rho[i]);
         }
-        ys.clear();
-        gs.clear();
+        last_y_instance = null;
+        last_g_instance = null;
     }
 
     void splitNode() {
