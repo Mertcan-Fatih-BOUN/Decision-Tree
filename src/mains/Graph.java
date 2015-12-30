@@ -11,12 +11,12 @@ import java.util.ArrayList;
 
 public class Graph {
     ArrayList<Instance> instances = new ArrayList<>();
-    Evaluable evaluable;
+    Graphable graphable;
     String tag;
 
-    public Graph(String tag, Evaluable evaluable, int res) throws IOException {
-        this.evaluable = evaluable;
-        if (evaluable.getAttributeCount() != 2)
+    public Graph(String tag, Graphable graphable, int res) throws IOException {
+        this.graphable = graphable;
+        if (graphable.getAttributeCount() != 2)
             return;
 
 
@@ -24,7 +24,7 @@ public class Graph {
         double max_x1 = -10000;
         double min_x2 = 10000;
         double max_x2 = -10000;
-        for (Instance instance : evaluable.getInstances()) {
+        for (Instance instance : graphable.getInstances()) {
             if (instance.attributes[0] < min_x1)
                 min_x1 = instance.attributes[0];
             if (instance.attributes[0] > max_x1)
@@ -57,7 +57,7 @@ public class Graph {
         file.getParentFile().mkdirs();
         BufferedWriter writer = new BufferedWriter(new FileWriter(file, false));
         writer.write("min_x1 max_x1 min_x2 max_x2 res class_count\n");
-        writer.write(min_x1 + " " + max_x1 + " " + min_x2 + " " + max_x2 + " " + res + " " + evaluable.getClassCount() + "\n");
+        writer.write(min_x1 + " " + max_x1 + " " + min_x2 + " " + max_x2 + " " + res + " " + graphable.getClassCount() + "\n");
         writer.flush();
         writer.close();
 
@@ -73,7 +73,7 @@ public class Graph {
         File file3 = new File("log" + File.separator + tag + File.separator + "input.txt");
         BufferedWriter writer3 = new BufferedWriter(new FileWriter(file3, false));
         writer3.write("x1 x2 y\n");
-        for (Instance instance : evaluable.getInstances())
+        for (Instance instance : graphable.getInstances())
             writer3.write(instance.attributes[0] + " " + instance.attributes[1] + " " + instance.classValue + "\n");
         writer3.flush();
         writer3.close();
@@ -81,14 +81,14 @@ public class Graph {
     }
 
     public void addEpoch(int epoch) {
-        if (evaluable.getAttributeCount() != 2)
+        if (graphable.getAttributeCount() != 2)
             return;
         try {
             File file = new File("log" + File.separator + tag + File.separator + "epoch-" + epoch + ".txt");
             BufferedWriter writer = new BufferedWriter(new FileWriter(file, false));
             writer.write("y\n");
             for (Instance instance : instances) {
-                int d = (int) evaluable.predicted_class(instance);
+                int d = (int) graphable.predicted_class(instance);
                 writer.write(d + "\n");
             }
 

@@ -6,12 +6,12 @@ import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.util.*;
 
-import mains.Evaluable;
+import mains.Graphable;
 import mains.Graph;
 
 import static mains.TreeRunner.isMnist;
 
-public class BT implements Evaluable {
+public class BT implements Graphable {
     public double LEARNING_RATE;
     public int EPOCH;
     public String TRAINING_SET_FILENAME;
