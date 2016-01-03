@@ -214,13 +214,16 @@ public class BT implements Graphable {
 //            System.out.println();
             String className = s[ATTRIBUTE_COUNT];
 
-            int classNumber;
-            if (CLASS_NAMES.contains(className)) {
-                classNumber = CLASS_NAMES.indexOf(className);
-            } else {
-                CLASS_NAMES.add(className);
-                classNumber = CLASS_NAMES.indexOf(className);
-            }
+            double classNumber;
+            if(isClassify) {
+                if (CLASS_NAMES.contains(className)) {
+                    classNumber = CLASS_NAMES.indexOf(className);
+                } else {
+                    CLASS_NAMES.add(className);
+                    classNumber = CLASS_NAMES.indexOf(className);
+                }
+            }else
+                classNumber = Double.parseDouble(className);
             I.add(new Instance(classNumber, attributes));
         }
 

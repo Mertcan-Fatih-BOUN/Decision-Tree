@@ -14,7 +14,7 @@ public class TreeRunner {
     public static int MAX_STEP = 10;
     public static boolean isMnist = false;
 
-    static final String[] MULTICLASS = new String[]{"balance-scale.data", "cmc.data", "dermatology.data", "ecoli.data", "glass.data", "optdigits.data", "page-blocks.data", "pendigits.data", "segment.data", "yeast.data"};
+    static final String[] MULTICLASS = new String[]{"balance-scale.data", "cmc.data", "dermatology.data", "ecoli.data", "glass.data", "optdigits.data", "page-blocks.data", "pendigits.data", "yeast.data", "segment.data"};
     static final String[] CLASSIFY = new String[]{"breast", "spambase", "twonorm", "ringnorm", "german", "magic", "pima", "polyadenylation", "satellite47", "musk2"};
     static final String[] REGRESS = new String[]{"abalone", "boston", "add10", "comp", "california", "concrete", "puma8fh", "puma8nh", "puma8fm", "puma8nm"};
 
@@ -28,9 +28,8 @@ public class TreeRunner {
         //System.out.println("-----SDT-----");
         //run_single_multi_class_set(SDT.class, "balance-scale.data");
 
-//        run_all_binary_classes(BT.class);
-        run_all_multi_classes(BT.class);
-
+//        run_all_multi_classes(BT.class);
+        run_all_multi_classes(SDT.class);
         //run_single_multi_class_set(BT.class, "page-blocks.data");
         //run_single_multi_class_set(BT.class, "pendigits.data");
         //run_single_multi_class_set(BT.class, "yeast.data");
@@ -38,8 +37,8 @@ public class TreeRunner {
 
 
         //run_single_multi_class_set(BT.class,"ecoli.data");
-        //run_all_binary_classes();
-        //run_all_regressions();
+//        run_all_binary_classes(SDT.class);
+//        run_all_regressions(SDT.class);
         //run_single_binary_classification_set_fold(SDT.class, "breast", 1, 1);
         //run_single_binary_classification_set_fold(BT.class, "breast", 1, 1);
         //run_single_regression_set_fold("boston", 1, 1);
@@ -47,7 +46,7 @@ public class TreeRunner {
         //isMnist = true; // Make BT and SDT classes check this
         //run_classification_by_filename("data_sdt\\mnist\\mnist.txt");
 
-        run_classification_by_filename(BT.class, "iris.data.v2.txt");
+//        run_classification_by_filename(BT.class, "iris.data.v2.txt");
         //run_classification_by_filename(SDT.class, "iris.data.txt");
     }
 

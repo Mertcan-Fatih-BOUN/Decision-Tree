@@ -48,7 +48,7 @@ public class SDT {
         readFile(V, VALIDATION_SET_FILENAME);
         readFile(T, TEST_SET_FILENAME);
 
-        if (isMnist)
+        if (!isMnist)
             normalize(X, V, T);
     }
 
