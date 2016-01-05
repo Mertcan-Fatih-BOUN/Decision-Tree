@@ -5,9 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
-import static SDT.Util.dotProduct;
-import static SDT.Util.rand;
-import static SDT.Util.sigmoid;
+import static SDTUpgrade.Util.*;
 
 class Node {
     int ATTRIBUTE_COUNT;

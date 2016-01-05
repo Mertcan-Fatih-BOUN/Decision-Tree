@@ -10,7 +10,7 @@ import SDT.SDT;
 @SuppressWarnings({"unused", "Duplicates"})
 public class TreeRunner {
     public static double LEARNING_RATE = 1;
-    public static int EPOCH = 1;
+    public static int EPOCH = 20;
     public static int MAX_STEP = 10;
     public static boolean isMnist = false;
 
@@ -34,16 +34,16 @@ public class TreeRunner {
         //run_single_multi_class_set(BT.class, "pendigits.data");
         //run_single_multi_class_set(BT.class, "yeast.data");
         //run_single_multi_class_set(BT.class, "segment.data");
-
-        isMnist = true;
-        run_classification_by_filename(BT.class,
-                "mnist" + File.separator + "train.txt",
-                "mnist" + File.separator + "test.txt",
-                "mnist" + File.separator + "test.txt");
+//
+//        isMnist = true;
+//        run_classification_by_filename(BT.class,
+//                "mnist" + File.separator + "train.txt",
+//                "mnist" + File.separator + "test.txt",
+//                "mnist" + File.separator + "test.txt");
 
 
         //run_single_multi_class_set(BT.class,"ecoli.data");
-//        run_all_binary_classes(SDT.class);
+        //run_all_binary_classes(SDT.class);
 //        run_all_regressions(SDT.class);
         //run_single_binary_classification_set_fold(SDT.class, "breast", 1, 1);
         //run_single_binary_classification_set_fold(BT.class, "breast", 1, 1);
@@ -52,7 +52,8 @@ public class TreeRunner {
         //isMnist = true; // Make BT and SDT classes check this
         //run_classification_by_filename("data_sdt\\mnist\\mnist.txt");
 
-//        run_classification_by_filename(BT.class, "iris.data.v2.txt");
+        //run_classification_by_filename(BT.class, "iris.data.v2.txt");
+        run_classification_by_filename(SDT.class, "data_set_nonlinear_4.data.txt");
         //run_classification_by_filename(SDT.class, "iris.data.txt");
     }
 

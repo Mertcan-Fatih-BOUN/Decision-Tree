@@ -53,5 +53,6 @@ for i = linspace
     y =  reshape(y, header.res, header.res);
     hold on
 
-    contour(xq,yq,y,1:class_count);
+  [C,h] = contour(xq,yq,y,1:class_count);
+  h.LineColor = 	[0 0 0];
 end

@@ -6,7 +6,7 @@ import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.util.*;
 
-import static SDT.Util.sigmoid;
+import static SDTUpgrade.Util.sigmoid;
 
 public class SDT {
     SDT leftSDT;

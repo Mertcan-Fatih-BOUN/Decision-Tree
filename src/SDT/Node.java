@@ -1,15 +1,14 @@
 package SDT;
 
 
-import javafx.util.Pair;
+import misc.Instance;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
-import static SDT.Util.dotProduct;
-import static SDT.Util.rand;
-import static SDT.Util.sigmoid;
+
+import static misc.Util.*;
 
 class Node {
     int ATTRIBUTE_COUNT;
@@ -134,7 +133,7 @@ class Node {
 
                 } else {
                     double[] fs = sigmoid_F_rho(X.get(j));
-                    double[] softmaxs = Util.softmax(fs);
+                    double[] softmaxs = softmax(fs);
                     double[] ts = new double[softmaxs.length];
                     for (int h = 0; h < softmaxs.length; h++)
                         if (h == (int) r) {
@@ -181,6 +180,7 @@ class Node {
     }
 
     void splitNode(ArrayList<Instance> X, ArrayList<Instance> V, SDT tree) {
+        tree.graph.addEpoch(tree.count++);
 
         double[] oldw0 = Arrays.copyOf(rho, rho.length);
 

@@ -1,18 +1,20 @@
 package SDT;
 
 
+import graph.Graph;
+import graph.Graphable;
+import misc.Instance;
+import misc.Util;
+
 import java.io.*;
 import java.nio.charset.Charset;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Scanner;
+import java.util.*;
 
-import static SDT.Util.sigmoid;
 import static mains.TreeRunner.isMnist;
+import static misc.Util.sigmoid;
 
-public class SDT {
+public class SDT implements Graphable {
     public double LEARNING_RATE;
     public int MAX_STEP;
     public int EPOCH;
@@ -29,7 +31,8 @@ public class SDT {
     ArrayList<Instance> T = new ArrayList<>();
 
     public static boolean isClassify;
-
+    Graph graph;
+    int count = 0;
     public Node ROOT;
 
     public SDT(String training, String validation, String test, boolean isClassify, double learning_rate, int epıch, int max_step) throws IOException {
@@ -47,7 +50,7 @@ public class SDT {
         readFile(X, TRAINING_SET_FILENAME);
         readFile(V, VALIDATION_SET_FILENAME);
         readFile(T, TEST_SET_FILENAME);
-
+        graph = new Graph((new Date().getTime() / 100) % 100000 + "", this, 10);
         if (!isMnist)
             normalize(X, V, T);
     }
@@ -208,5 +211,25 @@ public class SDT {
             I.add(new Instance(classNumber, attributes));
         }
 
+    }
+
+    @Override
+    public double predicted_class(misc.Instance instance) {
+        return eval(instance);
+    }
+
+    @Override
+    public int getClassCount() {
+        return CLASS_NAMES.size();
+    }
+
+    @Override
+    public int getAttributeCount() {
+        return ATTRIBUTE_COUNT;
+    }
+
+    @Override
+    public ArrayList<misc.Instance> getInstances() {
+        return X;
     }
 }

@@ -5,8 +5,8 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.util.*;
+import static SDTUpgrade2Old.Util.*;
 
-import static SDTUpgrade.Util.sigmoid;
 
 
 public class SDT {
