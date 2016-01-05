@@ -10,7 +10,7 @@ import SDT.SDT;
 @SuppressWarnings({"unused", "Duplicates"})
 public class TreeRunner {
     public static double LEARNING_RATE = 1;
-    public static int EPOCH = 20;
+    public static int EPOCH = 1;
     public static int MAX_STEP = 10;
     public static boolean isMnist = false;
 
@@ -29,11 +29,17 @@ public class TreeRunner {
         //run_single_multi_class_set(SDT.class, "balance-scale.data");
 
 //        run_all_multi_classes(BT.class);
-        run_all_multi_classes(SDT.class);
+        //   run_all_multi_classes(SDT.class);
         //run_single_multi_class_set(BT.class, "page-blocks.data");
         //run_single_multi_class_set(BT.class, "pendigits.data");
         //run_single_multi_class_set(BT.class, "yeast.data");
         //run_single_multi_class_set(BT.class, "segment.data");
+
+        isMnist = true;
+        run_classification_by_filename(BT.class,
+                "mnist" + File.separator + "train.txt",
+                "mnist" + File.separator + "test.txt",
+                "mnist" + File.separator + "test.txt");
 
 
         //run_single_multi_class_set(BT.class,"ecoli.data");

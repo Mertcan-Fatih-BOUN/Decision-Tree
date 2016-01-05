@@ -1,24 +1,31 @@
 package Utils;
 
-/**
- * Created by mertcan on 17.12.2015.
- */
 import java.io.*;
 
 
 public class MNISTReader {
-    public static final String fileImages = "data_sdt\\mnist\\train-images.idx3-ubyte";
-    public static final String fileLabels = "data_sdt\\mnist\\train-labels.idx1-ubyte";
+    public static final String fileTrainImages = "mnist" + File.separator + "train-images.idx3-ubyte";
+    public static final String fileTrainLabels = "mnist" + File.separator + "train-labels.idx1-ubyte";
+    public static final String fileTestImages = "mnist" + File.separator + "t10k-images.idx3-ubyte";
+    public static final String fileTestLabels = "mnist" + File.separator + "t10k-labels.idx1-ubyte";
     public static BufferedWriter output;
 
     public static void main(String[] args) throws IOException {
+
+        convert(fileTestImages, fileTestLabels, "test");
+        convert(fileTrainImages, fileTrainLabels, "train");
+
+
+    }
+
+    private static void convert(String fImages, String fLabels, String out) throws IOException {
         output = null;
-        File file = new File("mnist.txt");
+        File file = new File("mnist" + File.separator + out + ".txt");
         output = new BufferedWriter(new FileWriter(file));
 
 
-        DataInputStream labels = new DataInputStream(new FileInputStream(fileLabels));
-        DataInputStream images = new DataInputStream(new FileInputStream(fileImages));
+        DataInputStream labels = new DataInputStream(new FileInputStream(fLabels));
+        DataInputStream images = new DataInputStream(new FileInputStream(fImages));
         int magicNumber = labels.readInt();
         if (magicNumber != 2049) {
             System.err.println("Label file has wrong magic number: " + magicNumber + " (should be 2049)");
