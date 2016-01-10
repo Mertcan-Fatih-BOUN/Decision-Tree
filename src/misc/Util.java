@@ -1,5 +1,10 @@
 package misc;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+
 public class Util {
     public static double rand(double s, double e) {
         if (e < s) {
@@ -51,5 +56,27 @@ public class Util {
             }
         }
         return tmpIndex;
+    }
+
+    public static void printOutMatrix(double[][] m, String filename) {
+        File file = new File("log" + File.separator + "weights" + File.separator + filename);
+        //noinspection ResultOfMethodCallIgnored
+        file.getParentFile().mkdirs();
+        BufferedWriter writer = null;
+        try {
+            writer = new BufferedWriter(new FileWriter(file, false));
+            for(int i = 0; i < m.length - 1; i++){
+                for(int j = 0; j < m[0].length - 1; j++){
+                    writer.write(m[i][j] + " ");
+                }
+                writer.write("\n");
+            }
+
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
     }
 }

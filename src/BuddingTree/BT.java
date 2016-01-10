@@ -8,9 +8,11 @@ import java.util.*;
 
 import graph.Graphable;
 import graph.Graph;
+import mains.TreeRunner;
 import misc.Instance;
 import misc.Util;
 
+import static mains.TreeRunner.LEARNING_RATE;
 import static mains.TreeRunner.isMnist;
 
 public class BT implements Graphable {
@@ -116,8 +118,18 @@ public class BT implements Graphable {
             }
             graph.addEpoch(e);
             //System.out.println("Epoch " + e + " Size: " + size() + "\t" + effSize() + " \t" + getErrors());
+            outputToFile(e);
             LEARNING_RATE *= 0.8;
         }
+    }
+
+    private void outputToFile(int e) throws IOException {
+        File file2 = new File("log" + File.separator + "mnist" + File.separator + "learning_rate_" + (int)(TreeRunner.LEARNING_RATE * 100) + ".txt");
+        file2.getParentFile().mkdirs();
+        BufferedWriter writer2 = new BufferedWriter(new FileWriter(file2, true));
+        writer2.write("Epoch " + e + " Size: " + size() + "\t" + effSize() + " \t" + getErrors() + "\n");
+        writer2.flush();
+        writer2.close();
     }
 
 

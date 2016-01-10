@@ -180,7 +180,6 @@ class Node {
     }
 
     void splitNode(ArrayList<Instance> X, ArrayList<Instance> V, SDT tree) {
-        tree.graph.addEpoch(tree.count++);
 
         double[] oldw0 = Arrays.copyOf(rho, rho.length);
 

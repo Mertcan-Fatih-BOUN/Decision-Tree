@@ -43,8 +43,9 @@ public class LinearMachine_k_class {
         try {
 //            Util.readFile(instances, "data_set_66.data.txt");
 //            Util.readFile(instances, "iris.data.txt");
-//            Util.readFile(instances, "iris.data.v2.txt");
-            Util.readFile(instances, "data_sdt\\mnist\\mnist_ordered_small.txt");
+            Util.readFile(instances, "iris.data.v2.txt");
+//            Util.readFile(instances, "data_sdt\\mnist\\mnist_ordered_small.txt");
+//            Util.readFile(instances, "data_multi\\balance-scale.data");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -335,8 +336,8 @@ public class LinearMachine_k_class {
             }
         }
         System.out.println("");
-        for(int j = 0; j < (n.classes[1].length - n.classes[0].length) * classInstanceSize * 2; j++){
-            currentInstances.add(currentInstances.get(j));
+        for(int j = 0; j < (n.classes[1].length - n.classes[0].length) * classInstanceSize; j++){
+            //currentInstances.add(currentInstances.get(j));
         }
         for(int j = 0; j < n.classes[1].length; j++) {
            // System.out.println(n.classes[1][j]);
@@ -346,7 +347,7 @@ public class LinearMachine_k_class {
             }
         }
         for(int j = 0; j < (n.classes[0].length - n.classes[1].length) * classInstanceSize; j++){
-            currentInstances.add(currentInstances.get(n.classes[0].length * classInstanceSize + r.nextInt(50)));
+            //currentInstances.add(currentInstances.get(n.classes[0].length * classInstanceSize + r.nextInt(50)));
         }
 
 
@@ -429,12 +430,14 @@ public class LinearMachine_k_class {
         int trues = 0;
         int falses = 0;
         for(int i = 0; i <  n.classes[0].length * classInstanceSize; i++){
+//        for(int i = 0; i <  size / 2; i++){
             if(dotProduct(w, currentInstances.get(i).attributes) + bb > 0.0001)
                 trues++;
             else
                 falses++;
         }
         for(int i =  n.classes[0].length * classInstanceSize; i < size; i++){
+//        for(int i =  size / 2; i < size; i++){
             if(dotProduct(w, currentInstances.get(i).attributes) + bb < -0.0001)
                 trues++;
             else

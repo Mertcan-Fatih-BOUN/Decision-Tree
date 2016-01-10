@@ -183,6 +183,7 @@ class Node {
         double[] left_y;
         double[] right_y;
         double g = this.g(instance);
+//        System.out.println(g);
 
         if (leftNode != null) {
             left_y = leftNode.y;

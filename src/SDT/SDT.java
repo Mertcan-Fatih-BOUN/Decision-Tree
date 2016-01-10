@@ -149,8 +149,8 @@ public class SDT implements Graphable {
                     } else if (r != 0)
                         error++;
                 } else {
-                    double r = instance.classValue;
-                    double y = eval(instance);
+                    int r = (int)instance.classValue;
+                    int y = (int)eval(instance);
                     if (y != r)
                         error++;
                 }
@@ -201,13 +201,16 @@ public class SDT implements Graphable {
             }
             String className = s[ATTRIBUTE_COUNT];
 
-            int classNumber;
-            if (CLASS_NAMES.contains(className)) {
-                classNumber = CLASS_NAMES.indexOf(className);
-            } else {
-                CLASS_NAMES.add(className);
-                classNumber = CLASS_NAMES.indexOf(className);
-            }
+            double classNumber;
+            if(isClassify) {
+                if (CLASS_NAMES.contains(className)) {
+                    classNumber = CLASS_NAMES.indexOf(className);
+                } else {
+                    CLASS_NAMES.add(className);
+                    classNumber = CLASS_NAMES.indexOf(className);
+                }
+            }else
+                classNumber = Double.parseDouble(className);
             I.add(new Instance(classNumber, attributes));
         }
 

@@ -2,6 +2,7 @@ package MultiLayerPerceptron;
 
 import Utils.Instance;
 import Utils.Util;
+import mains.TreeRunner;
 import matlabcontrol.MatlabConnectionException;
 import matlabcontrol.MatlabInvocationException;
 import matlabcontrol.MatlabProxy;
@@ -9,6 +10,9 @@ import matlabcontrol.MatlabProxyFactory;
 import matlabcontrol.extensions.MatlabNumericArray;
 import matlabcontrol.extensions.MatlabTypeConverter;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
@@ -19,11 +23,11 @@ public class BackPropagation {
 
     public static MultiLayerNetwork multi_perceptron;
     public static Random r = new Random();
-    public final static int input_number = 60000;
-    public final static int hidden_neuron_number = 28*28*2/3;
-    public final static int input_dimension = 28*28;
-    public final static int output_dimension = 10;
-    public final static int number_of_epochs = 100;
+    public static int input_number = 60000;
+    public static int hidden_neuron_number = 50;//28*28*2/3;
+    public static int input_dimension = 28*28;
+    public static int output_dimension = 10;
+    public static int number_of_epochs = 100;
     public static ArrayList<Instance> instances = new ArrayList<>();
     public static double[][] inputs = new double[input_number][input_dimension + 1];
     public static double[][] outputs = new double[input_number][output_dimension];
@@ -40,11 +44,6 @@ public class BackPropagation {
 
     public static void main(String[] args) throws MatlabConnectionException, MatlabInvocationException {
 
-        if(hidden_neuron_number == 0)
-            multi_perceptron = new MultiLayerNetwork(input_dimension + 1,hidden_neuron_number,output_dimension);
-        else
-            multi_perceptron = new MultiLayerNetwork(input_dimension + 1,hidden_neuron_number + 1,output_dimension);
-
 
         try {
 //            Util.readFile(instances, "iris.data.txt");
@@ -55,23 +54,75 @@ public class BackPropagation {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        if(Util.ATTRIBUTE_COUNT == 2){
-            factory = new MatlabProxyFactory();
-            proxy = factory.getProxy();
-            processor = new MatlabTypeConverter(proxy);
+//        if(hidden_neuron_number == 0)
+//            multi_perceptron = new MultiLayerNetwork(input_dimension + 1,hidden_neuron_number,output_dimension);
+//        else
+//            multi_perceptron = new MultiLayerNetwork(input_dimension + 1,hidden_neuron_number + 1,output_dimension);
+//
+//        if(Util.ATTRIBUTE_COUNT == 2){
+//            factory = new MatlabProxyFactory();
+//            proxy = factory.getProxy();
+//            processor = new MatlabTypeConverter(proxy);
+//        }
+//        createArrays();
+//
+//        train_backPropagate();
+//
+//        test();
+//
+//        plotPoints();
+//        graph_all();
+
+        for(int i = 0; i < 15; i++){
+            hidden_neuron_number = 60;
+            for(int j = 0; j < 5; j++){
+                MultiLayerNetwork.learn_rate = MultiLayerNetwork.learn_rate_main;
+                G2 = new double[output_dimension][hidden_neuron_number + 1];
+                B1 = new double[hidden_neuron_number + 1];
+                G1 = new double[hidden_neuron_number][input_dimension + 1];
+                if(hidden_neuron_number == 0)
+                    multi_perceptron = new MultiLayerNetwork(input_dimension + 1,hidden_neuron_number,output_dimension);
+                else
+                    multi_perceptron = new MultiLayerNetwork(input_dimension + 1,hidden_neuron_number + 1,output_dimension);
+
+
+                createArrays();
+
+                train_backPropagate();
+
+                test();
+
+                plotPoints();
+                graph_all();
+                misc.Util.printOutMatrix(multi_perceptron.W1, "w1_" + hidden_neuron_number + "_" + MultiLayerNetwork.learn_rate_main + ".txt");
+                hidden_neuron_number += 20;
+            }
+            MultiLayerNetwork.learn_rate_main += 0.005;
+            MultiLayerNetwork.learn_rate = MultiLayerNetwork.learn_rate_main;
         }
-
-
-
-
-        createArrays();
-
-        train_backPropagate();
-
-        test();
-
-        plotPoints();
-        graph_all();
+//        if(hidden_neuron_number == 0)
+//            multi_perceptron = new MultiLayerNetwork(input_dimension + 1,hidden_neuron_number,output_dimension);
+//        else
+//            multi_perceptron = new MultiLayerNetwork(input_dimension + 1,hidden_neuron_number + 1,output_dimension);
+//
+//
+//        if(Util.ATTRIBUTE_COUNT == 2){
+//            factory = new MatlabProxyFactory();
+//            proxy = factory.getProxy();
+//            processor = new MatlabTypeConverter(proxy);
+//        }
+//
+//
+//
+//
+//        createArrays();
+//
+//        train_backPropagate();
+//
+//        test();
+//
+//        plotPoints();
+//        graph_all();
     }
 
 
@@ -176,7 +227,7 @@ public class BackPropagation {
     }
 
 
-    private static void test() {
+    private static String test() {
         int trues = 0;
         int falses = 0;
         for(int i = 0; i < input_number; i++){
@@ -202,6 +253,7 @@ public class BackPropagation {
                 falses++;
         }
         System.out.println("True: " + trues + " False: " + falses + " Percentage: " + ((double) trues / input_number));
+        return "True: " + trues + " False: " + falses + " Percentage: " + ((double) trues / input_number);
     }
 
     private static void createArrays() {
@@ -292,8 +344,16 @@ public class BackPropagation {
                 }
 
             }
+//            if(trial == 10 || trial == 20 || trial == 50 || trial == 100 ||trial == 1000){
             System.out.print("Epoch: " + trial + " ");
-            test();
+//            test();
+            MultiLayerNetwork.learn_rate *= 0.99;
+//            }
+//            try {
+//                outputToFile(trial);
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
         }
 
 //        System.out.println("W1: " + toString2dArray(multi_perceptron.W1));
@@ -305,6 +365,15 @@ public class BackPropagation {
 //        System.out.println("outputs: " + toString2dArray(output_hats));
 
 
+    }
+
+    private static void outputToFile(int e) throws IOException {
+        File file2 = new File("log" + File.separator + "mnist_multilayer_lesshidden" + File.separator + "learning_rate_" + (int)(MultiLayerNetwork.learn_rate_main * 10000) + "_hidden_" + hidden_neuron_number + ".txt");
+        file2.getParentFile().mkdirs();
+        BufferedWriter writer2 = new BufferedWriter(new FileWriter(file2, true));
+        writer2.write("Epoch " + e + " " + test() + "\n");
+        writer2.flush();
+        writer2.close();
     }
 
     private static double[] feed_forward(double[] input) {
