@@ -111,7 +111,7 @@ class Node {
 
                 if (rho.length == 1) {
                     t *= d;
-
+                    System.out.println(leftNode.y + " " + rightNode.y + " " + g + " " + t);
                     for (int count = 0; count < ATTRIBUTE_COUNT; count++)
                         dw[count] = (-t * (leftNode.y - rightNode.y) * g * (1 - g)) * x[count];
 

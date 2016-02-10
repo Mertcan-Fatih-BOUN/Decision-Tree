@@ -69,7 +69,7 @@ class Node {
             return 1 + leftNode.size() + rightNode.size();
     }
 
-    void learnParameters(ArrayList<Instance> X, ArrayList<Instance> V, double alpha, SDT tree, int MAX_EPOCH) {
+    void learnParameters(ArrayList<Instance> X, ArrayList<Instance> V, double alpha, SDT tree) {
         double u = 0.1;
 
         double[] dw = new double[ATTRIBUTE_COUNT];
@@ -85,7 +85,7 @@ class Node {
         double  dw0 = 0;
 
 
-        for (int e = 0; e < MAX_EPOCH; e++) {
+        for (int e = 0; e < tree.EPOCH; e++) {
             ArrayList<Integer> indices = new ArrayList<>();
             for (int i = 0; i < X.size(); i++) indices.add(i);
             Collections.shuffle(indices);
@@ -95,6 +95,7 @@ class Node {
                 double r = X.get(j).classValue;
                 double y = tree.eval(X.get(j));
                 double d = y - r;
+                g = sigmoid(dotProduct(w, X.get(j).attributes) + w0);
 
                 double t = alpha;
                 Node m = this;
@@ -111,6 +112,8 @@ class Node {
 
                 if(rho.length == 1) {
                     t *= d;
+                    if(tree.parent != null)
+//                    System.out.println(leftNode.y + " " + rightNode.y + " " + g + " " + t + " " + X.size());
 
                     for (int count = 0; count < ATTRIBUTE_COUNT; count++)
                         dw[count] = (-t * (leftNode.y - rightNode.y) * g * (1 - g)) * x[count];
@@ -183,7 +186,6 @@ class Node {
 
         double[] oldw0 = Arrays.copyOf(rho, rho.length);;
 
-
         w = new double[ATTRIBUTE_COUNT];
 
         double err = tree.ErrorOfTree(V);
@@ -225,7 +227,7 @@ class Node {
             }
 
             alpha = (tree.LEARNING_RATE + 0.0) / Math.pow(2, t + 1);
-            learnParameters(X, V, alpha, tree, tree.EPOCH);
+            learnParameters(X, V, alpha, tree);
 
             newErr = tree.ErrorOfTree(V);
             if (newErr < bestErr) {

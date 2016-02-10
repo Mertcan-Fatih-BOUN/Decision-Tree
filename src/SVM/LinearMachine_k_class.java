@@ -41,11 +41,11 @@ public class LinearMachine_k_class {
         processor = new MatlabTypeConverter(proxy);
 
         try {
-//            Util.readFile(instances, "data_set_66.data.txt");
-//            Util.readFile(instances, "iris.data.txt");
+//            Util.readFile(train_instances, "data_set_66.data.txt");
+//            Util.readFile(train_instances, "iris.data.txt");
             Util.readFile(instances, "iris.data.v2.txt");
-//            Util.readFile(instances, "data_sdt\\mnist\\mnist_ordered_small.txt");
-//            Util.readFile(instances, "data_multi\\balance-scale.data");
+//            Util.readFile(train_instances, "data_sdt\\mnist\\mnist_ordered_small.txt");
+//            Util.readFile(train_instances, "data_multi\\balance-scale.data");
         } catch (IOException e) {
             e.printStackTrace();
         }

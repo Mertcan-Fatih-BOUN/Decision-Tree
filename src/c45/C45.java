@@ -33,8 +33,8 @@ public class C45 {
         proxy = factory.getProxy();
         processor = new MatlabTypeConverter(proxy);
         try {
-//            Util.readFile(instances, "data_set_66.data.txt");
-//            Util.readFile(instances, "iris.data.txt");
+//            Util.readFile(train_instances, "data_set_66.data.txt");
+//            Util.readFile(train_instances, "iris.data.txt");
             Util.readFile(instances, "iris.data.v2.txt");
         } catch (IOException e) {
             e.printStackTrace();

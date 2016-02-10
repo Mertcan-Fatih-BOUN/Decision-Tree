@@ -52,8 +52,9 @@ public class SDT {
         readFile(V, VALIDATION_SET_FILENAME);
         readFile(T, TEST_SET_FILENAME);
 
-        if(!SDTMain.isMnist)
-            normalize(X, V, T);
+
+
+        normalize(X, V, T);
 
         isLeaf = true;
 
@@ -69,7 +70,7 @@ public class SDT {
         this.LEARNING_RATE = learning_rate;
         this.MAX_STEP = max_step;
         this.EPOCH = epıch;
-        learnTree();
+//        this.learnTree();
     }
 
     private void normalize(ArrayList<Instance> x, ArrayList<Instance> v, ArrayList<Instance> t) {
@@ -144,10 +145,11 @@ public class SDT {
                 ROOT.rho[0] += i.classValue;
             ROOT.rho[0] /= X.size();
 
-            if(parent != null)
-                ROOT.rho[0] = parent.ROOT.rho[0];
+//            if(parent != null)
+//                ROOT.rho[0] = parent.ROOT.rho[0];
         }
         ROOT.splitNode(X, V, this);
+        System.out.println(X.size() + " " + V.size() + " " + ROOT.size());
 
 //        split_q.add(ROOT);
 //        while (!split_q.isEmpty()){
@@ -222,6 +224,7 @@ public class SDT {
         isLeaf = false;
         leftSDT = new SDT(X1, V1, T,true, LEARNING_RATE, EPOCH, MAX_STEP);
         leftSDT.parent = this;
+        leftSDT.learnTree();
         double newErrLeft = ErrorOfTree(V);
 
         SDT tempLeft = leftSDT;
@@ -229,6 +232,7 @@ public class SDT {
 
         middleSDT = new SDT(X2, V2, T,true, LEARNING_RATE, EPOCH, MAX_STEP);
         middleSDT.parent = this;
+        middleSDT.learnTree();
         double newErrMiddle = ErrorOfTree(V);
 
         SDT tempMiddle = middleSDT;
@@ -236,6 +240,7 @@ public class SDT {
 
         rightSDT = new SDT(X3, V3, T,true, LEARNING_RATE, EPOCH, MAX_STEP);
         rightSDT.parent = this;
+        rightSDT.learnTree();
         double newErrRight = ErrorOfTree(V);
 
         SDT tempRight = rightSDT;
@@ -244,7 +249,7 @@ public class SDT {
 
         double newErr = ErrorOfTree(V);
 
-//        System.out.println(err + " " + newErrLeft + " " + newErrMiddle + " " + newErrRight);
+        System.out.println(err + " " + newErrLeft + " " + newErrMiddle + " " + newErrRight);
 
         isLeaf = true;
 
@@ -365,8 +370,6 @@ public class SDT {
             double[] attributes = new double[ATTRIBUTE_COUNT];
             for (int i = 0; i < ATTRIBUTE_COUNT; i++) {
                 attributes[i] = Double.parseDouble(s[i]);
-                if(SDTMain.isMnist)
-                    attributes[i] /= 255;
             }
             String className = s[ATTRIBUTE_COUNT];
 

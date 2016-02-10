@@ -1,4 +1,4 @@
-weights =  dlmread(strcat('log/weights/', 'w1_70_0.01.txt'),' ');
+weights =  dlmread(strcat('log/weights/', 'w1_40_0.0061.txt'),' ');
 nCol = size(weights,2);
 weights(:,nCol)=[];
 d = size(weights);
@@ -10,6 +10,7 @@ for i = 1:d(1)
     minm = min(image);
     maxm = max(image);
     image = reshape(image, [image_size, image_size]);
+    image = transpose(image);
     image =  image - minm;
     image =  image ./ maxm ; 
     image =  image .* 255 ;

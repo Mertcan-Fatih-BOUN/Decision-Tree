@@ -133,7 +133,7 @@ public class SDT {
             ROOT.rho[0] = parent.ROOT.rho[0];
 
         ROOT.splitNode(X, V, this);
-
+        System.out.println(X.size() + " " + V.size() + " " + ROOT.size());
 //        split_q.add(ROOT);
 //        while (!split_q.isEmpty()){
 //            Node n = split_q.remove();

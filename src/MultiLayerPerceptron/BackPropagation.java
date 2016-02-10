@@ -1,19 +1,16 @@
 package MultiLayerPerceptron;
 
 import Utils.Instance;
-import Utils.Util;
-import mains.TreeRunner;
 import matlabcontrol.MatlabConnectionException;
 import matlabcontrol.MatlabInvocationException;
 import matlabcontrol.MatlabProxy;
 import matlabcontrol.MatlabProxyFactory;
 import matlabcontrol.extensions.MatlabNumericArray;
 import matlabcontrol.extensions.MatlabTypeConverter;
+import misc.Util;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.Charset;
 import java.util.*;
 
 /**
@@ -23,15 +20,20 @@ public class BackPropagation {
 
     public static MultiLayerNetwork multi_perceptron;
     public static Random r = new Random();
-    public static int input_number = 60000;
-    public static int hidden_neuron_number = 50;//28*28*2/3;
+    public static int input_number_train = 60000;
+    public static int input_number_test = 60000;
+    public static int hidden_neuron_number = 40;//28*28*2/3;
     public static int input_dimension = 28*28;
     public static int output_dimension = 10;
-    public static int number_of_epochs = 100;
-    public static ArrayList<Instance> instances = new ArrayList<>();
-    public static double[][] inputs = new double[input_number][input_dimension + 1];
-    public static double[][] outputs = new double[input_number][output_dimension];
-    public static double[][] output_hats = new double[input_number][output_dimension];
+    public static int number_of_epochs = 50;
+    public static boolean drawable = false;
+    public static ArrayList<Instance> train_instances = new ArrayList<>();
+    public static ArrayList<Instance> test_instances = new ArrayList<>();
+    public static double[][] inputs = new double[input_number_train][input_dimension + 1];
+    public static double[][] outputs_train = new double[input_number_train][output_dimension];
+    public static double[][] output_hats_train = new double[input_number_train][output_dimension];
+    public static double[][] outputs_test = new double[input_number_test][output_dimension];
+    public static double[][] output_hats_test = new double[input_number_train][output_dimension];
 
     public static double[] B2 = new double[output_dimension];
     public static double[][] G2 = new double[output_dimension][hidden_neuron_number + 1];
@@ -42,112 +44,123 @@ public class BackPropagation {
     public static MatlabProxy proxy;
     public static MatlabTypeConverter processor;
 
-    public static void main(String[] args) throws MatlabConnectionException, MatlabInvocationException {
+    public BackPropagation(String trainfile, String testfile, int hidden_number, int epochs, double learn_rate, boolean draw) throws MatlabConnectionException, MatlabInvocationException {
 
 
         try {
-//            Util.readFile(instances, "iris.data.txt");
-//            Util.readFile(instances, "iris.data.v2.txt");
-//            Util.readFile(instances, "data_set_nonlinear_1.data.txt");
-            Util.readFile(instances, "data_sdt\\mnist\\mnist.txt");
-//            Util.readFile(instances, "data_sdt\\mnist\\mnist_ordered_01.txt");
+//            Util.readFile(train_instances, "iris.data.txt");
+//            Util.readFile(train_instances, "iris.data.v2.txt");
+//            Util.readFile(train_instances, "data_set_nonlinear_1.data.txt");
+//            Util.readFile(train_instances, "data_sdt\\mnist\\mnist.txt");
+//            Util.readFile(test_instances, "data_sdt\\mnist\\mnist.txt");
+
+            readFile(train_instances, trainfile);
+            readFile(test_instances, testfile);
+//            Util.readFile(train_instances, "data_sdt\\mnist\\mnist_ordered_01.txt");
         } catch (IOException e) {
             e.printStackTrace();
         }
-//        if(hidden_neuron_number == 0)
-//            multi_perceptron = new MultiLayerNetwork(input_dimension + 1,hidden_neuron_number,output_dimension);
-//        else
-//            multi_perceptron = new MultiLayerNetwork(input_dimension + 1,hidden_neuron_number + 1,output_dimension);
+        input_number_train = train_instances.size();
+        input_number_test = test_instances.size();
+        output_dimension = CLASS_NAMES.size();
+        MultiLayerNetwork.learn_rate_main = learn_rate;
+        MultiLayerNetwork.learn_rate = learn_rate;
+        number_of_epochs = epochs;
+        hidden_neuron_number = hidden_number;
+        drawable = draw;
+
+        inputs = new double[input_number_train][input_dimension + 1];
+        outputs_train = new double[input_number_train][output_dimension];
+        output_hats_train = new double[input_number_train][output_dimension];
+        outputs_test = new double[input_number_test][output_dimension];
+        output_hats_test = new double[input_number_train][output_dimension];
+
+        B2 = new double[output_dimension];
+        G2 = new double[output_dimension][hidden_neuron_number + 1];
+        B1 = new double[hidden_neuron_number + 1];
+        G1 = new double[hidden_neuron_number][input_dimension + 1];
+
+
+//        for(int i = 0; i < 3; i++){
+//            hidden_neuron_number = 40;
+//            for(int j = 0; j < 3; j++){
+//                MultiLayerNetwork.learn_rate = MultiLayerNetwork.learn_rate_main;
+//                G2 = new double[output_dimension][hidden_neuron_number + 1];
+//                B1 = new double[hidden_neuron_number + 1];
+//                G1 = new double[hidden_neuron_number][input_dimension + 1];
+//                if(hidden_neuron_number == 0)
+//                    multi_perceptron = new MultiLayerNetwork(input_dimension + 1,hidden_neuron_number,output_dimension);
+//                else
+//                    multi_perceptron = new MultiLayerNetwork(input_dimension + 1,hidden_neuron_number + 1,output_dimension);
 //
-//        if(Util.ATTRIBUTE_COUNT == 2){
-//            factory = new MatlabProxyFactory();
-//            proxy = factory.getProxy();
-//            processor = new MatlabTypeConverter(proxy);
+//
+//                createArrays();
+//
+//                train_backPropagate();
+//
+//                test();
+//
+//                plotPoints();
+//                graph_all();
+//                misc.Util.printOutMatrix(multi_perceptron.W1, "ww1_" + hidden_neuron_number + "_" + MultiLayerNetwork.learn_rate_main + ".txt");
+//                hidden_neuron_number += 20;
+//            }
+//            MultiLayerNetwork.learn_rate_main += 0.002;
+//            MultiLayerNetwork.learn_rate = MultiLayerNetwork.learn_rate_main;
 //        }
-//        createArrays();
-//
-//        train_backPropagate();
-//
-//        test();
-//
-//        plotPoints();
-//        graph_all();
 
-        for(int i = 0; i < 15; i++){
-            hidden_neuron_number = 60;
-            for(int j = 0; j < 5; j++){
-                MultiLayerNetwork.learn_rate = MultiLayerNetwork.learn_rate_main;
-                G2 = new double[output_dimension][hidden_neuron_number + 1];
-                B1 = new double[hidden_neuron_number + 1];
-                G1 = new double[hidden_neuron_number][input_dimension + 1];
-                if(hidden_neuron_number == 0)
-                    multi_perceptron = new MultiLayerNetwork(input_dimension + 1,hidden_neuron_number,output_dimension);
-                else
-                    multi_perceptron = new MultiLayerNetwork(input_dimension + 1,hidden_neuron_number + 1,output_dimension);
-
-
-                createArrays();
-
-                train_backPropagate();
-
-                test();
-
-                plotPoints();
-                graph_all();
-                misc.Util.printOutMatrix(multi_perceptron.W1, "w1_" + hidden_neuron_number + "_" + MultiLayerNetwork.learn_rate_main + ".txt");
-                hidden_neuron_number += 20;
-            }
-            MultiLayerNetwork.learn_rate_main += 0.005;
-            MultiLayerNetwork.learn_rate = MultiLayerNetwork.learn_rate_main;
-        }
-//        if(hidden_neuron_number == 0)
-//            multi_perceptron = new MultiLayerNetwork(input_dimension + 1,hidden_neuron_number,output_dimension);
-//        else
-//            multi_perceptron = new MultiLayerNetwork(input_dimension + 1,hidden_neuron_number + 1,output_dimension);
-//
-//
-//        if(Util.ATTRIBUTE_COUNT == 2){
-//            factory = new MatlabProxyFactory();
-//            proxy = factory.getProxy();
-//            processor = new MatlabTypeConverter(proxy);
-//        }
-//
-//
-//
-//
-//        createArrays();
-//
-//        train_backPropagate();
-//
-//        test();
-//
-//        plotPoints();
-//        graph_all();
     }
 
+    public void runPerceptron() throws MatlabInvocationException, MatlabConnectionException {
+        if(hidden_neuron_number == 0)
+            multi_perceptron = new MultiLayerNetwork(input_dimension + 1,hidden_neuron_number,output_dimension);
+        else
+            multi_perceptron = new MultiLayerNetwork(input_dimension + 1,hidden_neuron_number + 1,output_dimension);
+
+
+        if(input_dimension == 2 && drawable){
+            factory = new MatlabProxyFactory();
+            proxy = factory.getProxy();
+            processor = new MatlabTypeConverter(proxy);
+        }
+
+
+
+
+        createArrays();
+
+        train_backPropagate();
+
+        System.out.println("train: " + test(train_instances) + " test: " + test(test_instances));
+
+        if(drawable) {
+            plotPoints();
+            graph_all();
+        }
+    }
 
     private static void plotPoints() throws MatlabInvocationException {
-        if(Util.ATTRIBUTE_COUNT == 2){
-            String points_x[] = new String[Util.CLASS_COUNT];
-            String points_y[] = new String[Util.CLASS_COUNT];
-            int class_size = instances.size() / Util.CLASS_COUNT;
-            for(int i = 0; i < Util.CLASS_COUNT; i++){
-                points_x[i] = "[" + instances.get(i * instances.size() / Util.CLASS_COUNT).attributes[0];
-                points_y[i] = "[" + instances.get(i * instances.size() / Util.CLASS_COUNT).attributes[1];
+        if(input_dimension == 2){
+            String points_x[] = new String[CLASS_COUNT];
+            String points_y[] = new String[CLASS_COUNT];
+            int class_size = train_instances.size() / CLASS_COUNT;
+            for(int i = 0; i < CLASS_COUNT; i++){
+                points_x[i] = "[" + train_instances.get(i * train_instances.size() / CLASS_COUNT).attributes[0];
+                points_y[i] = "[" + train_instances.get(i * train_instances.size() / CLASS_COUNT).attributes[1];
                 for(int j = 1 + i * class_size; j < (i + 1) * class_size; j++){
-                    points_x[i] += "," + instances.get(j).attributes[0];
-                    points_y[i] += "," + instances.get(j).attributes[1];
+                    points_x[i] += "," + train_instances.get(j).attributes[0];
+                    points_y[i] += "," + train_instances.get(j).attributes[1];
                 }
                 points_x[i] += "]";
                 points_y[i] += "]";
             }
-            for(int i = 0; i < Util.CLASS_COUNT; i++) {
+            for(int i = 0; i < CLASS_COUNT; i++) {
                 proxy.eval("points_x" + i + " = " + points_x[i]);
                 proxy.eval("points_y" + i + " = " + points_y[i]);
             }
             String eval1 = "[";
             String eval2 = "[";
-            for(int i = 0; i < Util.CLASS_COUNT; i++){
+            for(int i = 0; i < CLASS_COUNT; i++){
                 eval1 += "points_x" + i + " ";
                 eval2 += "points_y" + i + " ";
             }
@@ -200,7 +213,7 @@ public class BackPropagation {
     }
 
     private static void graph_all() throws MatlabInvocationException {
-        if(Util.ATTRIBUTE_COUNT == 2) {
+        if(input_dimension == 2) {
             proxy.eval("figure");
             proxy.eval("surf(xg,yg,zg)");
 //            proxy.eval("figure");
@@ -209,13 +222,13 @@ public class BackPropagation {
 //            proxy.eval("surfc(zg)");
             proxy.eval("figure");
             String v = "[1";
-            for(int i = 2; i < Util.CLASS_COUNT; i++)
+            for(int i = 2; i < CLASS_COUNT; i++)
                 v += " " + i;
             v += "]";
             proxy.eval("contour(xg,yg,zg, " + v + ", 'ShowText','on')");
 
             String plot2 = "";
-            for(int i = 0; i < Util.CLASS_COUNT; i++){
+            for(int i = 0; i < CLASS_COUNT; i++){
                 plot2 += ",points_x" + i + ", points_y" + i + ", '.'";
             }
             plot2 += ")";
@@ -226,46 +239,61 @@ public class BackPropagation {
         }
     }
 
-
-    private static String test() {
+    private static String test(ArrayList<Instance> T) {
         int trues = 0;
         int falses = 0;
-        for(int i = 0; i < input_number; i++){
-//            double sum = 0;
-            double max = 0;
-            int maxIndex = 0;
-            for(int j = 0; j < output_dimension; j++){
-//                sum += Math.abs((outputs[i][j] - output_hats[i][j]) * (1 - output_hats[i][j]) * output_hats[i][j]);
-                if(output_hats[i][j] > max){
-                    max = output_hats[i][j];
-                    maxIndex = j;
-                }
-
-            }
-//            if(sum < Math.pow(10, -1) && sum > - Math.pow(10, -1))
-//                trues++;
-//            else
-//                falses++;
-//            if(maxIndex == i / (input_number / Util.CLASS_COUNT))
-            if(outputs[i][maxIndex] == 1)
+        for(int i = 0; i < T.size(); i++){
+            double[] atts  = Arrays.copyOf(T.get(i).attributes, T.get(i).attributes.length + 1);
+            atts[atts.length - 1] = 1;
+            int prediction = Util.argMax(feed_forward(atts));
+            if(prediction == T.get(i).classNumber)
                 trues++;
             else
                 falses++;
         }
-        System.out.println("True: " + trues + " False: " + falses + " Percentage: " + ((double) trues / input_number));
-        return "True: " + trues + " False: " + falses + " Percentage: " + ((double) trues / input_number);
+        //System.out.println("True: " + trues + " False: " + falses + " Percentage: " + ((double) trues / input_number_train));
+        return "True: " + trues + " False: " + falses + " Percentage: " + ((double) trues / input_number_train);
     }
 
+//    private static String test() {
+//        int trues = 0;
+//        int falses = 0;
+//        for(int i = 0; i < input_number_train; i++){
+////            double sum = 0;
+//            double max = 0;
+//            int maxIndex = 0;
+//            for(int j = 0; j < output_dimension; j++){
+////                sum += Math.abs((outputs_train[i][j] - output_hats_train[i][j]) * (1 - output_hats_train[i][j]) * output_hats_train[i][j]);
+//                if(output_hats_train[i][j] > max){
+//                    max = output_hats_train[i][j];
+//                    maxIndex = j;
+//                }
+//
+//            }
+////            if(sum < Math.pow(10, -1) && sum > - Math.pow(10, -1))
+////                trues++;
+////            else
+////                falses++;
+////            if(maxIndex == i / (input_number_train / CLASS_COUNT))
+//            if(outputs_train[i][maxIndex] == 1)
+//                trues++;
+//            else
+//                falses++;
+//        }
+//        System.out.println("True: " + trues + " False: " + falses + " Percentage: " + ((double) trues / input_number_train));
+//        return "True: " + trues + " False: " + falses + " Percentage: " + ((double) trues / input_number_train);
+//    }
+
     private static void createArrays() {
-        for(int a = 0; a < instances.size(); a++) {
-            Instance T = instances.get(a);
-            for (int i = 0; i < Util.ATTRIBUTE_COUNT; i++) {
+        for(int a = 0; a < train_instances.size(); a++) {
+            Instance T = train_instances.get(a);
+            for (int i = 0; i < input_dimension; i++) {
                 inputs[a][i] = T.attributes[i];
             }
-            inputs[a][Util.ATTRIBUTE_COUNT] = 1;
-            outputs[a] = new double[Util.CLASS_COUNT];
-            Arrays.fill(outputs[a], 0);
-            outputs[a][T.classNumber] = 1;
+            inputs[a][input_dimension] = 1;
+            outputs_train[a] = new double[CLASS_COUNT];
+            Arrays.fill(outputs_train[a], 0);
+            outputs_train[a][T.classNumber] = 1;
         }
     }
 
@@ -278,18 +306,18 @@ public class BackPropagation {
 
 
         ArrayList<Integer> shuffler = new ArrayList<>();
-        for(int i = 0; i < input_number; i++) shuffler.add(i);
+        for(int i = 0; i < input_number_train; i++) shuffler.add(i);
 
         for(int trial = 0; trial < number_of_epochs; trial++) {
             Collections.shuffle(shuffler);
-            for (int i = 0; i < input_number; i++) {
+            for (int i = 0; i < input_number_train; i++) {
                 int theInput = shuffler.get(i);
                 double[] output_hat = feed_forward(inputs[theInput]);
-//                System.out.println(toString1dArray(inputs[theInput]) + " " + toString1dArray(output_hat) + " " + toString1dArray(outputs[theInput]));
-                output_hats[theInput] = output_hat;
+//                System.out.println(toString1dArray(inputs[theInput]) + " " + toString1dArray(output_hat) + " " + toString1dArray(outputs_train[theInput]));
+                output_hats_train[theInput] = output_hat;
                 if(multi_perceptron.hidden_layer != 0) {
                     for (int j = 0; j < B2.length; j++) {
-                        B2[j] = -2 * (outputs[theInput][j] - output_hat[j]) * multi_perceptron.output_neurons[j].derivative_sigma();
+                        B2[j] = -2 * (outputs_train[theInput][j] - output_hat[j]) * multi_perceptron.output_neurons[j].derivative_sigma();
                     }
                     for (int j = 0; j < G2.length; j++) {
                         for (int t = 0; t < G2[0].length; t++) {
@@ -327,9 +355,9 @@ public class BackPropagation {
                     G2 = new double[output_dimension][input_dimension + 1];
                     for (int j = 0; j < B2.length; j++) {
                         if(j != B2.length - 1)
-                            B2[j] = -2 * (outputs[theInput][j] - output_hat[j]) * multi_perceptron.hidden_neurons[j].derivative_sigma();
+                            B2[j] = -2 * (outputs_train[theInput][j] - output_hat[j]) * multi_perceptron.hidden_neurons[j].derivative_sigma();
                         else
-                            B2[j] = -2 * (outputs[theInput][j] - output_hat[j]);
+                            B2[j] = -2 * (outputs_train[theInput][j] - output_hat[j]);
                     }
                     for (int j = 0; j < G2.length; j++) {
                         for (int t = 0; t < G2[0].length; t++) {
@@ -345,7 +373,7 @@ public class BackPropagation {
 
             }
 //            if(trial == 10 || trial == 20 || trial == 50 || trial == 100 ||trial == 1000){
-            System.out.print("Epoch: " + trial + " ");
+//            System.out.print("Epoch: " + trial + " ");
 //            test();
             MultiLayerNetwork.learn_rate *= 0.99;
 //            }
@@ -360,18 +388,18 @@ public class BackPropagation {
 //
 //        System.out.println("W2: " + toString2dArray(multi_perceptron.W2));
 //
-//        System.out.println("real outputs: " + toString2dArray(outputs));
+//        System.out.println("real outputs_train: " + toString2dArray(outputs_train));
 //
-//        System.out.println("outputs: " + toString2dArray(output_hats));
+//        System.out.println("outputs_train: " + toString2dArray(output_hats_train));
 
 
     }
 
     private static void outputToFile(int e) throws IOException {
-        File file2 = new File("log" + File.separator + "mnist_multilayer_lesshidden" + File.separator + "learning_rate_" + (int)(MultiLayerNetwork.learn_rate_main * 10000) + "_hidden_" + hidden_neuron_number + ".txt");
+        File file2 = new File("log" + File.separator + "mnist_multilayer_lesshidden2" + File.separator + "learning_rate_" + (int)(MultiLayerNetwork.learn_rate_main * 10000) + "_hidden_" + hidden_neuron_number + ".txt");
         file2.getParentFile().mkdirs();
         BufferedWriter writer2 = new BufferedWriter(new FileWriter(file2, true));
-        writer2.write("Epoch " + e + " " + test() + "\n");
+        writer2.write("Epoch " + e + " train: " + test(train_instances) + " test: " +  test(test_instances) + "\n");
         writer2.flush();
         writer2.close();
     }
@@ -436,6 +464,52 @@ public class BackPropagation {
                 s += a[i] + " ";
         }
         return s;
+    }
+    public static ArrayList<String> CLASS_NAMES = new ArrayList<>();
+    public static int CLASS_COUNT = 0;
+
+    private void readFile(ArrayList<Instance> I, String filename) throws IOException {
+        String line;
+
+        InputStream fis = new FileInputStream(filename);
+        InputStreamReader isr = new InputStreamReader(fis, Charset.forName("UTF-8"));
+        BufferedReader br = new BufferedReader(isr);
+
+        line = br.readLine();
+
+        br.close();
+        String[] s;
+        String splitter;
+        if (!line.contains(","))
+            splitter = "\\s+";
+        else
+            splitter = ",";
+        s = line.split(splitter);
+
+        input_dimension = s.length - 1;
+//        System.out.println(input_dimension + " " + line);
+        Scanner scanner = new Scanner(new File(filename));
+        while (scanner.hasNextLine()) {
+            line = scanner.nextLine();
+            s = line.split(splitter);
+
+            double[] attributes = new double[input_dimension];
+            for (int i = 0; i < input_dimension; i++) {
+                attributes[i] = Double.parseDouble(s[i]);
+            }
+//            System.out.println();
+            String className = s[input_dimension];
+
+            double classNumber;
+            if (CLASS_NAMES.contains(className)) {
+                classNumber = CLASS_NAMES.indexOf(className);
+            } else {
+                CLASS_NAMES.add(className);
+                classNumber = CLASS_NAMES.indexOf(className);
+            }
+            I.add(new Instance((int)classNumber, attributes));
+        }
+        CLASS_COUNT = CLASS_NAMES.size();
     }
 
 }
