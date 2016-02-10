@@ -42,7 +42,7 @@ public class TreeRunner {
 //                "mnist" + File.separator + "test.txt");
 
 
-        //run_single_multi_class_set(BT.class,"ecoli.data");
+//        run_single_multi_class_set(BT.class,"ecoli.data");
         //run_all_binary_classes(SDT.class);
 //        run_all_regressions(SDT.class);
         //run_single_binary_classification_set_fold(SDT.class, "breast", 1, 1);
@@ -53,8 +53,11 @@ public class TreeRunner {
         //run_classification_by_filename("data_sdt\\mnist\\mnist.txt");
 
         //run_classification_by_filename(BT.class, "iris.data.v2.txt");
-        run_classification_by_filename(SDT.class, "data_set_nonlinear_4.data.txt");
+//        run_classification_by_filename(SDT.class, "data_set_nonlinear_4.data.txt");
         //run_classification_by_filename(SDT.class, "iris.data.txt");
+
+//        run_single_multi_class_set(BT.class,"millionsong_yearpred_clsfirst_small");
+        run_single_multi_class_set(BT.class,"millionsong_yearpred_clsfirst");
     }
 
 

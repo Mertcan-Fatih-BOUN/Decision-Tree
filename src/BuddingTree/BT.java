@@ -218,13 +218,26 @@ public class BT implements Graphable {
             s = line.split(splitter);
 
             double[] attributes = new double[ATTRIBUTE_COUNT];
-            for (int i = 0; i < ATTRIBUTE_COUNT; i++) {
-                attributes[i] = Double.parseDouble(s[i]);
-                if (isMnist)
-                    attributes[i] /= 255;
+            String className = "";
+            if(!filename.contains("clsfirst")) {
+                for (int i = 0; i < ATTRIBUTE_COUNT; i++) {
+                    attributes[i] = Double.parseDouble(s[i]);
+                }
+                className = s[ATTRIBUTE_COUNT];
+            }else{
+                for (int i = 0; i < ATTRIBUTE_COUNT; i++) {
+                    attributes[i] = Double.parseDouble(s[i + 1]);
+                }
+                className = s[0];
             }
+//            double[] attributes = new double[ATTRIBUTE_COUNT];
+//            for (int i = 0; i < ATTRIBUTE_COUNT; i++) {
+//                attributes[i] = Double.parseDouble(s[i]);
+//                if (isMnist)
+//                    attributes[i] /= 255;
+//            }
 //            System.out.println();
-            String className = s[ATTRIBUTE_COUNT];
+//            String className = s[ATTRIBUTE_COUNT];
 
             double classNumber;
             if(isClassify) {
@@ -238,6 +251,10 @@ public class BT implements Graphable {
                 classNumber = Double.parseDouble(className);
             I.add(new Instance(classNumber, attributes));
         }
+        CLASS_COUNT = CLASS_NAMES.size();
+//        for(int i = 0; i < CLASS_COUNT; i++)
+//            System.out.print(CLASS_NAMES.get(i) + "  ");
+//        System.out.println(CLASS_COUNT);
 
     }
 }

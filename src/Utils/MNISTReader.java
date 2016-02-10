@@ -4,10 +4,10 @@ import java.io.*;
 
 
 public class MNISTReader {
-    public static final String fileTrainImages = "mnist" + File.separator + "train-images.idx3-ubyte";
-    public static final String fileTrainLabels = "mnist" + File.separator + "train-labels.idx1-ubyte";
-    public static final String fileTestImages = "mnist" + File.separator + "t10k-images.idx3-ubyte";
-    public static final String fileTestLabels = "mnist" + File.separator + "t10k-labels.idx1-ubyte";
+    public static final String fileTrainImages = "data_sdt" + File.separator + "mnist" + File.separator + "train-images.idx3-ubyte";
+    public static final String fileTrainLabels = "data_sdt" + File.separator + "mnist" + File.separator + "train-labels.idx1-ubyte";
+    public static final String fileTestImages = "data_sdt" + File.separator + "mnist" + File.separator + "t10k-images.idx3-ubyte";
+    public static final String fileTestLabels = "data_sdt" + File.separator + "mnist" + File.separator + "t10k-labels.idx1-ubyte";
     public static BufferedWriter output;
 
     public static void main(String[] args) throws IOException {
@@ -20,7 +20,7 @@ public class MNISTReader {
 
     private static void convert(String fImages, String fLabels, String out) throws IOException {
         output = null;
-        File file = new File("mnist" + File.separator + out + ".txt");
+        File file = new File("data_sdt" + File.separator + "mnist" + File.separator + out + ".txt");
         output = new BufferedWriter(new FileWriter(file));
 
 
