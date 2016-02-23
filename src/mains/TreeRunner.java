@@ -9,9 +9,9 @@ import SDT.SDT;
 
 @SuppressWarnings({"unused", "Duplicates"})
 public class TreeRunner {
-    public static double LEARNING_RATE = 2;//2 0.001 is nice for msd
-    public static int EPOCH = 30;
-    public static int MAX_STEP = 1;
+    public static double LEARNING_RATE = 0.3;//2 0.001 is nice for msd
+    public static int EPOCH = 10;
+    public static int MAX_STEP = 5;
     public static boolean isMnist = false;
 
     static final String[] MULTICLASS = new String[]{"balance-scale.data", "cmc.data", "dermatology.data", "ecoli.data", "glass.data", "optdigits.data", "page-blocks.data", "pendigits.data", "yeast.data", "segment.data"};
@@ -29,6 +29,7 @@ public class TreeRunner {
         //run_single_multi_class_set(SDT.class, "balance-scale.data");
 
 //        run_all_multi_classes(BT.class);
+        run_all_multi_classes(SDT.class);
         //   run_all_multi_classes(SDT.class);
 //        run_single_multi_class_set(BT.class, "page-blocks.data");
 //        run_single_multi_class_set(BT.class, "pendigits.data");
@@ -43,7 +44,7 @@ public class TreeRunner {
 
 
 //        run_single_multi_class_set(BT.class,"ecoli.data");
-        //run_all_binary_classes(SDT.class);
+//        run_all_binary_classes(SDT.class);
 //        run_all_regressions(BT.class);
 //        run_single_binary_classification_set_fold(SDT.class, "breast", 1, 1);
 //        run_all_binary_classes(BT.class);
@@ -61,7 +62,7 @@ public class TreeRunner {
 //        run_single_regression_by_filename(BT.class, "data_multi" + File.separator + "million_song_rnd_sample_clsfirst-train.txt", "data_multi" + File.separator + "million_song_rnd_sample_clsfirst-test.txt", "data_multi" + File.separator + "million_song_rnd_sample_clsfirst-test.txt");
 //        run_single_multi_class_set(BT.class,"millionsong_yearpred_clsfirst_small");
 //        run_single_multi_class_set(BT.class,"millionsong_yearpred_clsfirst");
-        run_single_regression_set(BT.class, "millionsong_yearpred_clsfirst");
+//        run_single_regression_set(BT.class, "millionsong_yearpred_clsfirst");
 //        run_single_multi_class_set(BT.class,"mnist");
     }
 

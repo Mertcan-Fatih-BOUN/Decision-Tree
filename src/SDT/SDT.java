@@ -130,7 +130,7 @@ public class SDT implements Graphable {
             if (ROOT.rho.length == 1) {
                 return sigmoid(ROOT.F(i));
             } else {
-                return Util.argMax(Util.softmax((ROOT.sigmoid_F_rho(i))));
+                return Util.argMax(Util.softmax((ROOT.F_rho(i))));
             }
         } else
             return ROOT.F(i);
@@ -151,6 +151,7 @@ public class SDT implements Graphable {
                 } else {
                     int r = (int)instance.classValue;
                     int y = (int)eval(instance);
+//                    System.out.println(r + "  " + y);
                     if (y != r)
                         error++;
                 }

@@ -34,8 +34,9 @@ class Node {
         if (isLeaf) {
             if (rho.length == 1)
                 y = rho[0];
-            else
+            else {
                 y = rho[(int) instance.classValue];
+            }
         } else {
             g = sigmoid(dotProduct(w, instance.attributes) + w0);
             y = g * (leftNode.F(instance)) + (1 - g) * (rightNode.F(instance));
@@ -55,7 +56,7 @@ class Node {
         return y;
     }
 
-    public double[] sigmoid_F_rho(Instance instance) {
+    public double[] F_rho(Instance instance) {
         double[] f = new double[rho.length];
         String s = "";
         for (int i = 0; i < rho.length; i++) {
@@ -132,16 +133,18 @@ class Node {
                     rightNode.rho[0] += dwright[0] + u * dwrightp[0];
 
                 } else {
-                    double[] fs = sigmoid_F_rho(X.get(j));
+                    double[] fs = tree.ROOT.F_rho(X.get(j));
                     double[] softmaxs = softmax(fs);
                     double[] ts = new double[softmaxs.length];
-                    for (int h = 0; h < softmaxs.length; h++)
+                    for (int h = 0; h < softmaxs.length; h++) {
                         if (h == (int) r) {
                             ts[h] = (softmaxs[h] - 1) * t;
                         } else {
                             ts[h] = (softmaxs[h]) * t;
                         }
-
+//                        System.out.print(softmaxs[h] + "  " + fs[h] + "  ");
+                    }
+//                    System.out.println();
                     for (int k = 0; k < rho.length; k++) {
                         dwleft[k] = -ts[k] * (g);
                         dwright[k] = -ts[k] * (1 - g);
@@ -154,7 +157,7 @@ class Node {
                         for (int h = 0; h < rho.length; h++)
                             dw[count] += (-ts[h] * (leftNode.F(X.get(j), h) - rightNode.F(X.get(j), h)) * g * (1 - g)) * x[count];
                     }
-
+                    dw0 = 0;
                     for (int h = 0; h < rho.length; h++)
                         dw0 += (-ts[h] * (leftNode.F(X.get(j), h) - rightNode.F(X.get(j), h)) * g * (1 - g));
                     for (int count = 0; count < ATTRIBUTE_COUNT; count++)
