@@ -24,7 +24,7 @@ public class BT implements Graphable {
     public int ATTRIBUTE_COUNT;
     public int CLASS_COUNT;
     public ArrayList<String> CLASS_NAMES = new ArrayList<>();
-    public double Lambda = 0.001;
+    public double Lambda = 0.001;//in general 0.01 is optimum. make it lower if you wish to increase the tree size and vice versa.
 
     ArrayList<Instance> X = new ArrayList<>();
     ArrayList<Instance> V = new ArrayList<>();
@@ -51,7 +51,7 @@ public class BT implements Graphable {
         readFile(V, VALIDATION_SET_FILENAME);
         readFile(T, TEST_SET_FILENAME);
 
-        is_k_Classify = X.size() > 1;
+        is_k_Classify = CLASS_NAMES.size() > 2;
         normalize(X, V, T);
         if (isClassify && is_k_Classify)
             CLASS_COUNT = CLASS_NAMES.size();
@@ -117,9 +117,9 @@ public class BT implements Graphable {
                 ROOT.update();
             }
             graph.addEpoch(e);
-            //System.out.println("Epoch " + e + " Size: " + size() + "\t" + effSize() + " \t" + getErrors());
-            outputToFile(e);
-            LEARNING_RATE *= 0.8;
+            System.out.println("Epoch " + e + " Size: " + size() + "\t" + effSize() + " \t" + getErrors());
+//            outputToFile(e);
+            LEARNING_RATE *= 0.99;
         }
     }
 
@@ -139,7 +139,7 @@ public class BT implements Graphable {
             return "Training: " + format.format(1 - ErrorOfTree(X)) + "\tValidation: " + format.format(1 - ErrorOfTree(V)) + "\tTest: " + format.format(1 - ErrorOfTree(T));
         else
 //            return "Training: " +format.format( ErrorOfTree(X)) + "\tValidation: " +format.format( ErrorOfTree(V) )+ "\tTest: " + format.format(ErrorOfTree(T));
-            return format.format(ErrorOfTree(X)) + "\t" + format.format(ErrorOfTree(V)) + "\t " + format.format(ErrorOfTree(T));
+            return format.format(ErrorOfTree(X)) + "\t" + format.format(ErrorOfTree(V)) + "\t " + format.format(ErrorOfTree(T)) + "\t Absolute: " + format.format(ErrorOfTree_absolutedifference(X)) + " " + format.format(ErrorOfTree_absolutedifference(T));
     }
 
 
@@ -148,8 +148,9 @@ public class BT implements Graphable {
         if (isClassify) {
             if (is_k_Classify)
                 return Util.argMax(y);
-            else
+            else {
                 return y[0];
+            }
         } else return y[0];
     }
 
@@ -177,13 +178,39 @@ public class BT implements Graphable {
         double error = 0;
         for (Instance instance : V) {
             double y = eval(instance);
+//            System.out.println(y + " " + eval(instance) + " " + eval(instance));
             if (isClassify) {
-                if (y != instance.classValue)
-                    error++;
+                if (is_k_Classify) {
+                    if (y != instance.classValue)
+                        error++;
+                    Random rr = new Random();
+//                    if(rr.nextDouble() < 0.001 || (y == instance.classValue && rr.nextDouble() < 0.01))
+//                        System.out.println(instance.classValue + " " + y);
+                }else{
+                    double r = instance.classValue;
+                    if (y > 0.5) {
+                        if (r != 1)
+                            error++;
+                    } else if (r != 0)
+                        error++;
+                }
             } else {
                 double r = instance.classValue;
                 error += (r - y) * (r - y);
             }
+        }
+        if(!isClassify)
+            return Math.sqrt(error / V.size());
+        return error / V.size();
+    }
+
+    public double ErrorOfTree_absolutedifference(ArrayList<Instance> V) {
+        double error = 0;
+        for (Instance instance : V) {
+            double y = eval(instance);
+//            System.out.println(y + " " + eval(instance) + " " + eval(instance));
+            double r = instance.classValue;
+            error += Math.abs((r - y));
         }
         return error / V.size();
     }

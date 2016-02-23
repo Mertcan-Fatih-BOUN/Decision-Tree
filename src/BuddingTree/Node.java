@@ -45,24 +45,37 @@ class Node {
         w0 = rand(-0.01, 0.01);
 
         if (tree.isClassify) {
-            if (tree.CLASS_NAMES.size() == 2)
+            if (tree.CLASS_NAMES.size() == 2) {
                 rho = new double[1];
-            else {
+                gradient_rho = new double[1];
+                sum_grad_rho = new double[1];
+                y = new double[1];
+                Arrays.fill(y, 0);
+                Arrays.fill(gradient_rho, 0);
+                Arrays.fill(sum_grad_rho, 0);
+            }else {
                 rho = new double[tree.CLASS_NAMES.size()];
                 gradient_rho = new double[tree.CLASS_NAMES.size()];
                 sum_grad_rho = new double[tree.CLASS_NAMES.size()];
+                y = new double[tree.CLASS_COUNT];
+                Arrays.fill(y, 0);
                 Arrays.fill(gradient_rho, 0);
                 Arrays.fill(sum_grad_rho, 0);
             }
         } else {
             rho = new double[1];
+            y = new double[1];
+            Arrays.fill(y, 0);
+            gradient_rho = new double[1];
+            sum_grad_rho = new double[1];
+            Arrays.fill(gradient_rho, 0);
+            Arrays.fill(sum_grad_rho, 0);
         }
 
         for (int i = 0; i < rho.length; i++)
             rho[i] = rand(-0.01, 0.01);
 
-        y = new double[tree.CLASS_COUNT];
-        Arrays.fill(y, 0);
+
 
         gama = 1;
         gradient_w = new double[tree.ATTRIBUTE_COUNT];
@@ -100,7 +113,8 @@ class Node {
             }
         }
         last_y_instance = instance;
-        return y;
+//        y = softmax(y);
+        return (y);
     }
 
     public double[] F_last(Instance instance) {

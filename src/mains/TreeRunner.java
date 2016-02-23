@@ -9,9 +9,9 @@ import SDT.SDT;
 
 @SuppressWarnings({"unused", "Duplicates"})
 public class TreeRunner {
-    public static double LEARNING_RATE = 1;
-    public static int EPOCH = 20;
-    public static int MAX_STEP = 10;
+    public static double LEARNING_RATE = 2;//2 0.001 is nice for msd
+    public static int EPOCH = 30;
+    public static int MAX_STEP = 1;
     public static boolean isMnist = false;
 
     static final String[] MULTICLASS = new String[]{"balance-scale.data", "cmc.data", "dermatology.data", "ecoli.data", "glass.data", "optdigits.data", "page-blocks.data", "pendigits.data", "yeast.data", "segment.data"};
@@ -30,10 +30,10 @@ public class TreeRunner {
 
 //        run_all_multi_classes(BT.class);
         //   run_all_multi_classes(SDT.class);
-        //run_single_multi_class_set(BT.class, "page-blocks.data");
-        //run_single_multi_class_set(BT.class, "pendigits.data");
-        //run_single_multi_class_set(BT.class, "yeast.data");
-        //run_single_multi_class_set(BT.class, "segment.data");
+//        run_single_multi_class_set(BT.class, "page-blocks.data");
+//        run_single_multi_class_set(BT.class, "pendigits.data");
+//        run_single_multi_class_set(BT.class, "yeast.data");
+//        run_single_multi_class_set(BT.class, "segment.data");
 //
 //        isMnist = true;
 //        run_classification_by_filename(BT.class,
@@ -44,20 +44,25 @@ public class TreeRunner {
 
 //        run_single_multi_class_set(BT.class,"ecoli.data");
         //run_all_binary_classes(SDT.class);
-//        run_all_regressions(SDT.class);
-        //run_single_binary_classification_set_fold(SDT.class, "breast", 1, 1);
-        //run_single_binary_classification_set_fold(BT.class, "breast", 1, 1);
+//        run_all_regressions(BT.class);
+//        run_single_binary_classification_set_fold(SDT.class, "breast", 1, 1);
+//        run_all_binary_classes(BT.class);
+//        run_single_binary_classification_set_fold(BT.class, "breast", 1, 1);
         //run_single_regression_set_fold("boston", 1, 1);
 
         //isMnist = true; // Make BT and SDT classes check this
-        //run_classification_by_filename("data_sdt\\mnist\\mnist.txt");
+//        run_classification_by_filename("data_sdt\\mnist\\mnist.txt");
 
         //run_classification_by_filename(BT.class, "iris.data.v2.txt");
 //        run_classification_by_filename(SDT.class, "data_set_nonlinear_4.data.txt");
         //run_classification_by_filename(SDT.class, "iris.data.txt");
 
+//        run_single_multi_class_set(BT.class,"million_song_rnd_sample_clsfirst");
+//        run_single_regression_by_filename(BT.class, "data_multi" + File.separator + "million_song_rnd_sample_clsfirst-train.txt", "data_multi" + File.separator + "million_song_rnd_sample_clsfirst-test.txt", "data_multi" + File.separator + "million_song_rnd_sample_clsfirst-test.txt");
 //        run_single_multi_class_set(BT.class,"millionsong_yearpred_clsfirst_small");
-        run_single_multi_class_set(BT.class,"millionsong_yearpred_clsfirst");
+//        run_single_multi_class_set(BT.class,"millionsong_yearpred_clsfirst");
+        run_single_regression_set(BT.class, "millionsong_yearpred_clsfirst");
+//        run_single_multi_class_set(BT.class,"mnist");
     }
 
 
@@ -89,6 +94,15 @@ public class TreeRunner {
 
     private static void run_single_multi_class_set(Class<?> cls, final String set_name) throws IOException {
         run_classification_by_filename(
+                cls,
+                "data_multi" + File.separator + set_name + "-train.txt",
+                "data_multi" + File.separator + set_name + "-validation.txt",
+                "data_multi" + File.separator + set_name + "-test.txt"
+        );
+    }
+
+    private static void run_single_regression_set(Class<?> cls, final String set_name) throws IOException {
+        run_single_regression_by_filename(
                 cls,
                 "data_multi" + File.separator + set_name + "-train.txt",
                 "data_multi" + File.separator + set_name + "-validation.txt",
@@ -149,7 +163,7 @@ public class TreeRunner {
     }
 
     private static void run_all_regressions(Class<?> cls) throws IOException {
-        for (String s : CLASSIFY) {
+        for (String s : REGRESS) {
             System.out.println("\n\nSet name: " + s);
 
             for (int i = 1; i <= 5; i++) {

@@ -8,6 +8,7 @@ import matlabcontrol.MatlabProxyFactory;
 import matlabcontrol.extensions.MatlabNumericArray;
 import matlabcontrol.extensions.MatlabTypeConverter;
 import misc.Util;
+import org.apache.commons.lang3.ArrayUtils;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -18,32 +19,36 @@ import java.util.*;
  */
 public class BackPropagation {
 
-    public static MultiLayerNetwork multi_perceptron;
-    public static Random r = new Random();
-    public static int input_number_train = 60000;
-    public static int input_number_test = 60000;
-    public static int hidden_neuron_number = 40;//28*28*2/3;
-    public static int input_dimension = 28*28;
-    public static int output_dimension = 10;
-    public static int number_of_epochs = 50;
-    public static boolean drawable = false;
-    public static boolean print_each_epoch = false;
-    public static ArrayList<Instance> train_instances = new ArrayList<>();
-    public static ArrayList<Instance> test_instances = new ArrayList<>();
-    public static double[][] inputs = new double[input_number_train][input_dimension + 1];
+    public MultiLayerNetwork multi_perceptron;
+    public Random r = new Random();
+    public int input_number_train = 60000;
+    public int input_number_test = 60000;
+    public int hidden_neuron_number = 40;//28*28*2/3;
+    public int input_dimension = 28*28;
+    public int output_dimension = 10;
+    public int number_of_epochs = 50;
+    public boolean drawable = false;
+    public boolean print_each_epoch = false;
+    public ArrayList<Instance> train_instances = new ArrayList<>();
+    public ArrayList<Instance> test_instances = new ArrayList<>();
+    public double[][] inputs = new double[input_number_train][input_dimension + 1];
 //    public static double[][] outputs_train = new double[input_number_train][output_dimension];
 //    public static double[][] output_hats_train = new double[input_number_train][output_dimension];
 //    public static double[][] outputs_test = new double[input_number_test][output_dimension];
 //    public static double[][] output_hats_test = new double[input_number_train][output_dimension];
 
-    public static double[] B2 = new double[output_dimension];
-    public static double[][] G2 = new double[output_dimension][hidden_neuron_number + 1];
-    public static double[] B1 = new double[hidden_neuron_number + 1];
-    public static double[][] G1 = new double[hidden_neuron_number][input_dimension + 1];
+    public double[] B2 = new double[output_dimension];
+    public double[][] G2 = new double[output_dimension][hidden_neuron_number + 1];
+    public double[] B1 = new double[hidden_neuron_number + 1];
+    public double[][] G1 = new double[hidden_neuron_number][input_dimension + 1];
 
     public static MatlabProxyFactory factory;
     public static MatlabProxy proxy;
     public static MatlabTypeConverter processor;
+
+    public BackPropagation(){
+
+    }
 
     public BackPropagation(String trainfile, String testfile, int hidden_number, int epochs, double learn_rate, boolean draw, boolean print_each) throws MatlabConnectionException, MatlabInvocationException {
 
@@ -54,13 +59,15 @@ public class BackPropagation {
 //            Util.readFile(train_instances, "data_set_nonlinear_1.data.txt");
 //            Util.readFile(train_instances, "data_sdt\\mnist\\mnist.txt");
 //            Util.readFile(test_instances, "data_sdt\\mnist\\mnist.txt");
-
-            readFile(train_instances, trainfile);
-            readFile(test_instances, testfile);
+            if(train_instances.size() == 0) {
+                readFile(train_instances, trainfile);
+                readFile(test_instances, testfile);
+            }
 //            Util.readFile(train_instances, "data_sdt\\mnist\\mnist_ordered_01.txt");
         } catch (IOException e) {
             e.printStackTrace();
         }
+        normalize(train_instances, test_instances);
         input_number_train = train_instances.size();
         input_number_test = test_instances.size();
         output_dimension = CLASS_NAMES.size();
@@ -71,12 +78,12 @@ public class BackPropagation {
         drawable = draw;
         print_each_epoch = print_each;
 
+        inputs = new double[0][1];
         inputs = new double[input_number_train][input_dimension + 1];
 //        outputs_train = new double[input_number_train][output_dimension];
 //        output_hats_train = new double[input_number_train][output_dimension];
 //        outputs_test = new double[input_number_test][output_dimension];
 //        output_hats_test = new double[input_number_train][output_dimension];
-
         B2 = new double[output_dimension];
         G2 = new double[output_dimension][hidden_neuron_number + 1];
         B1 = new double[hidden_neuron_number + 1];
@@ -113,6 +120,7 @@ public class BackPropagation {
 
     }
 
+
     public void runPerceptron() throws MatlabInvocationException, MatlabConnectionException {
         if(hidden_neuron_number == 0)
             multi_perceptron = new MultiLayerNetwork(input_dimension + 1,hidden_neuron_number,output_dimension);
@@ -141,7 +149,7 @@ public class BackPropagation {
         }
     }
 
-    private static void plotPoints() throws MatlabInvocationException {
+    private void plotPoints() throws MatlabInvocationException {
         if(input_dimension == 2){
             String points_x[] = new String[CLASS_COUNT];
             String points_y[] = new String[CLASS_COUNT];
@@ -200,7 +208,7 @@ public class BackPropagation {
         }
     }
 
-    private static double findClass(Instance i) {
+    private double findClass(Instance i) {
         double[] results = feed_forward(i.attributes);
 //        System.out.println(toString1dArray(i.attributes) + " " + toString1dArray(results));
         double max = 0;
@@ -214,7 +222,7 @@ public class BackPropagation {
         return maxIndex;
     }
 
-    private static void graph_all() throws MatlabInvocationException {
+    private void graph_all() throws MatlabInvocationException {
         if(input_dimension == 2) {
             proxy.eval("figure");
             proxy.eval("surf(xg,yg,zg)");
@@ -241,20 +249,45 @@ public class BackPropagation {
         }
     }
 
-    private static String test(ArrayList<Instance> T) {
+    public ArrayList<Instance> predicted_attribute(ArrayList<Instance> T, int index){
+        ArrayList<Instance> predicted = new ArrayList<>();
+        for(int i = 0; i < T.size(); i++) {
+            double[] atts = Arrays.copyOf(T.get(i).attributes, T.get(i).attributes.length + 1);
+            atts[atts.length - 1] = 1;
+            int prediction = Util.argMax(feed_forward(atts));
+            for(int j = atts.length - 1; j >= 0; j--){
+                if(j == index){
+                    atts[j] = Double.parseDouble(CLASS_NAMES.get(prediction));
+                }else if(j > index){
+                    atts[j] = atts[j - 1];
+                }
+//                System.out.print(atts[j] + " ");
+            }
+//            System.out.println(CLASS_NAMES.get(prediction) + " " + T.get(i).classNumber);
+            predicted.add(new Instance(T.get(i).classNumber, atts));
+        }
+        return predicted;
+    }
+    public String test(ArrayList<Instance> T) {
         int trues = 0;
         int falses = 0;
+        double diff_squared = 0;
+        double abs_diff = 0;
         for(int i = 0; i < T.size(); i++){
             double[] atts  = Arrays.copyOf(T.get(i).attributes, T.get(i).attributes.length + 1);
             atts[atts.length - 1] = 1;
             int prediction = Util.argMax(feed_forward(atts));
+            if(i % 25000 == 0)
+                System.out.println(CLASS_NAMES.get(prediction) + "  " + CLASS_NAMES.get(T.get(i).classNumber));
             if(prediction == T.get(i).classNumber)
                 trues++;
             else
                 falses++;
+            diff_squared += Math.pow(Double.parseDouble(CLASS_NAMES.get(prediction)) - Double.parseDouble(CLASS_NAMES.get(T.get(i).classNumber)), 2);
+            abs_diff += Math.abs(Double.parseDouble(CLASS_NAMES.get(prediction)) - Double.parseDouble(CLASS_NAMES.get(T.get(i).classNumber)));
         }
         //System.out.println("True: " + trues + " False: " + falses + " Percentage: " + ((double) trues / input_number_train));
-        return "True: " + trues + " False: " + falses + " Percentage: " + ((double) trues / T.size());
+        return "True: " + trues + " False: " + falses + " Percentage: " + ((double) trues / T.size() + " Diff Squared Average: " + Math.sqrt(diff_squared / T.size()) + " Absolute Diff Average: " + (abs_diff / T.size()));
     }
 
 //    private static String test() {
@@ -286,7 +319,7 @@ public class BackPropagation {
 //        return "True: " + trues + " False: " + falses + " Percentage: " + ((double) trues / input_number_train);
 //    }
 
-    private static void createArrays() {
+    private void createArrays() {
         for(int a = 0; a < train_instances.size(); a++) {
             Instance T = train_instances.get(a);
             for (int i = 0; i < input_dimension; i++) {
@@ -299,7 +332,7 @@ public class BackPropagation {
         }
     }
 
-    private static void train_backPropagate() {
+    private void train_backPropagate() {
 //        System.out.println("W1: " + toString2dArray(multi_perceptron.W1));
 //
 //        System.out.println("W2: " + toString2dArray(multi_perceptron.W2));
@@ -401,16 +434,16 @@ public class BackPropagation {
 
     }
 
-    private static void outputToFile(int e) throws IOException {
-        File file2 = new File("log" + File.separator + "mnist_multilayer_lesshidden2" + File.separator + "learning_rate_" + (int)(MultiLayerNetwork.learn_rate_main * 10000) + "_hidden_" + hidden_neuron_number + ".txt");
+    private void outputToFile(int e) throws IOException {
+        File file2 = new File("log" + File.separator + "mnist_multilayer_train__test_200" + File.separator + "learning_rate_" + (int)(MultiLayerNetwork.learn_rate_main * 10000) + "_hidden_" + hidden_neuron_number + ".txt");
         file2.getParentFile().mkdirs();
         BufferedWriter writer2 = new BufferedWriter(new FileWriter(file2, true));
-        writer2.write("Epoch " + e + " train: " + test(train_instances) + " test: " +  test(test_instances) + "\n");
+        writer2.write("Epoch: " + e + "\t\t\tTrain: " + test(train_instances) + "\t\tTest: " + test(test_instances) + "\n");
         writer2.flush();
         writer2.close();
     }
 
-    private static double[] feed_forward(double[] input) {
+    public double[] feed_forward(double[] input) {
         double[] output_hat = new double[output_dimension];
 
         for(int i = 0; i < multi_perceptron.input_layer; i++) {
@@ -471,10 +504,10 @@ public class BackPropagation {
         }
         return s;
     }
-    public static ArrayList<String> CLASS_NAMES = new ArrayList<>();
-    public static int CLASS_COUNT = 0;
+    public ArrayList<String> CLASS_NAMES = new ArrayList<>();
+    public int CLASS_COUNT = 0;
 
-    private void readFile(ArrayList<Instance> I, String filename) throws IOException {
+    public void readFile(ArrayList<Instance> I, String filename) throws IOException {
         String line;
 
         InputStream fis = new FileInputStream(filename);
@@ -501,16 +534,17 @@ public class BackPropagation {
 
             double[] attributes = new double[input_dimension];
             String className = "";
-            if(!filename.contains("clsfirst")) {
+            if(filename.contains("clsfirst")) {
+                for (int i = 0; i < input_dimension; i++) {
+                    attributes[i] = Double.parseDouble(s[i + 1]);
+//                    System.out.print(attributes[i] + "  ");
+                }
+                className = s[0].substring(0,4);
+            }else{
                 for (int i = 0; i < input_dimension; i++) {
                     attributes[i] = Double.parseDouble(s[i]);
                 }
                 className = s[input_dimension];
-            }else{
-                for (int i = 0; i < input_dimension; i++) {
-                    attributes[i] = Double.parseDouble(s[i + 1]);
-                }
-                className = s[0];
             }
             double classNumber;
             if (CLASS_NAMES.contains(className)) {
@@ -525,6 +559,84 @@ public class BackPropagation {
 //        for(int i = 0; i < CLASS_COUNT; i++)
 //            System.out.print(CLASS_NAMES.get(i) + "  ");
 //        System.out.println(CLASS_COUNT);
+    }
+
+    public void readTestFile(ArrayList<Instance> I, String filename, BackPropagation b) throws IOException {
+        String line;
+
+        InputStream fis = new FileInputStream(filename);
+        InputStreamReader isr = new InputStreamReader(fis, Charset.forName("UTF-8"));
+        BufferedReader br = new BufferedReader(isr);
+
+        line = br.readLine();
+
+        br.close();
+        String[] s;
+        String splitter;
+        if (!line.contains(","))
+            splitter = "\\s+";
+        else
+            splitter = ",";
+        s = line.split(splitter);
+
+//        System.out.println(input_dimension + " " + line);
+        Scanner scanner = new Scanner(new File(filename));
+        while (scanner.hasNextLine()) {
+            line = scanner.nextLine();
+            s = line.split(splitter);
+
+            double[] attributes = new double[input_dimension];
+            String className = "";
+            if(filename.contains("clsfirst")) {
+                for (int i = 0; i < input_dimension; i++) {
+                    attributes[i] = Double.parseDouble(s[i + 1]);
+//                    System.out.print(attributes[i] + "  ");
+                }
+                className = s[0];
+            }else{
+                for (int i = 0; i < input_dimension; i++) {
+                    attributes[i] = Double.parseDouble(s[i]);
+                }
+                className = s[input_dimension];
+            }
+            double classNumber;
+            if (b.CLASS_NAMES.contains(className)) {
+                classNumber = b.CLASS_NAMES.indexOf(className);
+            } else {
+                b.CLASS_NAMES.add(className);
+                classNumber = b.CLASS_NAMES.indexOf(className);
+            }
+            I.add(new Instance((int)classNumber, attributes));
+            }
+    }
+
+    public void normalize(ArrayList<Instance> x, ArrayList<Instance> t) {
+        for (int i = 0; i < input_dimension; i++) {
+            double mean = 0;
+            for (Instance ins : x) {
+                mean += ins.attributes[i];
+            }
+            mean /= x.size();
+
+            double stdev = 0;
+            for (Instance ins : x) {
+                stdev += (ins.attributes[i] - mean) * (ins.attributes[i] - mean);
+            }
+            stdev /= (x.size() - 1);
+            stdev = Math.sqrt(stdev);
+
+            for (Instance ins : x) {
+                ins.attributes[i] -= mean;
+                if (stdev != 0)
+                    ins.attributes[i] /= stdev;
+            }
+            for (Instance ins : t) {
+                ins.attributes[i] -= mean;
+                if (stdev != 0)
+                    ins.attributes[i] /= stdev;
+            }
+
+        }
     }
 
 }
