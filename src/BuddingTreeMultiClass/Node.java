@@ -1,12 +1,10 @@
 package BuddingTreeMultiClass;
 
-import misc.Instance;
-
 import java.util.Arrays;
-import java.util.HashMap;
 
 import static misc.Util.*;
 
+@SuppressWarnings("Duplicates")
 class Node {
     Node parent = null;
     Node leftNode = null;
@@ -31,11 +29,11 @@ class Node {
     double gradient_w0 = 0;
     double gradient_gama = 0;
 
-    BT tree;
+    BTM tree;
     Instance last_y_instance = null;
     Instance last_g_instance = null;
 
-    Node(BT tree) {
+    Node(BTM tree) {
         this.tree = tree;
 
         w = new double[tree.ATTRIBUTE_COUNT];
@@ -44,38 +42,17 @@ class Node {
 
         w0 = rand(-0.01, 0.01);
 
-        if (tree.isClassify) {
-            if (tree.CLASS_NAMES.size() == 2) {
-                rho = new double[1];
-                gradient_rho = new double[1];
-                sum_grad_rho = new double[1];
-                y = new double[1];
-                Arrays.fill(y, 0);
-                Arrays.fill(gradient_rho, 0);
-                Arrays.fill(sum_grad_rho, 0);
-            }else {
-                rho = new double[tree.CLASS_NAMES.size()];
-                gradient_rho = new double[tree.CLASS_NAMES.size()];
-                sum_grad_rho = new double[tree.CLASS_NAMES.size()];
-                y = new double[tree.CLASS_COUNT];
-                Arrays.fill(y, 0);
-                Arrays.fill(gradient_rho, 0);
-                Arrays.fill(sum_grad_rho, 0);
-            }
-        } else {
-            rho = new double[1];
-            y = new double[1];
-            Arrays.fill(y, 0);
-            gradient_rho = new double[1];
-            sum_grad_rho = new double[1];
-            Arrays.fill(gradient_rho, 0);
-            Arrays.fill(sum_grad_rho, 0);
-        }
+
+        rho = new double[tree.CLASS_COUNT];
+        gradient_rho = new double[tree.CLASS_COUNT];
+        sum_grad_rho = new double[tree.CLASS_COUNT];
+        y = new double[tree.CLASS_COUNT];
+        Arrays.fill(y, 0);
+        Arrays.fill(gradient_rho, 0);
+        Arrays.fill(sum_grad_rho, 0);
 
         for (int i = 0; i < rho.length; i++)
             rho[i] = rand(-0.01, 0.01);
-
-
 
         gama = 1;
         gradient_w = new double[tree.ATTRIBUTE_COUNT];
@@ -89,7 +66,7 @@ class Node {
         if (last_g_instance == instance)
             return g;
 
-        g = sigmoid(dotProduct(w, instance.attributes) + w0);
+        g = sigmoid(dotProduct(w, instance.x) + w0);
         last_g_instance = instance;
         return g;
     }
@@ -98,7 +75,6 @@ class Node {
         if (last_y_instance == instance) {
             return y;
         }
-
 
         if (this.leftNode == null) {
             for (int i = 0; i < y.length; i++) {
@@ -112,40 +88,23 @@ class Node {
                 y[i] = (1 - gama) * ((mg * _yL[i]) + ((1 - mg) * _yR[i])) + gama * rho[i];
             }
         }
-        last_y_instance = instance;
-//        y = softmax(y);
-        return (y);
-    }
 
-    public double[] F_last(Instance instance) {
-        double[] r = this.F(instance);
-        if (tree.isClassify) {
-            if (tree.is_k_Classify) {
-                r = softmax(r);
-            } else
-                r[0] = sigmoid(r[0]);
+        if (parent == null) {
+            for (int i =0;  i < y.length; i++)
+                y[i] = sigmoid(y[i]);
         }
-        return r;
+
+        last_y_instance = instance;
+        return (y);
     }
 
     public double[] delta(Instance instance) {
         double[] delta = new double[tree.CLASS_COUNT];
         if (this.parent == null) {
-            double[] _y = F_last(instance);
-            double[] actual_y = new double[y.length];
-            Arrays.fill(actual_y, 0);
-            if (tree.isClassify) {
-                if (tree.is_k_Classify) {
-                    actual_y[(int) instance.classValue] = 1;
-                } else
-                    actual_y[0] = instance.classValue;
-            } else
-                actual_y[0] = instance.classValue;
-
+            double[] y = F(instance);
             for (int i = 0; i < delta.length; i++) {
-                delta[i] = _y[i] - actual_y[i];
+                delta[i] = y[i] - instance.r[i];
             }
-
         } else {
             double[] p_delta = this.parent.delta(instance);
             if (this == this.parent.leftNode) {
@@ -160,7 +119,6 @@ class Node {
         }
         return delta;
     }
-
 
     public void backPropagate(Instance instance) {
         calculateGradient(instance);
@@ -197,7 +155,6 @@ class Node {
         double[] left_y;
         double[] right_y;
         double g = this.g(instance);
-//        System.out.println(g);
 
         if (leftNode != null) {
             left_y = leftNode.y;
@@ -217,7 +174,7 @@ class Node {
         Arrays.fill(gradient_w, 0);
         for (int i = 0; i < tree.ATTRIBUTE_COUNT; i++) {
             for (int j = 0; j < tree.CLASS_COUNT; j++)
-                gradient_w[i] += delta[j] * (1 - gama) * g * (1 - g) * (left_y[j] - right_y[j]) * instance.attributes[i];
+                gradient_w[i] += delta[j] * (1 - gama) * g * (1 - g) * (left_y[j] - right_y[j]) * instance.x[i];
             //gradient_w[i] /= tree.CLASS_COUNT;
             // gradient_w[i] = delta[(int) instance.classValue] * (1 - gama) * g * (1 - g) * (left_y[(int) instance.classValue] - right_y[(int) instance.classValue]) * instance.attributes[i];
         }
@@ -235,24 +192,17 @@ class Node {
 
         gradient_gama = 0;
         for (int i = 0; i < tree.CLASS_COUNT; i++)
-            gradient_gama += delta[i] * ((-g * left_y[i]) - (1 - g) * right_y[i] + rho[i]) - tree.Lambda;
+            gradient_gama += delta[i] * ((-g * left_y[i]) - (1 - g) * right_y[i] + rho[i]) - tree.LAMBDA;
         // gradient_gama /= tree.CLASS_COUNT;
-        // gradient_gama = delta[(int) instance.classValue] * ((-g * left_y[(int) instance.classValue]) - (1 - g) * right_y[(int) instance.classValue] + rho[(int) instance.classValue]) - tree.Lambda;
+        // gradient_gama = delta[(int) instance.classValue] * ((-g * left_y[(int) instance.classValue]) - (1 - g) * right_y[(int) instance.classValue] + rho[(int) instance.classValue]) - tree.LAMBDA;
 
     }
 
     public int size() {
         if (leftNode == null)
-            return 1;
+            return 0;
         else
             return 1 + leftNode.size() + rightNode.size();
-    }
-
-    int myEffSize() {
-        if (leftNode == null || gama == 1)
-            return 1;
-        else
-            return 1 + leftNode.myEffSize() + rightNode.myEffSize();
     }
 
     void learnParameters() {
