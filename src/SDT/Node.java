@@ -250,6 +250,7 @@ class Node {
         if (bestErr + 1e-3 < err) {
 //            SDT.split_q.add(leftNode);
 //            SDT.split_q.add(rightNode);
+            System.out.println("Size: " + tree.size() + "\t" + tree.getErrors());
             leftNode.splitNode(X, V, tree);
             rightNode.splitNode(X, V, tree);
         } else {

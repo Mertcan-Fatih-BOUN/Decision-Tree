@@ -9,7 +9,7 @@ import SDT.SDT;
 
 @SuppressWarnings({"unused", "Duplicates"})
 public class TreeRunner {
-    public static double LEARNING_RATE = 0.3;//2 0.001 is nice for msd
+    public static double LEARNING_RATE = 5;//2 0.001 is nice for msd
     public static int EPOCH = 10;
     public static int MAX_STEP = 5;
     public static boolean isMnist = false;
@@ -29,7 +29,7 @@ public class TreeRunner {
         //run_single_multi_class_set(SDT.class, "balance-scale.data");
 
 //        run_all_multi_classes(BT.class);
-        run_all_multi_classes(SDT.class);
+//        run_all_multi_classes(SDT.class);
         //   run_all_multi_classes(SDT.class);
 //        run_single_multi_class_set(BT.class, "page-blocks.data");
 //        run_single_multi_class_set(BT.class, "pendigits.data");
@@ -60,10 +60,13 @@ public class TreeRunner {
 
 //        run_single_multi_class_set(BT.class,"million_song_rnd_sample_clsfirst");
 //        run_single_regression_by_filename(BT.class, "data_multi" + File.separator + "million_song_rnd_sample_clsfirst-train.txt", "data_multi" + File.separator + "million_song_rnd_sample_clsfirst-test.txt", "data_multi" + File.separator + "million_song_rnd_sample_clsfirst-test.txt");
-//        run_single_multi_class_set(BT.class,"millionsong_yearpred_clsfirst_small");
+//        run_single_multi_class_set(BT.class,"flickr_r1_labels");
+//        run_single_multi_class_set(BT.class,"complete_mirflickr");
 //        run_single_multi_class_set(BT.class,"millionsong_yearpred_clsfirst");
 //        run_single_regression_set(BT.class, "millionsong_yearpred_clsfirst");
+        run_single_regression_set(SDT.class, "millionsong_yearpred_clsfirst");
 //        run_single_multi_class_set(BT.class,"mnist");
+//        run_single_multi_class_set(SDT.class,"mnist");
     }
 
 

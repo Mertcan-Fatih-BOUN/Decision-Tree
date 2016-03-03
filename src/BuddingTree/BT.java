@@ -199,8 +199,8 @@ public class BT implements Graphable {
                 error += (r - y) * (r - y);
             }
         }
-        if(!isClassify)
-            return Math.sqrt(error / V.size());
+//        if(!isClassify)
+//            return Math.sqrt(error / V.size());
         return error / V.size();
     }
 
@@ -238,6 +238,8 @@ public class BT implements Graphable {
         s = line.split(splitter);
 
         ATTRIBUTE_COUNT = s.length - 1;
+        if(filename.contains("complete_mirflickr"))
+            ATTRIBUTE_COUNT = 1715;
 //        System.out.println(ATTRIBUTE_COUNT + " " + line);
         Scanner scanner = new Scanner(new File(filename));
         while (scanner.hasNextLine()) {
@@ -250,7 +252,10 @@ public class BT implements Graphable {
                 for (int i = 0; i < ATTRIBUTE_COUNT; i++) {
                     attributes[i] = Double.parseDouble(s[i]);
                 }
-                className = s[ATTRIBUTE_COUNT];
+                if(s.length <= ATTRIBUTE_COUNT)
+                    className = "not_given";
+                else
+                    className = s[ATTRIBUTE_COUNT];
             }else{
                 for (int i = 0; i < ATTRIBUTE_COUNT; i++) {
                     attributes[i] = Double.parseDouble(s[i + 1]);

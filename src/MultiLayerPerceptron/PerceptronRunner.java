@@ -42,8 +42,8 @@ public class PerceptronRunner {
 //        BackPropagation b1 = new BackPropagation("iris.data_third_as_class.txt", "iris.data_third_as_class.txt", 5, 100, 0.5, false, false);
 //        b1.runPerceptron();
 //
-//        BackPropagation b2 = new BackPropagation("iris.data.txt", "iris.data.txt", 5, 100, 0.5, false, false);
-//        b2.runPerceptron();
+//        BackPropagation b = new BackPropagation("iris.data.txt", "iris.data.txt", 5, 100, 0.5, false, false);
+//        b.runPerceptron();
 //
 //        BackPropagation b3 = new BackPropagation("iris.data_no_third.txt","iris.data_no_third.txt", 5, 10, 0.5, false, false);
 //        b3.runPerceptron();
@@ -56,10 +56,11 @@ public class PerceptronRunner {
 //        }
 //        System.out.println(b2.test(b1.predicted_attribute(no_third, 2)));
 
-
-
-//        BackPropagation b = new BackPropagation("data_multi" + File.separator + "million_song_rnd_sample_clsfirst-train.txt", "data_multi" + File.separator + "million_song_rnd_sample_clsfirst-test.txt", 100, 100, 0.05, false, true);
-        BackPropagation b = new BackPropagation("data_multi" + File.separator + "millionsong_yearpred_clsfirst-train.txt", "data_multi" + File.separator + "millionsong_yearpred_clsfirst-test.txt", 200, 100, 0.05, false, true);
+        BackPropagation b = new BackPropagation("get_flickr", "data_multi" + File.separator + "complete_mirflickr-test.txt", 100, 50, 0.05, false, false);
+//        BackPropagation b = new BackPropagation("data_multi" + File.separator + "complete_mirflickr-train.txt", "data_multi" + File.separator + "complete_mirflickr-test.txt", 80, 100, 0.05, false, true);
+//        BackPropagation b = new BackPropagation("data_multi" + File.separator + "mnist-train.txt", "data_multi" + File.separator + "mnist-test.txt", 40, 100, 0.05, false, true);
+        b.test_mode = 0;
+//        BackPropagation b = new BackPropagation("data_multi" + File.separator + "millionsong_yearpred_clsfirst-train.txt", "data_multi" + File.separator + "millionsong_yearpred_clsfirst-test.txt", 200, 100, 0.05, false, true);
         b.runPerceptron();
     }
 }

@@ -121,7 +121,8 @@ public class SDT implements Graphable {
         if (isClassify)
             return "Training: " + format.format(1 - ErrorOfTree(X)) + "\tValidation: " + format.format(1 - ErrorOfTree(V)) + "\tTest: " + format.format(1 - ErrorOfTree(T));
         else
-            return "Training: " + format.format(ErrorOfTree(X)) + "\tValidation: " + format.format(ErrorOfTree(V)) + "\tTest: " + format.format(ErrorOfTree(T));
+//            return "Training: " +format.format( ErrorOfTree(X)) + "\tValidation: " +format.format( ErrorOfTree(V) )+ "\tTest: " + format.format(ErrorOfTree(T));
+            return format.format(ErrorOfTree(X)) + "\t" + format.format(ErrorOfTree(V)) + "\t " + format.format(ErrorOfTree(T)) + "\t Absolute: " + format.format(ErrorOfTree_absolutedifference(X)) + " " + format.format(ErrorOfTree_absolutedifference(T));
     }
 
 
@@ -161,8 +162,21 @@ public class SDT implements Graphable {
                 error += (r - y) * (r - y);
             }
         }
+                if(!isClassify)
+            return Math.sqrt(error / V.size());
         return error / V.size();
 
+    }
+
+    public double ErrorOfTree_absolutedifference(ArrayList<Instance> V) {
+        double error = 0;
+        for (Instance instance : V) {
+            double y = eval(instance);
+//            System.out.println(y + " " + eval(instance) + " " + eval(instance));
+            double r = instance.classValue;
+            error += Math.abs((r - y));
+        }
+        return error / V.size();
     }
 
     public String toString() {

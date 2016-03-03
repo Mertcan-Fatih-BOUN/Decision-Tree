@@ -1,5 +1,6 @@
 package MultiLayerPerceptron;
 
+import Flickr.ReadFlickr;
 import Utils.Instance;
 import matlabcontrol.MatlabConnectionException;
 import matlabcontrol.MatlabInvocationException;
@@ -12,6 +13,7 @@ import org.apache.commons.lang3.ArrayUtils;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.text.DecimalFormat;
 import java.util.*;
 
 /**
@@ -32,6 +34,7 @@ public class BackPropagation {
     public ArrayList<Instance> train_instances = new ArrayList<>();
     public ArrayList<Instance> test_instances = new ArrayList<>();
     public double[][] inputs = new double[input_number_train][input_dimension + 1];
+    public DecimalFormat format = new DecimalFormat("#.###");
 //    public static double[][] outputs_train = new double[input_number_train][output_dimension];
 //    public static double[][] output_hats_train = new double[input_number_train][output_dimension];
 //    public static double[][] outputs_test = new double[input_number_test][output_dimension];
@@ -41,6 +44,8 @@ public class BackPropagation {
     public double[][] G2 = new double[output_dimension][hidden_neuron_number + 1];
     public double[] B1 = new double[hidden_neuron_number + 1];
     public double[][] G1 = new double[hidden_neuron_number][input_dimension + 1];
+
+    public int test_mode = 1;
 
     public static MatlabProxyFactory factory;
     public static MatlabProxy proxy;
@@ -52,7 +57,7 @@ public class BackPropagation {
 
     public BackPropagation(String trainfile, String testfile, int hidden_number, int epochs, double learn_rate, boolean draw, boolean print_each) throws MatlabConnectionException, MatlabInvocationException {
 
-
+        if(!trainfile.contains("get_flickr")){
         try {
 //            Util.readFile(train_instances, "iris.data.txt");
 //            Util.readFile(train_instances, "iris.data.v2.txt");
@@ -66,6 +71,20 @@ public class BackPropagation {
 //            Util.readFile(train_instances, "data_sdt\\mnist\\mnist_ordered_01.txt");
         } catch (IOException e) {
             e.printStackTrace();
+        }}
+        else{
+            ReadFlickr flickr = new ReadFlickr();
+            ArrayList<Instance> instances = flickr.get_flickr_instances_util();
+            for(int i = 0; i < instances.size(); i++){
+                if(i % 5 < 3){
+                    train_instances.add(instances.get(i));
+                }else{
+                    test_instances.add(instances.get(i));
+                }
+            }
+            CLASS_NAMES= flickr.get_class_names_flickr();
+            CLASS_COUNT = CLASS_NAMES.size();
+            input_dimension = train_instances.get(0).attributes.length;
         }
         normalize(train_instances, test_instances);
         input_number_train = train_instances.size();
@@ -249,26 +268,48 @@ public class BackPropagation {
         }
     }
 
-    public ArrayList<Instance> predicted_attribute(ArrayList<Instance> T, int index){
-        ArrayList<Instance> predicted = new ArrayList<>();
-        for(int i = 0; i < T.size(); i++) {
+    public String test_each_class(ArrayList<Instance> T) {
+        String result = "\n";
+        double[][] fed_forward = new double[T.size()][output_dimension];
+        for (int i = 0; i < T.size(); i++) {
             double[] atts = Arrays.copyOf(T.get(i).attributes, T.get(i).attributes.length + 1);
             atts[atts.length - 1] = 1;
-            int prediction = Util.argMax(feed_forward(atts));
-            for(int j = atts.length - 1; j >= 0; j--){
-                if(j == index){
-                    atts[j] = Double.parseDouble(CLASS_NAMES.get(prediction));
-                }else if(j > index){
-                    atts[j] = atts[j - 1];
-                }
-//                System.out.print(atts[j] + " ");
-            }
-//            System.out.println(CLASS_NAMES.get(prediction) + " " + T.get(i).classNumber);
-            predicted.add(new Instance(T.get(i).classNumber, atts));
+            fed_forward[i] = feed_forward(atts);
         }
-        return predicted;
+        for(int j = 0; j < CLASS_COUNT; j++) {
+            int trues = 0;
+            int falses = 0;
+            int true_positives = 0;
+            int true_negatives = 0;
+            int false_positives = 0;
+            int false_negatives = 0;
+            for (int i = 0; i < T.size(); i++) {
+                double prediction = fed_forward[i][j];
+//            if(i % 25000 == 0)
+//                System.out.println(CLASS_NAMES.get(prediction) + "  " + CLASS_NAMES.get(T.get(i).classNumber));
+                if (prediction > 0.5){
+                    if( T.get(i).classNumbers.contains(j))
+                        true_positives++;
+                    else
+                        false_positives++;
+                } else{
+                    if( !T.get(i).classNumbers.contains(j))
+                        true_negatives++;
+                    else
+                        false_negatives++;
+                }
+            }
+            trues = true_negatives + true_positives;
+            falses = false_negatives + false_positives;
+            //System.out.println("True: " + trues + " False: " + falses + " Percentage: " + ((double) trues / input_number_train));
+            result += CLASS_NAMES.get(j) + "\tTrue: " + trues + " (true positives = " + true_positives + "  true negatives = " + true_negatives + ")\t" + "False: " + falses + " (false negatives = " + false_negatives + "  false positives = " + false_positives + ")\t" + " Percentage: " + format.format((double) true_positives / (true_positives + false_negatives)) + " " + format.format((double) true_negatives / (true_negatives + false_positives)) + " " + format.format((double) trues / T.size()) + "\n";
+        }
+        return result;
     }
+
     public String test(ArrayList<Instance> T) {
+        if(test_mode == 0)
+            return test_each_class(T);
         int trues = 0;
         int falses = 0;
         double diff_squared = 0;
@@ -277,8 +318,8 @@ public class BackPropagation {
             double[] atts  = Arrays.copyOf(T.get(i).attributes, T.get(i).attributes.length + 1);
             atts[atts.length - 1] = 1;
             int prediction = Util.argMax(feed_forward(atts));
-            if(i % 25000 == 0)
-                System.out.println(CLASS_NAMES.get(prediction) + "  " + CLASS_NAMES.get(T.get(i).classNumber));
+//            if(i % 25000 == 0)
+//                System.out.println(CLASS_NAMES.get(prediction) + "  " + CLASS_NAMES.get(T.get(i).classNumber));
             if(prediction == T.get(i).classNumber)
                 trues++;
             else
@@ -287,7 +328,7 @@ public class BackPropagation {
             abs_diff += Math.abs(Double.parseDouble(CLASS_NAMES.get(prediction)) - Double.parseDouble(CLASS_NAMES.get(T.get(i).classNumber)));
         }
         //System.out.println("True: " + trues + " False: " + falses + " Percentage: " + ((double) trues / input_number_train));
-        return "True: " + trues + " False: " + falses + " Percentage: " + ((double) trues / T.size() + " Diff Squared Average: " + Math.sqrt(diff_squared / T.size()) + " Absolute Diff Average: " + (abs_diff / T.size()));
+        return "True: " + trues + " False: " + falses + " Percentage: " + format.format(((double) trues / T.size() + " Diff Squared Average: " + Math.sqrt(diff_squared / T.size()) + " Absolute Diff Average: " + (abs_diff / T.size())));
     }
 
 //    private static String test() {
@@ -343,6 +384,9 @@ public class BackPropagation {
         ArrayList<Integer> shuffler = new ArrayList<>();
         for(int i = 0; i < input_number_train; i++) shuffler.add(i);
 
+        boolean class_numbers = false;
+        if(train_instances.get(0).classNumbers != null)
+            class_numbers = true;
         for(int trial = 0; trial < number_of_epochs; trial++) {
             Collections.shuffle(shuffler);
             for (int i = 0; i < input_number_train; i++) {
@@ -350,7 +394,13 @@ public class BackPropagation {
                 double[] output_hat = feed_forward(inputs[theInput]);
                 double[] output = new double[CLASS_COUNT];
                 Arrays.fill(output, 0);
-                output[train_instances.get(theInput).classNumber] = 1;
+
+                if(class_numbers) {
+                    for (int j = 0; j < train_instances.get(theInput).classNumbers.size(); j++)
+                        output[train_instances.get(theInput).classNumbers.get(j)] = 1;
+                }else{
+                    output[train_instances.get(theInput).classNumber] = 1;
+                }
 //                System.out.println(toString1dArray(inputs[theInput]) + " " + toString1dArray(output_hat) + " " + toString1dArray(outputs_train[theInput]));
 //                output_hats_train[theInput] = output_hat;
                 if(multi_perceptron.hidden_layer != 0) {
@@ -525,89 +575,66 @@ public class BackPropagation {
             splitter = ",";
         s = line.split(splitter);
 
-        input_dimension = s.length - 1;
+        if(!line.contains("INPUT_DIMENSION"))
+            input_dimension = s.length - 1;
+        else
+            input_dimension = Integer.parseInt(s[1]);
+
 //        System.out.println(input_dimension + " " + line);
         Scanner scanner = new Scanner(new File(filename));
         while (scanner.hasNextLine()) {
             line = scanner.nextLine();
             s = line.split(splitter);
-
+            if(line.contains("INPUT_DIMENSION"))
+                continue;
             double[] attributes = new double[input_dimension];
-            String className = "";
+            String[] className;
+            if(s.length > input_dimension)
+                className = new String[s.length - input_dimension];
+            else
+                className = new String[]{"no_class_given"};
             if(filename.contains("clsfirst")) {
                 for (int i = 0; i < input_dimension; i++) {
                     attributes[i] = Double.parseDouble(s[i + 1]);
 //                    System.out.print(attributes[i] + "  ");
                 }
-                className = s[0].substring(0,4);
+                className[0] = s[0].substring(0,4);
             }else{
                 for (int i = 0; i < input_dimension; i++) {
                     attributes[i] = Double.parseDouble(s[i]);
                 }
-                className = s[input_dimension];
+                for(int i = input_dimension; i < s.length; i++)
+                    className[i - input_dimension] = s[i];
             }
-            double classNumber;
-            if (CLASS_NAMES.contains(className)) {
-                classNumber = CLASS_NAMES.indexOf(className);
-            } else {
-                CLASS_NAMES.add(className);
-                classNumber = CLASS_NAMES.indexOf(className);
+            double classNumber = -1;
+            ArrayList<Integer> classNumbers = new ArrayList<>();
+            for(int i = input_dimension; i < s.length; i++) {
+                if (CLASS_NAMES.contains(className[i - input_dimension])) {
+                    classNumber = CLASS_NAMES.indexOf(className[i - input_dimension]);
+                    classNumbers.add(CLASS_NAMES.indexOf(className[i - input_dimension]));
+                } else {
+                    CLASS_NAMES.add(className[i - input_dimension]);
+                    classNumber = CLASS_NAMES.indexOf(className[i - input_dimension]);
+                    classNumbers.add(CLASS_NAMES.indexOf(className[i - input_dimension]));
+                }
             }
-            I.add(new Instance((int)classNumber, attributes));
+            if(s.length == input_dimension){
+                if (CLASS_NAMES.contains(className[0])) {
+                    classNumber = CLASS_NAMES.indexOf(className[0]);
+                    classNumbers.add(CLASS_NAMES.indexOf(className[0]));
+                } else {
+                    CLASS_NAMES.add(className[0]);
+                    classNumber = CLASS_NAMES.indexOf(className[0]);
+                    classNumbers.add(CLASS_NAMES.indexOf(className[0]));
+                }
+            }
+
+            I.add(new Instance((int)classNumber, classNumbers, attributes));
         }
         CLASS_COUNT = CLASS_NAMES.size();
 //        for(int i = 0; i < CLASS_COUNT; i++)
 //            System.out.print(CLASS_NAMES.get(i) + "  ");
 //        System.out.println(CLASS_COUNT);
-    }
-
-    public void readTestFile(ArrayList<Instance> I, String filename, BackPropagation b) throws IOException {
-        String line;
-
-        InputStream fis = new FileInputStream(filename);
-        InputStreamReader isr = new InputStreamReader(fis, Charset.forName("UTF-8"));
-        BufferedReader br = new BufferedReader(isr);
-
-        line = br.readLine();
-
-        br.close();
-        String[] s;
-        String splitter;
-        if (!line.contains(","))
-            splitter = "\\s+";
-        else
-            splitter = ",";
-        s = line.split(splitter);
-
-//        System.out.println(input_dimension + " " + line);
-        Scanner scanner = new Scanner(new File(filename));
-        while (scanner.hasNextLine()) {
-            line = scanner.nextLine();
-            s = line.split(splitter);
-
-            double[] attributes = new double[input_dimension];
-            String className = "";
-            if(filename.contains("clsfirst")) {
-                for (int i = 0; i < input_dimension; i++) {
-                    attributes[i] = Double.parseDouble(s[i + 1]);
-//                    System.out.print(attributes[i] + "  ");
-                }
-                className = s[0];
-            }else{
-                for (int i = 0; i < input_dimension; i++) {
-                    attributes[i] = Double.parseDouble(s[i]);
-                }
-                className = s[input_dimension];
-            }
-            double classNumber;
-            if (b.CLASS_NAMES.contains(className)) {
-                classNumber = b.CLASS_NAMES.indexOf(className);
-            } else {
-                b.CLASS_NAMES.add(className);
-                classNumber = b.CLASS_NAMES.indexOf(className);
-            }
-            I.add(new Instance((int)classNumber, attributes));
-            }
     }
 
     public void normalize(ArrayList<Instance> x, ArrayList<Instance> t) {

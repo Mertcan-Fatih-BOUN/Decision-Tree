@@ -9,6 +9,7 @@ public class Instance {
     public int classNumber;
     public double[] attributes;
     public int classCode = -1;
+    public ArrayList<Integer> classNumbers;
 
     public String className;
 
@@ -19,6 +20,12 @@ public class Instance {
     public Instance(int classNumber, double[] attributes) {
         this.classNumber = classNumber;
         this.attributes = attributes;
+    }
+
+    public Instance(int classNumber, ArrayList<Integer> classNumbers, double[] attributes) {
+        this.classNumber = classNumber;
+        this.attributes = attributes;
+        this.classNumbers = new ArrayList<>(classNumbers);
     }
 
     public Instance(double[] attributes) {
