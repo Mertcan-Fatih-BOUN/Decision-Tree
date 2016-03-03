@@ -54,7 +54,7 @@ public class BTM {
                 ROOT.update();
             }
             LEARNING_RATE *= 0.99;
-            System.out.println("Epoch :" + e + "\t C-E Training :" + ErrorOfTree(X).getClassficationError() + "\t C-E Validation :" + ErrorOfTree(V).getClassficationError());
+            System.out.println("Epoch :" + e + "\t Missclass Training :" + ErrorOfTree(X).getClassficationError() + "\t Missclass Validation :" + ErrorOfTree(V).getClassficationError());
         }
     }
 
