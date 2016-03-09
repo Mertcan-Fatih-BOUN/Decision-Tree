@@ -34,6 +34,7 @@ public class SetReader {
             }
             edgehistogram.add(values);
         }
+        normalize(edgehistogram);
         return edgehistogram;
     }
 
@@ -55,6 +56,7 @@ public class SetReader {
             }
             homogeneoustexture.add(values);
         }
+        normalize(homogeneoustexture);
         return homogeneoustexture;
     }
 
@@ -101,6 +103,7 @@ public class SetReader {
             }
             tags.add(values);
         }
+
         return tags;
     }
 
@@ -110,7 +113,9 @@ public class SetReader {
 
         final String[] POTENTIAL_LABELS = new String[]{"sky", "clouds", "water", "sea", "river", "lake", "people", "portrait",
                 "male", "female", "baby", "night", "plant_life", "tree", "flower", "animals",
-                "dog", "bird", "structures", "sunset", "indoor", "transport", "car"};
+                "dog", "bird", "structures", "sunset", "indoor", "transport", "car",
+                "baby_r1", "bird_r1", "car_r1", "clouds_r1", "dog_r1", "female_r1", "flower_r1", "male_r1",
+                "night_r1", "people_r1", "portrait_r1", "river_r1", "sea_r1", "tree_r1"};
 
         annotations = new ArrayList<>();
         for (int i = 0; i < 25000; i++) {
@@ -183,5 +188,29 @@ public class SetReader {
         System.arraycopy(a, 0, c, 0, aLen);
         System.arraycopy(b, 0, c, aLen, bLen);
         return c;
+    }
+
+
+    private static void normalize(ArrayList<double[]> values) {
+        for (int i = 0; i < values.get(0).length; i++) {
+            double mean = 0;
+
+            for (double[] value : values) {
+                mean += value[i];
+            }
+            mean /= values.size();
+
+            double stdev = 0;
+            for (double[] value : values) {
+                stdev += (value[i] - mean) * (value[i] - mean);
+            }
+
+            for (double[] value : values) {
+                value[i] -= mean;
+                if (stdev != 0)
+                    value[i] /= stdev;
+            }
+
+        }
     }
 }

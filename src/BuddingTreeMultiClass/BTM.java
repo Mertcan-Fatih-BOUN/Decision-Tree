@@ -54,13 +54,13 @@ public class BTM {
                 ROOT.update();
             }
             LEARNING_RATE *= 0.99;
-            System.out.println("Epoch :" + e + "\t Missclass Training :" + ErrorOfTree(X).getClassficationError() + "\t Missclass Validation :" + ErrorOfTree(V).getClassficationError());
+            System.out.println("Epoch :" + e + "\nSize: " + size() + "\n" + getErrors() + "\n-----------------------\n");
         }
     }
 
 
     public String getErrors() {
-        return "Test \n" + ErrorOfTree(X).toString() + "\n\n Validation: \n" + ErrorOfTree(V).toString();
+        return "Training \n" + ErrorOfTree(X).toString() + "\n\nValidation: \n" + ErrorOfTree(V).toString();
     }
 
 
@@ -68,10 +68,10 @@ public class BTM {
         double[] y = ROOT.F(instance);
         int[] ret = new int[y.length];
         for (int i = 0; i < ret.length; i++) {
-            if (ret[i] > 0.5)
-                y[i] = 1;
+            if (y[i] > 0.5)
+                ret[i] = 1;
             else
-                y[i] = 0;
+                ret[i] = 0;
         }
         return ret;
     }
@@ -83,10 +83,13 @@ public class BTM {
             double[] y = ROOT.F(instance);
             int[] y_class = eval(instance);
             int[] r = instance.r;
+            boolean catched = false;
             for (int i = 0; i < y.length; i++) {
-                if (r[i] != 0 && y[i] != 0)
-                    error.addCrossEntropy(r[i] * Math.log(y[i]));
                 error.addClassification(y_class[i], r[i], i);
+                if (y_class[i] != r[i] && !catched) {
+                    catched = true;
+                    error.addClassicMissClass();
+                }
             }
         }
         return error;

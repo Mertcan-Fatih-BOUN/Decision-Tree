@@ -10,8 +10,9 @@ public class Error {
     private int[] true_negative;
     private int instance_count;
 
-    private int total_true = 0;
-    private int total_fale = 0;
+    double absolute_diff = 0;
+
+    double classic_misclass = 0;
 
     public Error(int class_count, int instance_count) {
         false_negative = new int[class_count];
@@ -26,38 +27,55 @@ public class Error {
     }
 
     public void addClassification(int y, int r, int c) {
+        absolute_diff += Math.abs(y - r);
         if (y == r) {
             if (y == 1)
                 true_positive[c]++;
             else
                 true_negative[c]++;
-            total_true++;
         } else {
             if (y == 1)
                 false_positive[c]++;
             else
                 false_negative[c]++;
-            total_fale++;
         }
     }
 
-    public void addCrossEntropy(double d) {
-        cross_entropy += d;
-    }
-
-    public double getCross_entropy() {
-        return cross_entropy / instance_count;
+    public double getMeanAbsDif() {
+        return absolute_diff / instance_count;
     }
 
     public double getClassficationError() {
-        return (total_fale * 1.0) / (total_fale + total_true);
+        return sum(true_positive) / (sum(true_positive) + sum(false_negative));
+    }
+
+    public double getTrueClass() {
+        return (sum(true_positive) + sum(true_negative)) / (sum(true_positive) + sum(true_negative) + sum(false_negative) + sum(false_positive));
+    }
+
+    public void addClassicMissClass() {
+        classic_misclass++;
+    }
+
+    public double getClassic_misclass() {
+        return 1 - (classic_misclass / instance_count);
     }
 
     public String toString() {
-        return "Cross entropy " + getCross_entropy() +
-                "\n" + "True positive :" + Arrays.toString(true_positive) + "\n" +
-                "\n" + "True negative :" + Arrays.toString(true_negative) + "\n" +
-                "\n" + "False positive :" + Arrays.toString(false_positive) + "\n" +
-                "\n" + "False negative :" + Arrays.toString(false_negative) + "\n";
+        return "tp/(tp+fn) :\t" + getClassficationError() +
+                "\nt/(t+f) :\t" + getTrueClass() +
+                "\nclassic miss :\t" + getClassic_misclass() +
+                "\nt mean abs diff :\t" + getMeanAbsDif() +
+                "\n" + "True positive :\t" + Arrays.toString(true_positive) +
+                "\n" + "True negative :\t" + Arrays.toString(true_negative) +
+                "\n" + "False positive :\t" + Arrays.toString(false_positive) +
+                "\n" + "False negative :\t" + Arrays.toString(false_negative);
+    }
+
+    public static double sum(int[] x) {
+        double sum = 0;
+        for (double a : x)
+            sum += a;
+        return sum;
     }
 }

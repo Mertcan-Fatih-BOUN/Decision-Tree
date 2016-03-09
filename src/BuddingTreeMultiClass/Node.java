@@ -76,7 +76,7 @@ class Node {
             return y;
         }
 
-        if (this.leftNode == null) {
+        if (this.gama == 1) {
             for (int i = 0; i < y.length; i++) {
                 y[i] = this.gama * rho[i];
             }
@@ -90,8 +90,9 @@ class Node {
         }
 
         if (parent == null) {
-            for (int i =0;  i < y.length; i++)
-                y[i] = sigmoid(y[i]);
+//            for (int i =0;  i < y.length; i++)
+//                y[i] = sigmoid(y[i]);
+            y = sigmoid(y);
         }
 
         last_y_instance = instance;
@@ -199,7 +200,7 @@ class Node {
     }
 
     public int size() {
-        if (leftNode == null)
+        if (gama == 1)
             return 0;
         else
             return 1 + leftNode.size() + rightNode.size();
