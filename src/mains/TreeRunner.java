@@ -29,8 +29,14 @@ public class TreeRunner {
         //run_single_multi_class_set(SDT.class, "balance-scale.data");
 
 //        run_all_multi_classes(BT.class);
-//        run_all_multi_classes(SDT.class);
-        //   run_all_multi_classes(SDT.class);
+        run_all_multi_classes(SDT.class);
+
+//        run_all_regressions(BT.class);
+//        run_all_regressions(SDT.class);
+
+//        run_all_binary_classes(BT.class);
+//        run_all_binary_classes(SDT.class);
+
 //        run_single_multi_class_set(BT.class, "page-blocks.data");
 //        run_single_multi_class_set(BT.class, "pendigits.data");
 //        run_single_multi_class_set(BT.class, "yeast.data");
@@ -44,10 +50,10 @@ public class TreeRunner {
 
 
 //        run_single_multi_class_set(BT.class,"ecoli.data");
-//        run_all_binary_classes(SDT.class);
-//        run_all_regressions(BT.class);
+
+
 //        run_single_binary_classification_set_fold(SDT.class, "breast", 1, 1);
-//        run_all_binary_classes(BT.class);
+
 //        run_single_binary_classification_set_fold(BT.class, "breast", 1, 1);
         //run_single_regression_set_fold("boston", 1, 1);
 
@@ -64,7 +70,7 @@ public class TreeRunner {
 //        run_single_multi_class_set(BT.class,"complete_mirflickr");
 //        run_single_multi_class_set(BT.class,"millionsong_yearpred_clsfirst");
 //        run_single_regression_set(BT.class, "millionsong_yearpred_clsfirst");
-        run_single_regression_set(SDT.class, "millionsong_yearpred_clsfirst");
+        //     run_single_regression_set(SDT.class, "millionsong_yearpred_clsfirst");
 //        run_single_multi_class_set(BT.class,"mnist");
 //        run_single_multi_class_set(SDT.class,"mnist");
     }
@@ -168,10 +174,11 @@ public class TreeRunner {
 
     private static void run_all_regressions(Class<?> cls) throws IOException {
         for (String s : REGRESS) {
-            System.out.println("\n\nSet name: " + s);
+
 
             for (int i = 1; i <= 5; i++) {
                 for (int j = 1; j <= 2; j++) {
+                    System.out.println("\n\nSet name: " + s + " " + i + " " + j);
                     run_single_regression_set_fold(cls, s, i, j);
                 }
             }

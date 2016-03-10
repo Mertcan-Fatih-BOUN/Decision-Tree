@@ -9,16 +9,12 @@ import matlabcontrol.MatlabProxyFactory;
 import matlabcontrol.extensions.MatlabNumericArray;
 import matlabcontrol.extensions.MatlabTypeConverter;
 import misc.Util;
-import org.apache.commons.lang3.ArrayUtils;
 
 import java.io.*;
 import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.util.*;
 
-/**
- * Created by mertcan on 21.10.2015.
- */
 public class BackPropagation {
 
     public MultiLayerNetwork multi_perceptron;
@@ -26,7 +22,7 @@ public class BackPropagation {
     public int input_number_train = 60000;
     public int input_number_test = 60000;
     public int hidden_neuron_number = 40;//28*28*2/3;
-    public int input_dimension = 28*28;
+    public int input_dimension = 28 * 28;
     public int output_dimension = 10;
     public int number_of_epochs = 50;
     public boolean drawable = false;
@@ -51,38 +47,38 @@ public class BackPropagation {
     public static MatlabProxy proxy;
     public static MatlabTypeConverter processor;
 
-    public BackPropagation(){
+    public BackPropagation() {
 
     }
 
     public BackPropagation(String trainfile, String testfile, int hidden_number, int epochs, double learn_rate, boolean draw, boolean print_each) throws MatlabConnectionException, MatlabInvocationException {
 
-        if(!trainfile.contains("get_flickr")){
-        try {
+        if (!trainfile.contains("get_flickr")) {
+            try {
 //            Util.readFile(train_instances, "iris.data.txt");
 //            Util.readFile(train_instances, "iris.data.v2.txt");
 //            Util.readFile(train_instances, "data_set_nonlinear_1.data.txt");
 //            Util.readFile(train_instances, "data_sdt\\mnist\\mnist.txt");
 //            Util.readFile(test_instances, "data_sdt\\mnist\\mnist.txt");
-            if(train_instances.size() == 0) {
-                readFile(train_instances, trainfile);
-                readFile(test_instances, testfile);
-            }
+                if (train_instances.size() == 0) {
+                    readFile(train_instances, trainfile);
+                    readFile(test_instances, testfile);
+                }
 //            Util.readFile(train_instances, "data_sdt\\mnist\\mnist_ordered_01.txt");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }}
-        else{
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
             ReadFlickr flickr = new ReadFlickr();
             ArrayList<Instance> instances = flickr.get_flickr_instances_util();
-            for(int i = 0; i < instances.size(); i++){
-                if(i % 5 < 3){
+            for (int i = 0; i < instances.size(); i++) {
+                if (i % 5 < 3) {
                     train_instances.add(instances.get(i));
-                }else{
+                } else {
                     test_instances.add(instances.get(i));
                 }
             }
-            CLASS_NAMES= flickr.get_class_names_flickr();
+            CLASS_NAMES = flickr.get_class_names_flickr();
             CLASS_COUNT = CLASS_NAMES.size();
             input_dimension = train_instances.get(0).attributes.length;
         }
@@ -141,19 +137,17 @@ public class BackPropagation {
 
 
     public void runPerceptron() throws MatlabInvocationException, MatlabConnectionException {
-        if(hidden_neuron_number == 0)
-            multi_perceptron = new MultiLayerNetwork(input_dimension + 1,hidden_neuron_number,output_dimension);
+        if (hidden_neuron_number == 0)
+            multi_perceptron = new MultiLayerNetwork(input_dimension + 1, hidden_neuron_number, output_dimension);
         else
-            multi_perceptron = new MultiLayerNetwork(input_dimension + 1,hidden_neuron_number + 1,output_dimension);
+            multi_perceptron = new MultiLayerNetwork(input_dimension + 1, hidden_neuron_number + 1, output_dimension);
 
 
-        if(input_dimension == 2 && drawable){
+        if (input_dimension == 2 && drawable) {
             factory = new MatlabProxyFactory();
             proxy = factory.getProxy();
             processor = new MatlabTypeConverter(proxy);
         }
-
-
 
 
         createArrays();
@@ -162,34 +156,34 @@ public class BackPropagation {
 
         System.out.println("Train: " + test(train_instances) + "\t\tTest: " + test(test_instances));
 
-        if(drawable) {
+        if (drawable) {
             plotPoints();
             graph_all();
         }
     }
 
     private void plotPoints() throws MatlabInvocationException {
-        if(input_dimension == 2){
+        if (input_dimension == 2) {
             String points_x[] = new String[CLASS_COUNT];
             String points_y[] = new String[CLASS_COUNT];
             int class_size = train_instances.size() / CLASS_COUNT;
-            for(int i = 0; i < CLASS_COUNT; i++){
+            for (int i = 0; i < CLASS_COUNT; i++) {
                 points_x[i] = "[" + train_instances.get(i * train_instances.size() / CLASS_COUNT).attributes[0];
                 points_y[i] = "[" + train_instances.get(i * train_instances.size() / CLASS_COUNT).attributes[1];
-                for(int j = 1 + i * class_size; j < (i + 1) * class_size; j++){
+                for (int j = 1 + i * class_size; j < (i + 1) * class_size; j++) {
                     points_x[i] += "," + train_instances.get(j).attributes[0];
                     points_y[i] += "," + train_instances.get(j).attributes[1];
                 }
                 points_x[i] += "]";
                 points_y[i] += "]";
             }
-            for(int i = 0; i < CLASS_COUNT; i++) {
+            for (int i = 0; i < CLASS_COUNT; i++) {
                 proxy.eval("points_x" + i + " = " + points_x[i]);
                 proxy.eval("points_y" + i + " = " + points_y[i]);
             }
             String eval1 = "[";
             String eval2 = "[";
-            for(int i = 0; i < CLASS_COUNT; i++){
+            for (int i = 0; i < CLASS_COUNT; i++) {
                 eval1 += "points_x" + i + " ";
                 eval2 += "points_y" + i + " ";
             }
@@ -216,8 +210,8 @@ public class BackPropagation {
             double[][] xg = processor.getNumericArray("xg").getRealArray2D();
             double[][] yg = processor.getNumericArray("yg").getRealArray2D();
             double[][] zg = new double[xg.length][xg[0].length];
-            for(int i = 0; i < xg.length; i++){
-                for(int j = 0; j < xg[0].length; j++){
+            for (int i = 0; i < xg.length; i++) {
+                for (int j = 0; j < xg[0].length; j++) {
                     zg[i][j] = findClass(new Instance(new double[]{xg[i][j], yg[i][j], 1}));
 //                    System.out.print(zg[i][j]);
                 }
@@ -232,8 +226,8 @@ public class BackPropagation {
 //        System.out.println(toString1dArray(i.attributes) + " " + toString1dArray(results));
         double max = 0;
         int maxIndex = 0;
-        for(int j = 0; j < results.length; j++){
-            if(results[j] > max){
+        for (int j = 0; j < results.length; j++) {
+            if (results[j] > max) {
                 max = results[j];
                 maxIndex = j;
             }
@@ -242,7 +236,7 @@ public class BackPropagation {
     }
 
     private void graph_all() throws MatlabInvocationException {
-        if(input_dimension == 2) {
+        if (input_dimension == 2) {
             proxy.eval("figure");
             proxy.eval("surf(xg,yg,zg)");
 //            proxy.eval("figure");
@@ -251,13 +245,13 @@ public class BackPropagation {
 //            proxy.eval("surfc(zg)");
             proxy.eval("figure");
             String v = "[1";
-            for(int i = 2; i < CLASS_COUNT; i++)
+            for (int i = 2; i < CLASS_COUNT; i++)
                 v += " " + i;
             v += "]";
             proxy.eval("contour(xg,yg,zg, " + v + ", 'ShowText','on')");
 
             String plot2 = "";
-            for(int i = 0; i < CLASS_COUNT; i++){
+            for (int i = 0; i < CLASS_COUNT; i++) {
                 plot2 += ",points_x" + i + ", points_y" + i + ", '.'";
             }
             plot2 += ")";
@@ -276,7 +270,7 @@ public class BackPropagation {
             atts[atts.length - 1] = 1;
             fed_forward[i] = feed_forward(atts);
         }
-        for(int j = 0; j < CLASS_COUNT; j++) {
+        for (int j = 0; j < CLASS_COUNT; j++) {
             int trues = 0;
             int falses = 0;
             int true_positives = 0;
@@ -287,13 +281,13 @@ public class BackPropagation {
                 double prediction = fed_forward[i][j];
 //            if(i % 25000 == 0)
 //                System.out.println(CLASS_NAMES.get(prediction) + "  " + CLASS_NAMES.get(T.get(i).classNumber));
-                if (prediction > 0.5){
-                    if( T.get(i).classNumbers.contains(j))
+                if (prediction > 0.5) {
+                    if (T.get(i).classNumbers.contains(j))
                         true_positives++;
                     else
                         false_positives++;
-                } else{
-                    if( !T.get(i).classNumbers.contains(j))
+                } else {
+                    if (!T.get(i).classNumbers.contains(j))
                         true_negatives++;
                     else
                         false_negatives++;
@@ -308,19 +302,19 @@ public class BackPropagation {
     }
 
     public String test(ArrayList<Instance> T) {
-        if(test_mode == 0)
+        if (test_mode == 0)
             return test_each_class(T);
         int trues = 0;
         int falses = 0;
         double diff_squared = 0;
         double abs_diff = 0;
-        for(int i = 0; i < T.size(); i++){
-            double[] atts  = Arrays.copyOf(T.get(i).attributes, T.get(i).attributes.length + 1);
+        for (int i = 0; i < T.size(); i++) {
+            double[] atts = Arrays.copyOf(T.get(i).attributes, T.get(i).attributes.length + 1);
             atts[atts.length - 1] = 1;
             int prediction = Util.argMax(feed_forward(atts));
 //            if(i % 25000 == 0)
 //                System.out.println(CLASS_NAMES.get(prediction) + "  " + CLASS_NAMES.get(T.get(i).classNumber));
-            if(prediction == T.get(i).classNumber)
+            if (prediction == T.get(i).classNumber)
                 trues++;
             else
                 falses++;
@@ -361,7 +355,7 @@ public class BackPropagation {
 //    }
 
     private void createArrays() {
-        for(int a = 0; a < train_instances.size(); a++) {
+        for (int a = 0; a < train_instances.size(); a++) {
             Instance T = train_instances.get(a);
             for (int i = 0; i < input_dimension; i++) {
                 inputs[a][i] = T.attributes[i];
@@ -382,12 +376,12 @@ public class BackPropagation {
 
 
         ArrayList<Integer> shuffler = new ArrayList<>();
-        for(int i = 0; i < input_number_train; i++) shuffler.add(i);
+        for (int i = 0; i < input_number_train; i++) shuffler.add(i);
 
         boolean class_numbers = false;
-        if(train_instances.get(0).classNumbers != null)
+        if (train_instances.get(0).classNumbers != null)
             class_numbers = true;
-        for(int trial = 0; trial < number_of_epochs; trial++) {
+        for (int trial = 0; trial < number_of_epochs; trial++) {
             Collections.shuffle(shuffler);
             for (int i = 0; i < input_number_train; i++) {
                 int theInput = shuffler.get(i);
@@ -395,15 +389,15 @@ public class BackPropagation {
                 double[] output = new double[CLASS_COUNT];
                 Arrays.fill(output, 0);
 
-                if(class_numbers) {
+                if (class_numbers) {
                     for (int j = 0; j < train_instances.get(theInput).classNumbers.size(); j++)
                         output[train_instances.get(theInput).classNumbers.get(j)] = 1;
-                }else{
+                } else {
                     output[train_instances.get(theInput).classNumber] = 1;
                 }
 //                System.out.println(toString1dArray(inputs[theInput]) + " " + toString1dArray(output_hat) + " " + toString1dArray(outputs_train[theInput]));
 //                output_hats_train[theInput] = output_hat;
-                if(multi_perceptron.hidden_layer != 0) {
+                if (multi_perceptron.hidden_layer != 0) {
                     for (int j = 0; j < B2.length; j++) {
                         B2[j] = -2 * (output[j] - output_hat[j]) * multi_perceptron.output_neurons[j].derivative_sigma();
                     }
@@ -418,7 +412,7 @@ public class BackPropagation {
                         for (int t = 0; t < B2.length; t++) {
                             temp += B2[t] * multi_perceptron.W2[t][j];
                         }
-                        if(j != B1.length - 1)
+                        if (j != B1.length - 1)
                             temp *= multi_perceptron.hidden_neurons[j].derivative_sigma();
                         B1[j] = temp;
                     }
@@ -439,10 +433,10 @@ public class BackPropagation {
                             multi_perceptron.W2[j][t] -= multi_perceptron.learn_rate * G2[j][t];
                         }
                     }
-                }else{
+                } else {
                     G2 = new double[output_dimension][input_dimension + 1];
                     for (int j = 0; j < B2.length; j++) {
-                        if(j != B2.length - 1)
+                        if (j != B2.length - 1)
                             B2[j] = -2 * (output[j] - output_hat[j]) * multi_perceptron.hidden_neurons[j].derivative_sigma();
                         else
                             B2[j] = -2 * (output[j] - output_hat[j]);
@@ -461,7 +455,7 @@ public class BackPropagation {
 
             }
 //            if(trial == 10 || trial == 20 || trial == 50 || trial == 100 ||trial == 1000){
-            if(print_each_epoch)
+            if (print_each_epoch)
                 System.out.println("Epoch: " + trial + "\t\t\tTrain: " + test(train_instances) + "\t\tTest: " + test(test_instances));
 //            test();
             MultiLayerNetwork.learn_rate *= 0.99;
@@ -485,7 +479,7 @@ public class BackPropagation {
     }
 
     private void outputToFile(int e) throws IOException {
-        File file2 = new File("log" + File.separator + "mnist_multilayer_train__test_200" + File.separator + "learning_rate_" + (int)(MultiLayerNetwork.learn_rate_main * 10000) + "_hidden_" + hidden_neuron_number + ".txt");
+        File file2 = new File("log" + File.separator + "mnist_multilayer_train__test_200" + File.separator + "learning_rate_" + (int) (MultiLayerNetwork.learn_rate_main * 10000) + "_hidden_" + hidden_neuron_number + ".txt");
         file2.getParentFile().mkdirs();
         BufferedWriter writer2 = new BufferedWriter(new FileWriter(file2, true));
         writer2.write("Epoch: " + e + "\t\t\tTrain: " + test(train_instances) + "\t\tTest: " + test(test_instances) + "\n");
@@ -496,14 +490,14 @@ public class BackPropagation {
     public double[] feed_forward(double[] input) {
         double[] output_hat = new double[output_dimension];
 
-        for(int i = 0; i < multi_perceptron.input_layer; i++) {
+        for (int i = 0; i < multi_perceptron.input_layer; i++) {
             multi_perceptron.input_neurons[i].feed_neuron(input[i]);
         }
 
-        if(multi_perceptron.hidden_layer != 0) {
-            for(int i = 0; i < multi_perceptron.hidden_layer - 1; i++){
+        if (multi_perceptron.hidden_layer != 0) {
+            for (int i = 0; i < multi_perceptron.hidden_layer - 1; i++) {
                 double sum_hidden_neuron_i = 0;
-                for(int j = 0; j < multi_perceptron.input_layer; j++){
+                for (int j = 0; j < multi_perceptron.input_layer; j++) {
                     sum_hidden_neuron_i += multi_perceptron.input_neurons[j].output * multi_perceptron.W1[i][j];
                 }
                 multi_perceptron.hidden_neurons[i].feed_neuron(sum_hidden_neuron_i);
@@ -520,10 +514,10 @@ public class BackPropagation {
 
                 output_hat[i] = multi_perceptron.output_neurons[i].output;
             }
-        }else{
-            for(int i = 0; i < multi_perceptron.output_layer; i++){
+        } else {
+            for (int i = 0; i < multi_perceptron.output_layer; i++) {
                 double sum_hidden_neuron_i = 0;
-                for(int j = 0; j < multi_perceptron.input_layer; j++){
+                for (int j = 0; j < multi_perceptron.input_layer; j++) {
                     sum_hidden_neuron_i += multi_perceptron.input_neurons[j].output * multi_perceptron.W1[i][j];
                 }
                 multi_perceptron.hidden_neurons[i].feed_neuron(sum_hidden_neuron_i);
@@ -533,13 +527,13 @@ public class BackPropagation {
         }
 
 
-        return  output_hat;
+        return output_hat;
     }
 
-    public static String toString2dArray(double[][] a){
+    public static String toString2dArray(double[][] a) {
         String s = "";
-        for(int i = 0; i < a.length; i++){
-            for(int j = 0; j < a[0].length; j++){
+        for (int i = 0; i < a.length; i++) {
+            for (int j = 0; j < a[0].length; j++) {
                 s += a[i][j] + " ";
             }
             s += "\n";
@@ -547,13 +541,14 @@ public class BackPropagation {
         return s;
     }
 
-    public static String toString1dArray(double[] a){
+    public static String toString1dArray(double[] a) {
         String s = "";
-        for(int i = 0; i < a.length; i++){
-                s += a[i] + " ";
+        for (int i = 0; i < a.length; i++) {
+            s += a[i] + " ";
         }
         return s;
     }
+
     public ArrayList<String> CLASS_NAMES = new ArrayList<>();
     public int CLASS_COUNT = 0;
 
@@ -575,7 +570,7 @@ public class BackPropagation {
             splitter = ",";
         s = line.split(splitter);
 
-        if(!line.contains("INPUT_DIMENSION"))
+        if (!line.contains("INPUT_DIMENSION"))
             input_dimension = s.length - 1;
         else
             input_dimension = Integer.parseInt(s[1]);
@@ -585,30 +580,30 @@ public class BackPropagation {
         while (scanner.hasNextLine()) {
             line = scanner.nextLine();
             s = line.split(splitter);
-            if(line.contains("INPUT_DIMENSION"))
+            if (line.contains("INPUT_DIMENSION"))
                 continue;
             double[] attributes = new double[input_dimension];
             String[] className;
-            if(s.length > input_dimension)
+            if (s.length > input_dimension)
                 className = new String[s.length - input_dimension];
             else
                 className = new String[]{"no_class_given"};
-            if(filename.contains("clsfirst")) {
+            if (filename.contains("clsfirst")) {
                 for (int i = 0; i < input_dimension; i++) {
                     attributes[i] = Double.parseDouble(s[i + 1]);
 //                    System.out.print(attributes[i] + "  ");
                 }
-                className[0] = s[0].substring(0,4);
-            }else{
+                className[0] = s[0].substring(0, 4);
+            } else {
                 for (int i = 0; i < input_dimension; i++) {
                     attributes[i] = Double.parseDouble(s[i]);
                 }
-                for(int i = input_dimension; i < s.length; i++)
+                for (int i = input_dimension; i < s.length; i++)
                     className[i - input_dimension] = s[i];
             }
             double classNumber = -1;
             ArrayList<Integer> classNumbers = new ArrayList<>();
-            for(int i = input_dimension; i < s.length; i++) {
+            for (int i = input_dimension; i < s.length; i++) {
                 if (CLASS_NAMES.contains(className[i - input_dimension])) {
                     classNumber = CLASS_NAMES.indexOf(className[i - input_dimension]);
                     classNumbers.add(CLASS_NAMES.indexOf(className[i - input_dimension]));
@@ -618,7 +613,7 @@ public class BackPropagation {
                     classNumbers.add(CLASS_NAMES.indexOf(className[i - input_dimension]));
                 }
             }
-            if(s.length == input_dimension){
+            if (s.length == input_dimension) {
                 if (CLASS_NAMES.contains(className[0])) {
                     classNumber = CLASS_NAMES.indexOf(className[0]);
                     classNumbers.add(CLASS_NAMES.indexOf(className[0]));
@@ -629,7 +624,7 @@ public class BackPropagation {
                 }
             }
 
-            I.add(new Instance((int)classNumber, classNumbers, attributes));
+            I.add(new Instance((int) classNumber, classNumbers, attributes));
         }
         CLASS_COUNT = CLASS_NAMES.size();
 //        for(int i = 0; i < CLASS_COUNT; i++)
