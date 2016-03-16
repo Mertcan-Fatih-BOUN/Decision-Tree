@@ -9,8 +9,8 @@ import SDT.SDT;
 
 @SuppressWarnings({"unused", "Duplicates"})
 public class TreeRunner {
-    public static double LEARNING_RATE = 5;//2 0.001 is nice for msd
-    public static int EPOCH = 10;
+    public static double LEARNING_RATE = 0.8;//2 0.001 is nice for msd
+    public static int EPOCH = 40;
     public static int MAX_STEP = 5;
     public static boolean isMnist = false;
 
@@ -21,7 +21,7 @@ public class TreeRunner {
     public static void main(String[] args) throws IOException {
         Locale.setDefault(Locale.US);
 
-        System.out.println("Learning rate: " + LEARNING_RATE);
+        System.out.println("Learning rate: " + LEARNING_RATE + " Lambda: " + BuddingTree2.BT.Lambda);
 
         //System.out.println("-----BT-----");
         //run_single_multi_class_set(BT.class, "balance-scale.data");
@@ -64,9 +64,13 @@ public class TreeRunner {
 //        run_single_multi_class_set(BT.class,"complete_mirflickr");
 //        run_single_multi_class_set(BT.class,"millionsong_yearpred_clsfirst");
 //        run_single_regression_set(BT.class, "millionsong_yearpred_clsfirst");
-        run_single_regression_set(SDT.class, "millionsong_yearpred_clsfirst");
+//        run_single_regression_set(SDT.class, "millionsong_yearpred_clsfirst");
 //        run_single_multi_class_set(BT.class,"mnist");
 //        run_single_multi_class_set(SDT.class,"mnist");
+
+//        run_single_multi_class_set(BuddingTree2.BT.class,"get_flickr");
+//        run_single_multi_class_set(BuddingTree2.BT.class,"complete_mirflickr_notags");
+        run_single_multi_class_set(BuddingTree2.BT.class,"complete_mirflickr_tags");
     }
 
 
@@ -93,6 +97,16 @@ public class TreeRunner {
             );
             sdt.learnTree();
             System.out.println("Size: " + sdt.size() + "\t" + sdt.getErrors());
+        }else if(cls == BuddingTree2.BT.class){
+            BuddingTree2.BT bt = new BuddingTree2.BT(
+                    training,
+                    validation,
+                    test,
+                    isClassify,
+                    LEARNING_RATE,
+                    EPOCH);
+            bt.learnTree();
+            System.out.println("Epoch " + (EPOCH - 1) + " Size: " + bt.size() + "\t" + bt.effSize() + " \t" + bt.getErrors());
         }
     }
 
