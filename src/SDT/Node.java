@@ -7,9 +7,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
-
 import static misc.Util.*;
 
+@SuppressWarnings("Duplicates")
 class Node {
     int ATTRIBUTE_COUNT;
     Node parent = null;
@@ -22,50 +22,37 @@ class Node {
     double w0;
     static boolean hardInit = false;
 
-    double y;
+    double[] y;
     double g;
+    SDT tree;
 
-    Node(int attribute_count) {
+    Node(SDT tree, int attribute_count) {
+        this.tree = tree;
         ATTRIBUTE_COUNT = attribute_count;
     }
 
 
-    public double F(Instance instance) {
+    public double[] F(Instance instance) {
         if (isLeaf) {
-            if (rho.length == 1)
-                y = rho[0];
-            else {
-                y = rho[(int) instance.classValue];
-            }
+            y = Arrays.copyOf(rho, rho.length);
         } else {
             g = sigmoid(dotProduct(w, instance.attributes) + w0);
-            y = g * (leftNode.F(instance)) + (1 - g) * (rightNode.F(instance));
+            double[] y_left = leftNode.F(instance);
+            double[] y_right = rightNode.F(instance);
+            for (int i = 0; i < y.length; i++)
+                y[i] = g * y_left[i] + (1 - g) * y_right[i];
         }
+        if (parent == null && tree.isClassify) {
+            if (tree.CLASS_COUNT == 1) {
+                y[0] = sigmoid(y[0]);
+            } else
+                y = softmax(y);
+        }
+
         return y;
 
     }
 
-    public double F(Instance instance, int index) {
-        double rho_current = rho[index];
-        if (isLeaf)
-            y = rho_current;
-        else {
-            g = sigmoid(dotProduct(w, instance.attributes) + w0);
-            y = g * (leftNode.F(instance, index)) + (1 - g) * (rightNode.F(instance, index));
-        }
-        return y;
-    }
-
-    public double[] F_rho(Instance instance) {
-        double[] f = new double[rho.length];
-        String s = "";
-        for (int i = 0; i < rho.length; i++) {
-            f[i] = (F(instance, i));
-            s += f[i] + " ";
-        }
-        //System.out.println(s + " " + rho[0] + " " + rho[1] + " " + rho[2] + " " + instance.classValue);
-        return f;
-    }
 
     int size() {
         if (isLeaf)
@@ -74,7 +61,17 @@ class Node {
             return 1 + leftNode.size() + rightNode.size();
     }
 
-    void learnParameters(ArrayList<Instance> X, ArrayList<Instance> V, double alpha, SDT tree, int MAX_EPOCH) {
+    double[] getR(Instance i) {
+        double[] r = new double[y.length];
+        Arrays.fill(r, 0);
+        if (tree.CLASS_COUNT == 1)
+            r[0] = i.classValue;
+        else
+            r[(int) i.classValue] = 1;
+        return r;
+    }
+
+    void learnParameters(ArrayList<Instance> X, double alpha, SDT tree, int MAX_EPOCH) {
         double u = 0.1;
 
         double[] dw = new double[ATTRIBUTE_COUNT];
@@ -87,7 +84,7 @@ class Node {
         double[] dwright = new double[rho.length];
 
         double dw0p = 0;
-        double dw0 = 0;
+        double dw0;
 
 
         for (int e = 0; e < MAX_EPOCH; e++) {
@@ -97,9 +94,11 @@ class Node {
             for (int i = 0; i < X.size(); i++) {
                 int j = indices.get(i);
                 double[] x = X.get(j).attributes;
-                double r = X.get(j).classValue;
-                double y = tree.eval(X.get(j));
-                double d = y - r;
+                double[] r = getR(X.get(j));
+                double[] y = tree.ROOT.F(X.get(j));
+                double[] d = new double[y.length];
+                for (int c = 0; c < y.length; c++)
+                    d[c] = y[c] - r[c];
 
                 double t = alpha;
                 Node m = this;
@@ -114,69 +113,34 @@ class Node {
                     m = m.parent;
                 }
 
-                if (rho.length == 1) {
-                    t *= d;
+                Arrays.fill(dw, 0);
+                dw0 = 0;
+                for (int k = 0; k < y.length; k++) {
 
                     for (int count = 0; count < ATTRIBUTE_COUNT; count++)
-                        dw[count] = (-t * (leftNode.y - rightNode.y) * g * (1 - g)) * x[count];
+                        dw[count] += (-t * d[k] * (leftNode.y[k] - rightNode.y[k]) * g * (1 - g)) * x[count];
 
-                    dw0 = (-t * (leftNode.y - rightNode.y) * g * (1 - g));
-                    dwleft[0] = -t * (g);
-                    dwright[0] = -t * (1 - g);
+                    dw0 += (-t * d[k] * (leftNode.y[k] - rightNode.y[k]) * g * (1 - g));
 
+                    dwleft[k] = -t * d[k] * g;
+                    dwright[k] = -t * d[k] * (1 - g);
+                }
 
-                    for (int count = 0; count < ATTRIBUTE_COUNT; count++)
-                        w[count] += dw[count] + u * dwp[count];
-
-                    w0 += dw0 + u * dw0p;
-                    leftNode.rho[0] += dwleft[0] + u * dwleftp[0];
-                    rightNode.rho[0] += dwright[0] + u * dwrightp[0];
-
-                } else {
-                    double[] fs = tree.ROOT.F_rho(X.get(j));
-                    double[] softmaxs = softmax(fs);
-                    double[] ts = new double[softmaxs.length];
-                    for (int h = 0; h < softmaxs.length; h++) {
-                        if (h == (int) r) {
-                            ts[h] = (softmaxs[h] - 1) * t;
-                        } else {
-                            ts[h] = (softmaxs[h]) * t;
-                        }
-//                        System.out.print(softmaxs[h] + "  " + fs[h] + "  ");
-                    }
-//                    System.out.println();
-                    for (int k = 0; k < rho.length; k++) {
-                        dwleft[k] = -ts[k] * (g);
-                        dwright[k] = -ts[k] * (1 - g);
-                        leftNode.rho[k] += dwleft[k] + u * dwleftp[k];
-                        rightNode.rho[k] += dwright[k] + u * dwrightp[k];
-                    }
-
-                    for (int count = 0; count < ATTRIBUTE_COUNT; count++) {
-                        dw[count] = 0;
-                        for (int h = 0; h < rho.length; h++)
-                            dw[count] += (-ts[h] * (leftNode.F(X.get(j), h) - rightNode.F(X.get(j), h)) * g * (1 - g)) * x[count];
-                    }
-                    dw0 = 0;
-                    for (int h = 0; h < rho.length; h++)
-                        dw0 += (-ts[h] * (leftNode.F(X.get(j), h) - rightNode.F(X.get(j), h)) * g * (1 - g));
-                    for (int count = 0; count < ATTRIBUTE_COUNT; count++)
-                        w[count] += dw[count] + u * dwp[count];
-
-                    w0 += dw0 + u * dw0p;
+                for (int count = 0; count < ATTRIBUTE_COUNT; count++)
+                    w[count] += dw[count] + u * dwp[count];
 
 
+                w0 += dw0 + u * dw0p;
+
+                for (int k = 0; k < rho.length; k++) {
+                    leftNode.rho[k] += dwleft[k] + u * dwleftp[k];
+                    rightNode.rho[k] += dwright[k] + u * dwrightp[k];
                 }
 
                 dwp = Arrays.copyOf(dw, dw.length);
                 dw0p = dw0;
                 dwleftp = Arrays.copyOf(dwleft, rho.length);
-                dwrightp = Arrays.copyOf(dwright, rho.length);
-                /*dw10p = dw10;
-                dw20p = dw20;
-                dw11p = dw11;
-                dw21p = dw21;*/
-
+                dwrightp = Arrays.copyOf(dwright, dwright.length);
                 alpha *= 0.9999;
             }
         }
@@ -192,12 +156,12 @@ class Node {
         double err = tree.ErrorOfTree(V);
         isLeaf = false;
 
-        leftNode = new Node(ATTRIBUTE_COUNT);
+        leftNode = new Node(tree, ATTRIBUTE_COUNT);
         leftNode.isLeft = true;
         leftNode.parent = this;
         leftNode.rho = new double[rho.length];
 
-        rightNode = new Node(ATTRIBUTE_COUNT);
+        rightNode = new Node(tree, ATTRIBUTE_COUNT);
         rightNode.isLeft = false;
         rightNode.parent = this;
         rightNode.rho = new double[rho.length];
@@ -213,6 +177,7 @@ class Node {
 
         double alpha;
         for (int t = 0; t < tree.MAX_STEP; t++) {
+            //noinspection StatementWithEmptyBody
             if (hardInit) ;
                 //hardinit(X, V);
             else {
@@ -228,7 +193,7 @@ class Node {
             }
 
             alpha = (tree.LEARNING_RATE + 0.0) / Math.pow(2, t + 1);
-            learnParameters(X, V, alpha, tree, tree.EPOCH);
+            learnParameters(X, alpha, tree, tree.EPOCH);
 
             newErr = tree.ErrorOfTree(V);
             if (newErr < bestErr) {
