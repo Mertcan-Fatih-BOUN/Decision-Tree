@@ -56,7 +56,7 @@ class Node {
 
     int size() {
         if (isLeaf)
-            return 1;
+            return 0;
         else
             return 1 + leftNode.size() + rightNode.size();
     }
@@ -196,6 +196,9 @@ class Node {
             learnParameters(X, alpha, tree, tree.EPOCH);
 
             newErr = tree.ErrorOfTree(V);
+
+            System.out.printf("Step: %d New Error: %.3f\n", t, 1 - newErr);
+
             if (newErr < bestErr) {
 
                 bestw = Arrays.copyOf(w, w.length);
@@ -212,7 +215,7 @@ class Node {
         leftNode.rho = bestw0l;
         rightNode.rho = bestw0r;
 
-        if (bestErr + 1e-3 < err) {
+        if (bestErr < err) {
 //            SDT.split_q.add(leftNode);
 //            SDT.split_q.add(rightNode);
             System.out.println("Size: " + tree.size() + "\t" + tree.getErrors());

@@ -23,13 +23,18 @@ public class TreeRunner {
 
         System.out.println("Learning rate: " + LEARNING_RATE);
 
+        SDT sdt = new SDT( "mnist\\train.txt", "mnist\\test.txt", "mnist\\test.txt",true,2,10,10);
+        sdt.learnTree();
+        System.out.println(sdt.getErrors());
+
+
         //System.out.println("-----BT-----");
         //run_single_multi_class_set(BT.class, "balance-scale.data");
         //System.out.println("-----SDT-----");
         //run_single_multi_class_set(SDT.class, "balance-scale.data");
 
 //        run_all_multi_classes(BT.class);
-        run_all_multi_classes(SDT.class);
+ //       run_all_multi_classes(SDT.class);
 
 //        run_all_regressions(BT.class);
 //        run_all_regressions(SDT.class);

@@ -60,7 +60,7 @@ public class BTM {
 
 
     public String getErrors() {
-        return "Training \n" + ErrorOfTree(X).toString() + "\n\nValidation: \n" + ErrorOfTree(V).toString();
+        return "Training \n" + MAP_error(X) + "\n\nValidation: \n" +  MAP_error(V);
     }
 
 
@@ -76,8 +76,34 @@ public class BTM {
         return ret;
     }
 
+    public Error2 MAP_error(ArrayList<Instance> V) {
+        Error2 error2 = new Error2(CLASS_COUNT, V.size());
 
-    public Error ErrorOfTree(ArrayList<Instance> V) {
+        for (Instance instance : V) {
+            instance.y = ROOT.F(instance);
+        }
+
+        for (int i = 0; i < CLASS_COUNT; i++) {
+            double error = 0;
+            double positive_count = 0;
+            final int finalI = i;
+            Collections.sort(V, (o1, o2) -> (int) (o1.y[finalI] - o2.y[finalI]));
+            for (int j = 0; j < V.size(); j++) {
+                if (V.get(j).r[i] == 1) {
+                    positive_count++;
+                    error += (positive_count * 1.0) / (j + 1);
+                }
+            }
+
+            error /= positive_count;
+
+            error2.MAP[i] = error;
+        }
+
+        return error2;
+    }
+
+    public Error ErrorOfTree11(ArrayList<Instance> V) {
         Error error = new Error(CLASS_COUNT, V.size());
         for (Instance instance : V) {
             double[] y = ROOT.F(instance);

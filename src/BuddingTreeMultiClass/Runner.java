@@ -6,11 +6,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import static BuddingTreeMultiClass.SetReader.getDataset;
+import static BuddingTreeMultiClass.SetReader.getGithubDataset;
 
 public class Runner {
     public static void main(String[] args) throws IOException {
-        ArrayList<Instance>[] sets = getDataset(true, true, true);
-        BTM btm = new BTM(sets[0], sets[1], 0.3, 1000, 0.0001);
+        ArrayList<Instance>[] sets = getGithubDataset();
+        BTM btm = new BTM(sets[0], sets[1], 10, 1000, 0.0001);
         btm.learnTree();
         System.out.println(btm.size());
         System.out.println(btm.getErrors());

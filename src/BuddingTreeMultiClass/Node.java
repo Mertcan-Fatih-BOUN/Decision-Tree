@@ -76,7 +76,7 @@ class Node {
             return y;
         }
 
-        if (this.gama == 1) {
+        if (this.gama == 1 || leftNode == null) {
             for (int i = 0; i < y.length; i++) {
                 y[i] = this.gama * rho[i];
             }
@@ -200,7 +200,7 @@ class Node {
     }
 
     public int size() {
-        if (gama == 1)
+        if (gama == 1 || leftNode == null)
             return 0;
         else
             return 1 + leftNode.size() + rightNode.size();
