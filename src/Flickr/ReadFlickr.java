@@ -19,14 +19,35 @@ public class ReadFlickr {
 //    public String[] labels = new String[]{"bird_r1.txt", "baby_r1.txt", "car_r1.txt", "clouds_r1.txt", "dog_r1.txt", "female_r1.txt",
 //            "flower_r1.txt", "male_r1.txt", "night_r1.txt", "people_r1.txt", "portrait_r1.txt", "river_r1.txt", "sea_r1.txt",
 //            "tree_r1.txt"};
-    public String[] labels = new String[]{"bird.txt", "baby.txt", "animals.txt", "car.txt", "clouds.txt", "dog.txt", "female.txt", "flower.txt",
-            "food.txt", "indoor.txt", "lake.txt", "male.txt", "night.txt", "people.txt", "plant_life.txt", "portrait.txt","river.txt", "sea.txt",
-            "sky.txt", "structures.txt", "sunset.txt", "transport.txt", "tree.txt", "water.txt"};
 //    public String[] labels = new String[]{"bird.txt", "baby.txt", "animals.txt", "car.txt", "clouds.txt", "dog.txt", "female.txt", "flower.txt",
 //            "food.txt", "indoor.txt", "lake.txt", "male.txt", "night.txt", "people.txt", "plant_life.txt", "portrait.txt","river.txt", "sea.txt",
-//            "sky.txt", "structures.txt", "sunset.txt", "transport.txt", "tree.txt", "water.txt", "bird_r1.txt", "baby_r1.txt", "car_r1.txt", "clouds_r1.txt", "dog_r1.txt", "female_r1.txt",
-//            "flower_r1.txt", "male_r1.txt", "night_r1.txt", "people_r1.txt", "portrait_r1.txt", "river_r1.txt", "sea_r1.txt",
-//            "tree_r1.txt"};
+//            "sky.txt", "structures.txt", "sunset.txt", "transport.txt", "tree.txt", "water.txt"};
+    public String[] labels = new String[]{"bird.txt", "baby.txt", "animals.txt", "car.txt", "clouds.txt", "dog.txt", "female.txt", "flower.txt",
+            "food.txt", "indoor.txt", "lake.txt", "male.txt", "night.txt", "people.txt", "plant_life.txt", "portrait.txt","river.txt", "sea.txt",
+            "sky.txt", "structures.txt", "sunset.txt", "transport.txt", "tree.txt", "water.txt", "bird_r1.txt", "baby_r1.txt", "car_r1.txt", "clouds_r1.txt", "dog_r1.txt", "female_r1.txt",
+            "flower_r1.txt", "male_r1.txt", "night_r1.txt", "people_r1.txt", "portrait_r1.txt", "river_r1.txt", "sea_r1.txt",
+            "tree_r1.txt"};
+
+    public double[][] get_tags_only(){
+        ArrayList<ArrayList<String>> tags = read_tags(path_tags);
+        double[][] atts = new double[25000][tags_index.size()];
+        for(int i = 0; i < 25000; i++) {
+            ArrayList<String> tags_ = tags.get(i);
+            int[] binary_tags = new int[tags_index.size()];
+            Arrays.fill(binary_tags, 0);
+//                System.out.println(tags_index.size() + "  " + i);
+            for (int j = 0; j < tags_.size(); j++) {
+                if (tags_index.containsKey(tags_.get(j)))
+                    binary_tags[tags_index.get(tags_.get(j))] = 1;
+            }
+            for (int j = 0; j < binary_tags.length; j++) {
+                atts[i][j] = binary_tags[j];
+            }
+        }
+        return atts;
+    }
+
+
 
     public ArrayList<String> get_class_names_flickr(){
         ArrayList<String> class_names = new ArrayList<>();
@@ -36,6 +57,7 @@ public class ReadFlickr {
         class_names.add("not_given");
         return class_names;
     }
+    boolean read_tags = true;
 
     public ArrayList<Utils.Instance> get_flickr_instances_util(){
         ArrayList<Utils.Instance> instances = new ArrayList<>();
@@ -44,9 +66,7 @@ public class ReadFlickr {
         ArrayList<ArrayList<String>> edge = read_all_attributes(path_features_edge);
         ArrayList<ArrayList<String>> homo = read_all_attributes(path_features_homo);
         ArrayList<ArrayList<String>> tags = read_tags(path_tags);
-        boolean read_tags = true;
-        /////////////////////////
-//        read_tags = false;
+
 
         if(edge.size() != 25000 || homo.size() != 25000 || tags.size() != 25000 || all_labels.size() != 25000){
             System.out.println("error in sizes");
@@ -93,38 +113,44 @@ public class ReadFlickr {
     }
 
     public ArrayList<Instance> get_flickr_instances(){
+        /////////////////////////
+//        read_tags = false;
+read_tags = true;
         ArrayList<Instance> instances = new ArrayList<>();
         ArrayList<ArrayList<String>> all_labels = read_labels(labels);
         ArrayList<String> class_names = get_class_names_flickr();
-        ArrayList<ArrayList<String>> edge = read_all_attributes(path_features_edge);
-        ArrayList<ArrayList<String>> homo = read_all_attributes(path_features_homo);
+//        ArrayList<ArrayList<String>> edge = read_all_attributes(path_features_edge);
+//        ArrayList<ArrayList<String>> homo = read_all_attributes(path_features_homo);
         ArrayList<ArrayList<String>> tags = read_tags(path_tags);
-        if(edge.size() != 25000 || homo.size() != 25000 || tags.size() != 25000 || all_labels.size() != 25000){
-            System.out.println("error in sizes");
-            return null;
-        }else{
-            System.out.println("reading is done");
-        }
+//        if(edge.size() != 25000 || homo.size() != 25000 || tags.size() != 25000 || all_labels.size() != 25000){
+//            System.out.println("error in sizes");
+//            return null;
+//        }else{
+//            System.out.println("reading is done");
+//        }
         for(int i = 0; i < 25000; i++){
             ArrayList<Double> attributes = new ArrayList<>();
-            ArrayList<String> edge_ = edge.get(i);
-            ArrayList<String> homo_ = homo.get(i);
+//            ArrayList<String> edge_ = edge.get(i);
+//            ArrayList<String> homo_ = homo.get(i);
             ArrayList<String> tags_ = tags.get(i);
-            for(int j = 0; j < edge_.size(); j++){
-                attributes.add(Double.parseDouble(edge_.get(j)));
-            }
-            for(int j = 0; j < homo_.size(); j++){
-                attributes.add(Double.parseDouble(homo_.get(j)));
-            }
+//            for(int j = 0; j < edge_.size(); j++){
+//                attributes.add(Double.parseDouble(edge_.get(j)));
+//            }
+//            for(int j = 0; j < homo_.size(); j++){
+//                attributes.add(Double.parseDouble(homo_.get(j)));
+//            }
 
-            int[] binary_tags = new int[tags_index.size()];
-            Arrays.fill(binary_tags, 0);
-            for(int j = 0; j < tags_.size(); j++){
-                if(tags_index.containsKey(tags_.get(j)))
-                     binary_tags[tags_index.get(tags_.get(j))] = 1;
-            }
-            for(int j = 0; j < binary_tags.length; j++){
-                attributes.add(binary_tags[j] * 1.0);
+            if(read_tags) {
+                int[] binary_tags = new int[tags_index.size()];
+                Arrays.fill(binary_tags, 0);
+//                System.out.println(tags_index.size() + "  " + i);
+                for (int j = 0; j < tags_.size(); j++) {
+                    if (tags_index.containsKey(tags_.get(j)))
+                        binary_tags[tags_index.get(tags_.get(j))] = 1;
+                }
+                for (int j = 0; j < binary_tags.length; j++) {
+                    attributes.add(binary_tags[j] * 1.0);
+                }
             }
             double[] atts = new double[attributes.size()];
             for(int j = 0; j < atts.length; j++){
@@ -193,6 +219,7 @@ public class ReadFlickr {
                     tags_occurence.put(tag.get(j), tags_occurence.get(tag.get(j)) + 1);
                     if(tags_occurence.get(tag.get(j)) == 50){
                         tags_index.put(tag.get(j), tags_index.size());
+//                        System.out.print(tag.get(j) + " ");
                     }
                 }
             }

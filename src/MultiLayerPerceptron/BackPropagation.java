@@ -8,13 +8,18 @@ import matlabcontrol.MatlabProxy;
 import matlabcontrol.MatlabProxyFactory;
 import matlabcontrol.extensions.MatlabNumericArray;
 import matlabcontrol.extensions.MatlabTypeConverter;
+import misc.IndexComparator;
 import misc.Util;
+import org.apache.commons.lang3.ArrayUtils;
 
 import java.io.*;
 import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.util.*;
 
+/**
+ * Created by mertcan on 21.10.2015.
+ */
 public class BackPropagation {
 
     public MultiLayerNetwork multi_perceptron;
@@ -41,6 +46,8 @@ public class BackPropagation {
     public double[] B1 = new double[hidden_neuron_number + 1];
     public double[][] G1 = new double[hidden_neuron_number][input_dimension + 1];
 
+    public String percentages = "";
+
     public int test_mode = 1;
 
     public static MatlabProxyFactory factory;
@@ -60,6 +67,10 @@ public class BackPropagation {
 //            Util.readFile(train_instances, "data_set_nonlinear_1.data.txt");
 //            Util.readFile(train_instances, "data_sdt\\mnist\\mnist.txt");
 //            Util.readFile(test_instances, "data_sdt\\mnist\\mnist.txt");
+                if (trainfile.contains("flickr")) {
+                    ReadFlickr r = new ReadFlickr();
+                    CLASS_NAMES = r.get_class_names_flickr();
+                }
                 if (train_instances.size() == 0) {
                     readFile(train_instances, trainfile);
                     readFile(test_instances, testfile);
@@ -153,8 +164,11 @@ public class BackPropagation {
         createArrays();
 
         train_backPropagate();
+        if (test_mode == 0)
+            test_mode = -1;
 
-        System.out.println("Train: " + test(train_instances) + "\t\tTest: " + test(test_instances));
+        System.out.println("Train: " + mean_average_precision(train_instances) + "\t\tTest: " + mean_average_precision(test_instances));
+//        System.out.println("Train: " + test(train_instances) + "\t\tTest: " + test(test_instances));
 
         if (drawable) {
             plotPoints();
@@ -262,6 +276,73 @@ public class BackPropagation {
         }
     }
 
+    public String mean_average_precision(ArrayList<Instance> T) {
+        String result = "";
+        double[][] fed_forward = new double[T.size()][output_dimension];
+        int[] CLASS_RATES = new int[CLASS_COUNT];
+        for (int i = 0; i < T.size(); i++) {
+            double[] atts = Arrays.copyOf(T.get(i).attributes, T.get(i).attributes.length + 1);
+            atts[atts.length - 1] = 1;
+            fed_forward[i] = feed_forward(atts);
+            for(int j = 0; j < T.get(i).classNumbers.size(); j++){
+                CLASS_RATES[T.get(i).classNumbers.get(j)]++;
+            }
+        }
+        ArrayList<ArrayList<Double>> responses = new ArrayList<>();
+        ArrayList<ArrayList<Integer>> indexes = new ArrayList<>();
+        ArrayList<IndexComparator> index_comparators = new ArrayList<>();
+        for (int i = 0; i < CLASS_COUNT; i++) {
+            responses.add(new ArrayList<Double>());
+            indexes.add(new ArrayList<Integer>());
+        }
+
+        for (int j = 0; j < CLASS_COUNT; j++) {
+            for (int i = 0; i < T.size(); i++) {
+                double prediction = fed_forward[i][j];
+                if (prediction > 0.5) {
+                    responses.get(j).add(prediction);
+                    indexes.get(j).add(i);
+                }
+            }
+        }
+        for (int i = 0; i < CLASS_COUNT; i++) {
+            index_comparators.add(new IndexComparator(responses.get(i)));
+        }
+
+        Integer[][] regular_indexes = new Integer[CLASS_COUNT][0];
+        for (int i = 0; i < CLASS_COUNT; i++) {
+            regular_indexes[i] = index_comparators.get(i).createIndexArray();
+            Arrays.sort(regular_indexes[i], index_comparators.get(i));
+        }
+
+        for(int i = 0; i < CLASS_COUNT; i++){
+            for(int j = 0; j < 5 && j < responses.get(i).size(); j++){
+                System.out.print(responses.get(i).get(regular_indexes[i][j]) + " ");
+            }
+            System.out.println();
+        }
+
+        double[] average_precisions = new double[CLASS_COUNT];
+        double sum = 0;
+        for (int i = 0; i < CLASS_COUNT; i++) {
+            double tmp = 0;
+            double trues = 0;
+            for(int j = 0; j < indexes.get(i).size(); j++){
+                if(T.get(indexes.get(i).get(regular_indexes[i][j])).classNumbers.contains(i)){
+                    trues++;
+                    tmp += (trues / (j + 1.0));
+                }
+            }
+            tmp /= CLASS_RATES[i];
+            average_precisions[i] = tmp;
+            sum += tmp;
+            result += CLASS_NAMES.get(i) + " Average Precision = " + tmp + "\n";
+        }
+        result += "\n" + (sum / CLASS_COUNT);
+
+        return result;
+    }
+
     public String test_each_class(ArrayList<Instance> T) {
         String result = "\n";
         double[][] fed_forward = new double[T.size()][output_dimension];
@@ -270,9 +351,9 @@ public class BackPropagation {
             atts[atts.length - 1] = 1;
             fed_forward[i] = feed_forward(atts);
         }
+        int trues = 0;
+        int falses = 0;
         for (int j = 0; j < CLASS_COUNT; j++) {
-            int trues = 0;
-            int falses = 0;
             int true_positives = 0;
             int true_negatives = 0;
             int false_positives = 0;
@@ -293,16 +374,22 @@ public class BackPropagation {
                         false_negatives++;
                 }
             }
-            trues = true_negatives + true_positives;
-            falses = false_negatives + false_positives;
+            trues += true_positives;
+            falses += false_negatives;
             //System.out.println("True: " + trues + " False: " + falses + " Percentage: " + ((double) trues / input_number_train));
-            result += CLASS_NAMES.get(j) + "\tTrue: " + trues + " (true positives = " + true_positives + "  true negatives = " + true_negatives + ")\t" + "False: " + falses + " (false negatives = " + false_negatives + "  false positives = " + false_positives + ")\t" + " Percentage: " + format.format((double) true_positives / (true_positives + false_negatives)) + " " + format.format((double) true_negatives / (true_negatives + false_positives)) + " " + format.format((double) trues / T.size()) + "\n";
+            result += CLASS_NAMES.get(j) + "\tTrue: " + trues + " (true positives = " + true_positives + "  true negatives = " + true_negatives + ")\t" + "False: " + falses + " (false negatives = " + false_negatives + "  false positives = " + false_positives + ")\t" + " Percentage: " + format.format((double) true_positives / (true_positives + false_negatives)) + " " + format.format((double) true_negatives / (true_negatives + false_positives)) + "\n";
+            percentages += format.format((double) true_positives / (true_positives + false_negatives)) + ",";
         }
-        return result;
+        percentages += "\n";
+        if (test_mode == 0)
+            return format.format((double) trues / (trues + falses));
+        else if (test_mode == -1)
+            return result + "\n" + format.format((double) trues / (trues + falses));
+        else return result;
     }
 
     public String test(ArrayList<Instance> T) {
-        if (test_mode == 0)
+        if (test_mode == 0 || test_mode == -1)
             return test_each_class(T);
         int trues = 0;
         int falses = 0;
@@ -456,7 +543,8 @@ public class BackPropagation {
             }
 //            if(trial == 10 || trial == 20 || trial == 50 || trial == 100 ||trial == 1000){
             if (print_each_epoch)
-                System.out.println("Epoch: " + trial + "\t\t\tTrain: " + test(train_instances) + "\t\tTest: " + test(test_instances));
+//                System.out.println("Epoch: " + trial + "\t\t\tTrain: " + test(train_instances) + "\t\tTest: " + test(test_instances));
+            System.out.println("Epoch: " + trial + "\t\t\tTrain: " + mean_average_precision(train_instances) + "\t\tTest: " + mean_average_precision(test_instances));
 //            test();
             MultiLayerNetwork.learn_rate *= 0.99;
 //            }
@@ -575,6 +663,13 @@ public class BackPropagation {
         else
             input_dimension = Integer.parseInt(s[1]);
 
+        if (filename.contains(("complete_mirflickr"))) {
+            if (filename.contains("no"))
+                input_dimension = 1715;
+            else
+                input_dimension = 1715 + 457;
+        }
+
 //        System.out.println(input_dimension + " " + line);
         Scanner scanner = new Scanner(new File(filename));
         while (scanner.hasNextLine()) {
@@ -587,7 +682,7 @@ public class BackPropagation {
             if (s.length > input_dimension)
                 className = new String[s.length - input_dimension];
             else
-                className = new String[]{"no_class_given"};
+                className = new String[]{"not_given"};
             if (filename.contains("clsfirst")) {
                 for (int i = 0; i < input_dimension; i++) {
                     attributes[i] = Double.parseDouble(s[i + 1]);

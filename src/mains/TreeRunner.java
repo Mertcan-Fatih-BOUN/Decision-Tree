@@ -9,8 +9,8 @@ import SDT.SDT;
 
 @SuppressWarnings({"unused", "Duplicates"})
 public class TreeRunner {
-    public static double LEARNING_RATE = 5;//2 0.001 is nice for msd
-    public static int EPOCH = 10;
+    public static double LEARNING_RATE = 0.8;//2 0.001 is nice for msd
+    public static int EPOCH = 40;
     public static int MAX_STEP = 5;
     public static boolean isMnist = false;
 
@@ -21,12 +21,7 @@ public class TreeRunner {
     public static void main(String[] args) throws IOException {
         Locale.setDefault(Locale.US);
 
-        System.out.println("Learning rate: " + LEARNING_RATE);
-
-        SDT sdt = new SDT( "mnist\\train.txt", "mnist\\test.txt", "mnist\\test.txt",true,2,10,10);
-        sdt.learnTree();
-        System.out.println(sdt.getErrors());
-
+        System.out.println("Learning rate: " + LEARNING_RATE + " Lambda: " + BuddingTree2.BT.Lambda);
 
         //System.out.println("-----BT-----");
         //run_single_multi_class_set(BT.class, "balance-scale.data");
@@ -34,14 +29,8 @@ public class TreeRunner {
         //run_single_multi_class_set(SDT.class, "balance-scale.data");
 
 //        run_all_multi_classes(BT.class);
- //       run_all_multi_classes(SDT.class);
-
-//        run_all_regressions(BT.class);
-//        run_all_regressions(SDT.class);
-
-//        run_all_binary_classes(BT.class);
-//        run_all_binary_classes(SDT.class);
-
+//        run_all_multi_classes(SDT.class);
+        //   run_all_multi_classes(SDT.class);
 //        run_single_multi_class_set(BT.class, "page-blocks.data");
 //        run_single_multi_class_set(BT.class, "pendigits.data");
 //        run_single_multi_class_set(BT.class, "yeast.data");
@@ -55,10 +44,10 @@ public class TreeRunner {
 
 
 //        run_single_multi_class_set(BT.class,"ecoli.data");
-
-
+//        run_all_binary_classes(SDT.class);
+//        run_all_regressions(BT.class);
 //        run_single_binary_classification_set_fold(SDT.class, "breast", 1, 1);
-
+//        run_all_binary_classes(BT.class);
 //        run_single_binary_classification_set_fold(BT.class, "breast", 1, 1);
         //run_single_regression_set_fold("boston", 1, 1);
 
@@ -75,9 +64,13 @@ public class TreeRunner {
 //        run_single_multi_class_set(BT.class,"complete_mirflickr");
 //        run_single_multi_class_set(BT.class,"millionsong_yearpred_clsfirst");
 //        run_single_regression_set(BT.class, "millionsong_yearpred_clsfirst");
-        //     run_single_regression_set(SDT.class, "millionsong_yearpred_clsfirst");
+//        run_single_regression_set(SDT.class, "millionsong_yearpred_clsfirst");
 //        run_single_multi_class_set(BT.class,"mnist");
 //        run_single_multi_class_set(SDT.class,"mnist");
+
+//        run_single_multi_class_set(BuddingTree2.BT.class,"get_flickr");
+//        run_single_multi_class_set(BuddingTree2.BT.class,"complete_mirflickr_notags");
+        run_single_multi_class_set(BuddingTree2.BT.class,"complete_mirflickr_tags");
     }
 
 
@@ -104,6 +97,16 @@ public class TreeRunner {
             );
             sdt.learnTree();
             System.out.println("Size: " + sdt.size() + "\t" + sdt.getErrors());
+        }else if(cls == BuddingTree2.BT.class){
+            BuddingTree2.BT bt = new BuddingTree2.BT(
+                    training,
+                    validation,
+                    test,
+                    isClassify,
+                    LEARNING_RATE,
+                    EPOCH);
+            bt.learnTree();
+            System.out.println("Epoch " + (EPOCH - 1) + " Size: " + bt.size() + "\t" + bt.effSize() + " \t" + bt.getErrors());
         }
     }
 
@@ -179,11 +182,10 @@ public class TreeRunner {
 
     private static void run_all_regressions(Class<?> cls) throws IOException {
         for (String s : REGRESS) {
-
+            System.out.println("\n\nSet name: " + s);
 
             for (int i = 1; i <= 5; i++) {
                 for (int j = 1; j <= 2; j++) {
-                    System.out.println("\n\nSet name: " + s + " " + i + " " + j);
                     run_single_regression_set_fold(cls, s, i, j);
                 }
             }
