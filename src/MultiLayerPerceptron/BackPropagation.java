@@ -47,6 +47,7 @@ public class BackPropagation {
     public double[][] G1 = new double[hidden_neuron_number][input_dimension + 1];
 
     public String percentages = "";
+    public int precision_at_k = 50;
 
     public int test_mode = 1;
 
@@ -167,7 +168,7 @@ public class BackPropagation {
         if (test_mode == 0)
             test_mode = -1;
 
-        System.out.println("Train: " + mean_average_precision(train_instances) + "\t\tTest: " + mean_average_precision(test_instances));
+        System.out.println("Train: \n" + mean_average_precision(train_instances) + "\nTest: \n" + mean_average_precision(test_instances));
 //        System.out.println("Train: " + test(train_instances) + "\t\tTest: " + test(test_instances));
 
         if (drawable) {
@@ -299,10 +300,10 @@ public class BackPropagation {
         for (int j = 0; j < CLASS_COUNT; j++) {
             for (int i = 0; i < T.size(); i++) {
                 double prediction = fed_forward[i][j];
-                if (prediction > 0.5) {
+//                if (prediction > 0.5) {
                     responses.get(j).add(prediction);
                     indexes.get(j).add(i);
-                }
+//                }
             }
         }
         for (int i = 0; i < CLASS_COUNT; i++) {
@@ -315,28 +316,35 @@ public class BackPropagation {
             Arrays.sort(regular_indexes[i], index_comparators.get(i));
         }
 
-        for(int i = 0; i < CLASS_COUNT; i++){
-            for(int j = 0; j < 5 && j < responses.get(i).size(); j++){
-                System.out.print(responses.get(i).get(regular_indexes[i][j]) + " ");
-            }
-            System.out.println();
-        }
+//        for(int i = 0; i < CLASS_COUNT; i++){
+//            for(int j = 0; j < 5 && j < responses.get(i).size(); j++){
+//                System.out.print(responses.get(i).get(regular_indexes[i][j]) + " ");
+//            }
+//            System.out.println();
+//        }
 
         double[] average_precisions = new double[CLASS_COUNT];
+        double[] precision_at = new double[precision_at_k];
         double sum = 0;
         for (int i = 0; i < CLASS_COUNT; i++) {
             double tmp = 0;
             double trues = 0;
+            double trues_at_k = 0;
             for(int j = 0; j < indexes.get(i).size(); j++){
                 if(T.get(indexes.get(i).get(regular_indexes[i][j])).classNumbers.contains(i)){
-                    trues++;
+//                    if(responses.get(i).get(regular_indexes[i][j]) > 0.5) {
+                        trues++;
+                        if (j < precision_at_k)
+                            trues_at_k++;
+//                    }
                     tmp += (trues / (j + 1.0));
                 }
             }
             tmp /= CLASS_RATES[i];
             average_precisions[i] = tmp;
+            precision_at[i] = trues_at_k / precision_at_k;
             sum += tmp;
-            result += CLASS_NAMES.get(i) + " Average Precision = " + tmp + "\n";
+            result += Util.indent(CLASS_NAMES.get(i)) + "Average Precision = " + Util.indent(format.format(tmp)) + "Precision@" + precision_at_k + ": " + format.format(precision_at[i]) + "\n";
         }
         result += "\n" + (sum / CLASS_COUNT);
 
@@ -544,7 +552,7 @@ public class BackPropagation {
 //            if(trial == 10 || trial == 20 || trial == 50 || trial == 100 ||trial == 1000){
             if (print_each_epoch)
 //                System.out.println("Epoch: " + trial + "\t\t\tTrain: " + test(train_instances) + "\t\tTest: " + test(test_instances));
-            System.out.println("Epoch: " + trial + "\t\t\tTrain: " + mean_average_precision(train_instances) + "\t\tTest: " + mean_average_precision(test_instances));
+            System.out.println("Epoch: " + trial + "\t\t\tTrain: \n" + mean_average_precision(train_instances) + "\nTest: \n" + mean_average_precision(test_instances));
 //            test();
             MultiLayerNetwork.learn_rate *= 0.99;
 //            }

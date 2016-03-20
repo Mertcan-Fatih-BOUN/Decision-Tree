@@ -9,7 +9,7 @@ import SDT.SDT;
 
 @SuppressWarnings({"unused", "Duplicates"})
 public class TreeRunner {
-    public static double LEARNING_RATE = 0.8;//2 0.001 is nice for msd
+    public static double LEARNING_RATE = 1;//2 0.001 is nice for msd
     public static int EPOCH = 40;
     public static int MAX_STEP = 5;
     public static boolean isMnist = false;

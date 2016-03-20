@@ -112,11 +112,11 @@ public class SetReader {
         if (annotations != null)
             return annotations;
 
-        final String[] POTENTIAL_LABELS = new String[]{"sky", "clouds", "water", "sea", "river", "lake", "people", "portrait",
-                "male", "female", "baby", "night", "plant_life", "tree", "flower", "animals",
-                "dog", "bird", "structures", "sunset", "indoor", "transport", "car",
-                "baby_r1", "bird_r1", "car_r1", "clouds_r1", "dog_r1", "female_r1", "flower_r1", "male_r1",
-                "night_r1", "people_r1", "portrait_r1", "river_r1", "sea_r1", "tree_r1"};
+        final String[] POTENTIAL_LABELS = new String[]{"bird.txt", "baby.txt", "animals.txt", "car.txt", "clouds.txt", "dog.txt", "female.txt", "flower.txt",
+                "food.txt", "indoor.txt", "lake.txt", "male.txt", "night.txt", "people.txt", "plant_life.txt", "portrait.txt","river.txt", "sea.txt",
+                "sky.txt", "structures.txt", "sunset.txt", "transport.txt", "tree.txt", "water.txt", "bird_r1.txt", "baby_r1.txt", "car_r1.txt", "clouds_r1.txt", "dog_r1.txt", "female_r1.txt",
+                "flower_r1.txt", "male_r1.txt", "night_r1.txt", "people_r1.txt", "portrait_r1.txt", "river_r1.txt", "sea_r1.txt",
+                "tree_r1.txt"};
 
         annotations = new ArrayList<>();
         for (int i = 0; i < 25000; i++) {

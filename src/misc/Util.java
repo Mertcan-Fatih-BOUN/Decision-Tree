@@ -79,4 +79,9 @@ public class Util {
 
 
     }
+
+    public static String indent(String s){
+        String t = "                    ";
+        return s + t.substring(0, t.length() - s.length());
+    }
 }
