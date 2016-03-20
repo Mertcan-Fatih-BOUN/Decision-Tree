@@ -1,6 +1,9 @@
 package BuddingTreeMultiClass;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.Scanner;
 
 import static misc.Util.*;
 
@@ -10,8 +13,7 @@ class Node {
     Node parent = null;
     Node leftNode = null;
     Node rightNode = null;
-    boolean isLeaf = true;
-    boolean isLeft;
+
 
     double[] rho;
     double[] w;
@@ -69,6 +71,57 @@ class Node {
     }
 
 
+    Node(BTM tree, Scanner scanner, Node parent) {
+        this.tree = tree;
+
+        int t = scanner.nextInt();
+        if (t == -1)
+            this.parent = null;
+        else
+            this.parent = parent;
+
+        gama = scanner.nextDouble();
+        w0 = scanner.nextDouble();
+
+        w = new double[tree.ATTRIBUTE_COUNT];
+        for (int i = 0; i < tree.ATTRIBUTE_COUNT; i++)
+            w[i] = scanner.nextDouble();
+
+        rho = new double[tree.CLASS_COUNT];
+        for (int i = 0; i < rho.length; i++)
+            rho[i] = scanner.nextDouble();
+
+        gradient_gama = scanner.nextDouble();
+        gradient_w0 = scanner.nextDouble();
+
+
+        sum_grad_w = new double[tree.ATTRIBUTE_COUNT];
+        for (int i = 0; i < tree.ATTRIBUTE_COUNT; i++)
+            sum_grad_w[i] = scanner.nextDouble();
+
+        sum_grad_rho = new double[tree.CLASS_COUNT];
+        for (int i = 0; i < tree.CLASS_COUNT; i++)
+            sum_grad_rho[i] = scanner.nextDouble();
+
+
+        y = new double[tree.CLASS_COUNT];
+        g = new double[tree.CLASS_COUNT];
+        delta = new double[tree.CLASS_COUNT];
+        Arrays.fill(y, 0);
+        Arrays.fill(g, 0);
+
+        gradient_rho = new double[tree.CLASS_COUNT];
+        gradient_w = new double[tree.ATTRIBUTE_COUNT];
+        Arrays.fill(gradient_w, 0);
+        Arrays.fill(gradient_rho, 0);
+
+        if (t == 1) {
+            this.leftNode = new Node(tree, scanner, this);
+            this.rightNode = new Node(tree, scanner, this);
+        }
+    }
+
+
 //    public double g(Instance instance) {
 //        g = sigmoid(dotProduct(w, instance.x) + w0);
 //        return g;
@@ -76,31 +129,31 @@ class Node {
 
 
     public double[] g(Instance instance) {
-        if(last_instance_id_g == instance.id) {
+        if (last_instance_id_g == instance.id) {
 //            System.out.println("ggg");
             return g;
         }
 
-        if(Runner.g_newversion){
+        if (Runner.g_newversion) {
             double sum1 = 0;
             double sum2 = 0;
             int lenght = instance.x.length;
-            for(int j = 0; j < lenght; j++){
-                if(j < SetReader.tag_size){
+            for (int j = 0; j < lenght; j++) {
+                if (j < SetReader.tag_size) {
                     sum1 += w[j] * instance.x[j];
-                }else{
+                } else {
                     sum2 += w[j] * instance.x[j];
                 }
             }
-            for(int i = 0; i < g.length; i++){
-                if(tree.percentages1[i] == 0 || tree.percentages2[i] == 0 )
-                    g[i] = (sigmoid(sum1 + w0) + sigmoid(sum2 + w0))/2;
+            for (int i = 0; i < g.length; i++) {
+                if (tree.percentages1[i] == 0 || tree.percentages2[i] == 0)
+                    g[i] = (sigmoid(sum1 + w0) + sigmoid(sum2 + w0)) / 2;
                 else
-                    g[i] = (tree.percentages1[i]* sigmoid(sum1 + w0) + tree.percentages2[i]*sigmoid(sum2 + w0))/(tree.percentages1[i] + tree.percentages2[i]);
+                    g[i] = (tree.percentages1[i] * sigmoid(sum1 + w0) + tree.percentages2[i] * sigmoid(sum2 + w0)) / (tree.percentages1[i] + tree.percentages2[i]);
             }
-        }else{
+        } else {
             double gg = sigmoid(dotProduct(w, instance.x) + w0);
-            for(int i = 0; i < g.length; i++)
+            for (int i = 0; i < g.length; i++)
                 g[i] = gg;
         }
         last_instance_id_g = instance.id;
@@ -109,7 +162,7 @@ class Node {
     }
 
     public double[] F(Instance instance) {
-        if(last_instance_id_y == instance.id) {
+        if (last_instance_id_y == instance.id) {
             System.out.println("yyy");
             return y;
         }
@@ -137,7 +190,7 @@ class Node {
     }
 
     public double[] delta(Instance instance) {
-        if(last_instance_id_delta == instance.id) {
+        if (last_instance_id_delta == instance.id) {
             System.out.println("ddd");
             return delta;
         }
@@ -196,7 +249,7 @@ class Node {
     }
 
     public void calculateGradient(Instance instance) {
-       delta(instance);
+        delta(instance);
         double[] left_y;
         double[] right_y;
 
@@ -293,13 +346,9 @@ class Node {
     void splitNode() {
         leftNode = new Node(tree);
         leftNode.parent = this;
-        leftNode.isLeft = true;
 
         rightNode = new Node(tree);
         rightNode.parent = this;
-        rightNode.isLeft = false;
-
-        isLeaf = false;
     }
 
     public String toString(int tab) {
@@ -307,7 +356,7 @@ class Node {
         for (int i = 0; i < tab; i++) {
             s += "\t";
         }
-        if (isLeaf)
+        if (leftNode == null)
             s += "LEAF";
         else {
             s += "NODE" + "\n";
@@ -315,5 +364,42 @@ class Node {
             s += this.rightNode.toString(tab + 1);
         }
         return s;
+    }
+
+    public void printToFile(BufferedWriter writer) throws IOException {
+        if (leftNode == null)
+            writer.write("0\n");
+        else if (parent == null)
+            writer.write("-1\n");
+        else
+            writer.write("1\n");
+
+
+        writer.write(gama + "\n");
+        writer.write(w0 + "\n");
+        for (double d : w)
+            writer.write(d + " ");
+        writer.write("\n");
+
+        for (double d : rho)
+            writer.write(d + " ");
+
+        writer.write("\n");
+
+        writer.write(sum_grad_gama + "\n");
+        writer.write(sum_grad_w0 + "\n");
+        for (double d : sum_grad_w)
+            writer.write(d + " ");
+        writer.write("\n");
+
+        for (double d : sum_grad_rho)
+            writer.write(d + " ");
+
+        writer.write("\n");
+
+        if (leftNode != null) {
+            leftNode.printToFile(writer);
+            rightNode.printToFile(writer);
+        }
     }
 }

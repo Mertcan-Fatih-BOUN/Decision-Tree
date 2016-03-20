@@ -1,11 +1,12 @@
 package BuddingTreeMultiClass;
 
 
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Scanner;
 
 
 public class BTM {
@@ -19,9 +20,9 @@ public class BTM {
     final ArrayList<Instance> V;
 
     //1 only tags, 2 only image
-    public double[] percentages1 = new double[]{0.565,0.329,0.567,0.533,0.680,0.663,0.510,0.603,0.418,0.562,0.549,0.520,0.507,0.907,0.654,0.487,0.596,0.620,0.691,0.684,0.607,0.531,0.603,0.629
-            ,0.694,0.366,0.534,0.679,0.724,0.467,0.737,0.476,0.622,0.574,0.488,0.489,0.565,0.545,0.000};
-    public double[] percentages2 = new double[]{0.533,0.447,0.708,0.744,0.926,0.701,0.911,0.684,0.64,0.966,0.678,0.932,0.811,0.951,0.926,0.949,0.683,0.85,0.946,0.947,0.815,0.685,0.928,0.743,0.667,0.62,0.828,0.905,0.786,0.944,0.843,0.958,0.88,0.952,0.957,0.659,0.756,0.755,0.328};
+    public double[] percentages1 = new double[]{0.565, 0.329, 0.567, 0.533, 0.680, 0.663, 0.510, 0.603, 0.418, 0.562, 0.549, 0.520, 0.507, 0.907, 0.654, 0.487, 0.596, 0.620, 0.691, 0.684, 0.607, 0.531, 0.603, 0.629
+            , 0.694, 0.366, 0.534, 0.679, 0.724, 0.467, 0.737, 0.476, 0.622, 0.574, 0.488, 0.489, 0.565, 0.545, 0.000};
+    public double[] percentages2 = new double[]{0.533, 0.447, 0.708, 0.744, 0.926, 0.701, 0.911, 0.684, 0.64, 0.966, 0.678, 0.932, 0.811, 0.951, 0.926, 0.949, 0.683, 0.85, 0.946, 0.947, 0.815, 0.685, 0.928, 0.743, 0.667, 0.62, 0.828, 0.905, 0.786, 0.944, 0.843, 0.958, 0.88, 0.952, 0.957, 0.659, 0.756, 0.755, 0.328};
 
 
     public static Node ROOT;
@@ -106,4 +107,27 @@ public class BTM {
         return error2;
     }
 
+    public void printToFile(String filename) throws IOException {
+        BufferedWriter writer = new BufferedWriter(new FileWriter(filename));
+        writer.write(LEARNING_RATE+"\n");
+        writer.write(LAMBDA+"\n");
+        writer.write(CLASS_COUNT+"\n");
+        writer.write(ATTRIBUTE_COUNT+"\n");
+        ROOT.printToFile(writer);
+        writer.flush();
+        writer.close();
+    }
+
+    public BTM(ArrayList<Instance> X, ArrayList<Instance> V, String filename, int epoch) throws FileNotFoundException {
+        Scanner scanner = new Scanner(new FileReader(filename));
+        this.LEARNING_RATE = scanner.nextDouble();
+        this.LAMBDA = scanner.nextDouble();
+        this.CLASS_COUNT = scanner.nextInt();
+        this.ATTRIBUTE_COUNT = scanner.nextInt();
+        this.EPOCH = epoch;
+        this.X = X;
+        this.V = V;
+
+        ROOT = new Node(this,scanner,null);
+    }
 }
