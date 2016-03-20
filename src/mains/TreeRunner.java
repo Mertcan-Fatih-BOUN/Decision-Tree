@@ -21,7 +21,8 @@ public class TreeRunner {
     public static void main(String[] args) throws IOException {
         Locale.setDefault(Locale.US);
 
-        System.out.println("Learning rate: " + LEARNING_RATE + " Lambda: " + BuddingTree2.BT.Lambda);
+SDT sdt = new SDT("mnist"+File.separator+"train.txt","mnist"+File.separator+"test.txt","mnist"+File.separator+"test.txt",true,2,10,5);
+        sdt.learnTree();
 
         //System.out.println("-----BT-----");
         //run_single_multi_class_set(BT.class, "balance-scale.data");
@@ -70,7 +71,7 @@ public class TreeRunner {
 
 //        run_single_multi_class_set(BuddingTree2.BT.class,"get_flickr");
 //        run_single_multi_class_set(BuddingTree2.BT.class,"complete_mirflickr_notags");
-        run_single_multi_class_set(BuddingTree2.BT.class,"complete_mirflickr_tags");
+        run_single_multi_class_set(BuddingTree.BT.class,"complete_mirflickr_tags");
     }
 
 
@@ -97,8 +98,8 @@ public class TreeRunner {
             );
             sdt.learnTree();
             System.out.println("Size: " + sdt.size() + "\t" + sdt.getErrors());
-        }else if(cls == BuddingTree2.BT.class){
-            BuddingTree2.BT bt = new BuddingTree2.BT(
+        }else if(cls == BuddingTree.BT.class){
+            BuddingTree.BT bt = new BuddingTree.BT(
                     training,
                     validation,
                     test,

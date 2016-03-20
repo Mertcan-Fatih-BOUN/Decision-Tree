@@ -10,7 +10,6 @@ import matlabcontrol.extensions.MatlabNumericArray;
 import matlabcontrol.extensions.MatlabTypeConverter;
 import misc.IndexComparator;
 import misc.Util;
-import org.apache.commons.lang3.ArrayUtils;
 
 import java.io.*;
 import java.nio.charset.Charset;
