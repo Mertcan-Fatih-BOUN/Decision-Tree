@@ -18,17 +18,17 @@ public class Error2 {
         double sumaMap = 0;
         for (double aMAP : MAP) {
             sumaMap += aMAP;
-            s += String.format("%.2f ", aMAP);
+            s += String.format("%.3f\n", aMAP);
         }
-        s += String.format("\nMAP Average : %.2f\n", sumaMap / MAP.length);
+        s += String.format("\nMAP Average : %.3f\n", sumaMap / MAP.length);
 
         s += "Precission: \n";
         double sumprecision = 0;
         for (double aprecission : precision) {
             sumprecision += aprecission;
-            s += String.format("%.2f ", aprecission);
+            s += String.format("%.3f\n", aprecission);
         }
-        s += String.format("\nPrecission Average : %.2f", sumprecision / precision.length);
+        s += String.format("\nPrecission Average : %.3f", sumprecision / precision.length);
         return s;
     }
 }

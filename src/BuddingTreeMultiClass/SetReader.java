@@ -17,6 +17,14 @@ public class SetReader {
     private static ArrayList<int[]> annotations;
     private static ArrayList<double[]> github_gist;
 
+    public static int tag_size = 0;
+
+    public static final String[] POTENTIAL_LABELS = new String[]{"bird", "baby", "animals", "car", "clouds", "dog", "female", "flower",
+            "food", "indoor", "lake", "male", "night", "people", "plant_life", "portrait","river", "sea",
+            "sky", "structures", "sunset", "transport", "tree", "water", "bird_r1", "baby_r1", "car_r1", "clouds_r1", "dog_r1", "female_r1",
+            "flower_r1", "male_r1", "night_r1", "people_r1", "portrait_r1", "river_r1", "sea_r1",
+            "tree_r1"};
+
     private static ArrayList<double[]> readEdgehistogram() throws FileNotFoundException {
         if (edgehistogram != null)
             return edgehistogram;
@@ -105,18 +113,15 @@ public class SetReader {
             tags.add(values);
         }
 
+        tag_size = valid_tags.size();
+
+
         return tags;
     }
 
     private static ArrayList<int[]> readAnnotations() throws FileNotFoundException {
         if (annotations != null)
             return annotations;
-
-        final String[] POTENTIAL_LABELS = new String[]{"bird.txt", "baby.txt", "animals.txt", "car.txt", "clouds.txt", "dog.txt", "female.txt", "flower.txt",
-                "food.txt", "indoor.txt", "lake.txt", "male.txt", "night.txt", "people.txt", "plant_life.txt", "portrait.txt","river.txt", "sea.txt",
-                "sky.txt", "structures.txt", "sunset.txt", "transport.txt", "tree.txt", "water.txt", "bird_r1.txt", "baby_r1.txt", "car_r1.txt", "clouds_r1.txt", "dog_r1.txt", "female_r1.txt",
-                "flower_r1.txt", "male_r1.txt", "night_r1.txt", "people_r1.txt", "portrait_r1.txt", "river_r1.txt", "sea_r1.txt",
-                "tree_r1.txt"};
 
         annotations = new ArrayList<>();
         for (int i = 0; i < 25000; i++) {
@@ -163,7 +168,7 @@ public class SetReader {
             }
             list.add(x);
         }
-normalize(list);
+        normalize(list);
         return list;
     }
 
@@ -183,6 +188,7 @@ normalize(list);
             Instance instance = new Instance();
             instance.x = x;
             instance.r = annotations.get(i);
+            instance.id = i;
 
             if (i % 5 < 3) {
                 ret[0].add(instance);
@@ -211,6 +217,7 @@ normalize(list);
             Instance instance = new Instance();
             instance.x = x;
             instance.r = annotations.get(i);
+            instance.id = i;
 
             if (i % 5 < 3) {
                 ret[0].add(instance);
@@ -250,6 +257,7 @@ normalize(list);
             Instance instance = new Instance();
             instance.x = x;
             instance.r = annotations.get(i);
+            instance.id = 0;
 
             if (i % 5 < 3) {
                 ret[0].add(instance);
