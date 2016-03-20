@@ -17,6 +17,7 @@ class Node {
     double w0;
     double gama = 1;
     double[] y;
+    double[] delta;
     double g;
 
     double[] sum_grad_rho;
@@ -30,8 +31,6 @@ class Node {
     double gradient_gama = 0;
 
     BTM tree;
-    Instance last_y_instance = null;
-    Instance last_g_instance = null;
 
     Node(BTM tree) {
         this.tree = tree;
@@ -47,6 +46,7 @@ class Node {
         gradient_rho = new double[tree.CLASS_COUNT];
         sum_grad_rho = new double[tree.CLASS_COUNT];
         y = new double[tree.CLASS_COUNT];
+        delta = new double[tree.CLASS_COUNT];
         Arrays.fill(y, 0);
         Arrays.fill(gradient_rho, 0);
         Arrays.fill(sum_grad_rho, 0);
@@ -63,58 +63,46 @@ class Node {
 
 
     public double g(Instance instance) {
-        if (last_g_instance == instance)
-            return g;
-
         g = sigmoid(dotProduct(w, instance.x) + w0);
-        last_g_instance = instance;
         return g;
     }
 
     public double[] F(Instance instance) {
-        if (last_y_instance == instance) {
-            return y;
-        }
-
-        if (this.gama == 1 || leftNode == null) {
+        if (leftNode == null) {
             for (int i = 0; i < y.length; i++) {
                 y[i] = this.gama * rho[i];
             }
         } else {
-            double[] _yL = this.leftNode.F(instance);
-            double[] _yR = this.rightNode.F(instance);
+            leftNode.F(instance);
+            rightNode.F(instance);
             for (int i = 0; i < y.length; i++) {
-                double mg = this.g(instance);
-                y[i] = (1 - gama) * ((mg * _yL[i]) + ((1 - mg) * _yR[i])) + gama * rho[i];
+                g(instance);
+                y[i] = (1 - gama) * ((g * leftNode.y[i]) + ((1 - g) * rightNode.y[i])) + gama * rho[i];
             }
         }
 
         if (parent == null) {
-//            for (int i =0;  i < y.length; i++)
-//                y[i] = sigmoid(y[i]);
-            y = sigmoid(y);
+            for (int i = 0; i < y.length; i++)
+                y[i] = sigmoid(y[i]);
         }
 
-        last_y_instance = instance;
-        return (y);
+
+        return y;
     }
 
     public double[] delta(Instance instance) {
-        double[] delta = new double[tree.CLASS_COUNT];
         if (this.parent == null) {
-            double[] y = F(instance);
             for (int i = 0; i < delta.length; i++) {
                 delta[i] = y[i] - instance.r[i];
             }
         } else {
-            double[] p_delta = this.parent.delta(instance);
             if (this == this.parent.leftNode) {
                 for (int i = 0; i < delta.length; i++) {
-                    delta[i] = p_delta[i] * (1 - this.parent.gama) * this.parent.g(instance);
+                    delta[i] = parent.delta[i] * (1 - this.parent.gama) * this.parent.g;
                 }
             } else {
                 for (int i = 0; i < delta.length; i++) {
-                    delta[i] = p_delta[i] * (1 - this.parent.gama) * (1 - this.parent.g(instance));
+                    delta[i] = parent.delta[i] * (1 - this.parent.gama) * (1 - this.parent.g);
                 }
             }
         }
@@ -152,10 +140,9 @@ class Node {
     }
 
     public void calculateGradient(Instance instance) {
-        double[] delta = delta(instance);
+       delta(instance);
         double[] left_y;
         double[] right_y;
-        double g = this.g(instance);
 
         if (leftNode != null) {
             left_y = leftNode.y;
@@ -238,8 +225,6 @@ class Node {
                 sum_grad_rho[i] = 0.01;
             rho[i] = rho[i] - tree.LEARNING_RATE * gradient_rho[i] / Math.sqrt(sum_grad_rho[i]);
         }
-        last_y_instance = null;
-        last_g_instance = null;
     }
 
     void splitNode() {

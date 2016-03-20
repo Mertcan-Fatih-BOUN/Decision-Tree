@@ -2,7 +2,9 @@ package BuddingTreeMultiClass;
 
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 
 
@@ -43,14 +45,12 @@ public class BTM {
     }
 
     public void learnTree() throws IOException {
-        ArrayList<Integer> indices = new ArrayList<>();
-        for (int i = 0; i < X.size(); i++) indices.add(i);
 
         for (int e = 0; e < EPOCH; e++) {
-            Collections.shuffle(indices);
-            for (int i = 0; i < X.size(); i++) {
-                int j = indices.get(i);
-                ROOT.backPropagate(X.get(j));
+            Collections.shuffle(X);
+            for (Instance instance : X) {
+                ROOT.F(instance);
+                ROOT.backPropagate(instance);
                 ROOT.update();
             }
             LEARNING_RATE *= 0.99;
@@ -60,36 +60,28 @@ public class BTM {
 
 
     public String getErrors() {
-        return "Training \n" + MAP_error(X) + "\n\nValidation: \n" +  MAP_error(V);
+        return "Training \n" + MAP_error(X) + "\n\nValidation: \n" + MAP_error(V);
     }
 
 
-    public int[] eval(Instance instance) {
-        double[] y = ROOT.F(instance);
-        int[] ret = new int[y.length];
-        for (int i = 0; i < ret.length; i++) {
-            if (y[i] > 0.5)
-                ret[i] = 1;
-            else
-                ret[i] = 0;
-        }
-        return ret;
-    }
+    public Error2 MAP_error(ArrayList<Instance> A) {
+        Error2 error2 = new Error2(CLASS_COUNT, A.size());
 
-    public Error2 MAP_error(ArrayList<Instance> V) {
-        Error2 error2 = new Error2(CLASS_COUNT, V.size());
-
-        for (Instance instance : V) {
-            instance.y = ROOT.F(instance);
+        for (Instance instance : A) {
+            instance.y = ROOT.F(instance).clone();
         }
 
         for (int i = 0; i < CLASS_COUNT; i++) {
             double error = 0;
             double positive_count = 0;
+            double pre_count = 0;
             final int finalI = i;
-            Collections.sort(V, (o1, o2) -> (int) (o1.y[finalI] - o2.y[finalI]));
-            for (int j = 0; j < V.size(); j++) {
-                if (V.get(j).r[i] == 1) {
+            Collections.sort(A, (o1, o2) -> Double.compare(o2.y[finalI], o1.y[finalI]));
+
+            for (int j = 0; j < A.size(); j++) {
+                if (A.get(j).r[i] == 1) {
+                    if (j < 50)
+                        pre_count++;
                     positive_count++;
                     error += (positive_count * 1.0) / (j + 1);
                 }
@@ -98,27 +90,10 @@ public class BTM {
             error /= positive_count;
 
             error2.MAP[i] = error;
+            error2.precision[i] = pre_count / 50.0f;
         }
 
         return error2;
-    }
-
-    public Error ErrorOfTree11(ArrayList<Instance> V) {
-        Error error = new Error(CLASS_COUNT, V.size());
-        for (Instance instance : V) {
-            double[] y = ROOT.F(instance);
-            int[] y_class = eval(instance);
-            int[] r = instance.r;
-            boolean catched = false;
-            for (int i = 0; i < y.length; i++) {
-                error.addClassification(y_class[i], r[i], i);
-                if (y_class[i] != r[i] && !catched) {
-                    catched = true;
-                    error.addClassicMissClass();
-                }
-            }
-        }
-        return error;
     }
 
 }

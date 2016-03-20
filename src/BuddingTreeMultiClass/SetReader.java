@@ -163,8 +163,34 @@ public class SetReader {
             }
             list.add(x);
         }
-
+normalize(list);
         return list;
+    }
+
+    public static ArrayList<Instance>[] getGithubDatasetNoTag() throws FileNotFoundException {
+        ArrayList<Instance>[] ret = new ArrayList[2];
+        ret[0] = new ArrayList<Instance>();
+        ret[1] = new ArrayList<Instance>();
+
+        ArrayList<double[]> gist = readGithub("complete_mirflickr.txt");
+
+        readAnnotations();
+
+        for (int i = 0; i < annotations.size(); i++) {
+            double[] x = new double[0];
+            x = gist.get(i);
+
+            Instance instance = new Instance();
+            instance.x = x;
+            instance.r = annotations.get(i);
+
+            if (i % 5 < 3) {
+                ret[0].add(instance);
+            } else
+                ret[1].add(instance);
+        }
+
+        return ret;
     }
 
 
@@ -173,28 +199,14 @@ public class SetReader {
         ret[0] = new ArrayList<Instance>();
         ret[1] = new ArrayList<Instance>();
 
-        ArrayList<double[]> gist = readGithub("mirflickr_GIST.txt");
-        ArrayList<double[]> hsv_hist_lay = readGithub("mirflickr_HSV_HIST_LAYOUT.txt");
-        ArrayList<double[]> hsv = readGithub("mirflickr_HSV_HISTOGRAM.txt");
-        ArrayList<double[]> rgb = readGithub("mirflickr_RGB_HISTOGRAM.txt");
-        ArrayList<double[]> sfta = readGithub("mirflickr_SFTA.txt");
-        ArrayList<double[]> sift = readGithub("mirflickr_sift_100.txt");
-
+        ArrayList<double[]> gist = readGithub("complete_mirflickr.txt");
 
         readAnnotations();
         readTags();
 
-
         for (int i = 0; i < annotations.size(); i++) {
             double[] x = new double[0];
             x = concat(tags.get(i), gist.get(i));
-            x = concat(x, gist.get(i));
-            x = concat(x, hsv_hist_lay.get(i));
-            x = concat(x, hsv.get(i));
-            x = concat(x, rgb.get(i));
-            x = concat(x, sfta.get(i));
-            x = concat(x, sift.get(i));
-
 
             Instance instance = new Instance();
             instance.x = x;

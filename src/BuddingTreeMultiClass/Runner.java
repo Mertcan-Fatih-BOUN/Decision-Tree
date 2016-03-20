@@ -7,10 +7,11 @@ import java.util.ArrayList;
 
 import static BuddingTreeMultiClass.SetReader.getDataset;
 import static BuddingTreeMultiClass.SetReader.getGithubDataset;
+import static BuddingTreeMultiClass.SetReader.getGithubDatasetNoTag;
 
 public class Runner {
     public static void main(String[] args) throws IOException {
-        ArrayList<Instance>[] sets = getGithubDataset();
+        ArrayList<Instance>[] sets = getGithubDatasetNoTag();
         BTM btm = new BTM(sets[0], sets[1], 10, 1000, 0.0001);
         btm.learnTree();
         System.out.println(btm.size());
