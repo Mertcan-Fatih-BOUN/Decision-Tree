@@ -74,6 +74,15 @@ public class BTM {
         return "Training \n" + MAP_error(X) + "\n\nValidation: \n" + MAP_error(V);
     }
 
+    public void followInstance(Instance i){
+        double[] y = ROOT.F(i).clone();
+        for(int t = 0; t < i.r.length; t++){
+            System.out.print(i.r[t] + " ");
+        }
+        System.out.println();
+        System.out.println(ROOT.toString(0) + "\n\n");
+    }
+
 
     public Error2 MAP_error(ArrayList<Instance> A) {
         Error2 error2 = new Error2(CLASS_COUNT, A.size());

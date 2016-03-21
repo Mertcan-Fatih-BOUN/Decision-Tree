@@ -15,12 +15,20 @@ public class Runner {
 
     public static void main(String[] args) throws IOException {
         ArrayList<Instance>[] sets = getGithubDatasetNoTag();
-        BTM btm = new BTM(sets[0], sets[1], 1, 1, 0.0001);
-        btm.learnTree();
-        btm.printToFile("print.txt");
+//        BTM btm = new BTM(sets[0], sets[1], 1, 1, 0.0001);
+//        btm.learnTree();
+//        btm.printToFile("print.txt");
 
-        BTM btm2 = new BTM(sets[0], sets[1], "print.txt", 1);
-        btm2.learnTree();
+        BTM btm2 = new BTM(sets[0], sets[1], "print50.txt", 1);
+        btm2.followInstance(sets[1].get(0));
+
+        btm2.followInstance(sets[1].get(1));
+
+        btm2.followInstance(sets[1].get(2));
+
+        btm2.followInstance(sets[1].get(3));
+
+//        btm2.learnTree();
     }
 
 

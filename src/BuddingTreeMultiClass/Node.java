@@ -115,7 +115,7 @@ class Node {
         Arrays.fill(gradient_w, 0);
         Arrays.fill(gradient_rho, 0);
 
-        if (t == 1) {
+        if (t == 1 || t == -1) {
             this.leftNode = new Node(tree, scanner, this);
             this.rightNode = new Node(tree, scanner, this);
         }
@@ -356,12 +356,19 @@ class Node {
         for (int i = 0; i < tab; i++) {
             s += "\t";
         }
+        String info = "\n" + s;
+        info += "gama: " + String.format("%.2f ",gama);
+        info += "\n" + s;
+        info += "g: " + String.format("%.2f ",g[0]) + "\n" + s + "y: ";
+        for(int i = 0; i < g.length; i++){
+            info += String.format("%.2f ",y[i]);
+        }
         if (leftNode == null)
-            s += "LEAF";
+            s += "LEAF" + info;
         else {
-            s += "NODE" + "\n";
+            s += "NODE" + info + "\n";
             s += this.leftNode.toString(tab + 1) + "\n";
-            s += this.rightNode.toString(tab + 1);
+            s += this.rightNode.toString(tab + 1) + "\n";
         }
         return s;
     }
