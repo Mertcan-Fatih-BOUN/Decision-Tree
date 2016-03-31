@@ -1,4 +1,4 @@
-package BuddingTreeMultiClass;
+package BuddingTreeMultiClass2;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -18,20 +18,37 @@ class Node {
     double[] rho;
     double[] w;
     double w0;
+    double w00;
+    double w01;
     double gama = 1;
     double[] y;
     double[] delta;
     double[] g;
+    double g1;
+    double g2;
 
     double[] sum_grad_rho;
     double[] sum_grad_w;
     double sum_grad_w0;
+    double sum_grad_w00;
+    double sum_grad_w01;
     double sum_grad_gama;
 
     double[] gradient_w;
     double[] gradient_rho;
     double gradient_w0 = 0;
+    double gradient_w00 = 0;
+    double gradient_w01 = 0;
     double gradient_gama = 0;
+
+    double[] P1;
+    double[] P2;
+
+    double[] gradient_P1;
+    double[] gradient_P2;
+
+    double[] sum_grad_P1;
+    double[] sum_grad_P2;
 
     int last_instance_id_g = -1;
     int last_instance_id_y = -1;
@@ -47,21 +64,45 @@ class Node {
             w[i] = rand(-0.01, 0.01);
 
         w0 = rand(-0.01, 0.01);
-
+        w00 = rand(-0.01, 0.01);
+        w01 = rand(-0.01, 0.01);
 
         rho = new double[tree.CLASS_COUNT];
         gradient_rho = new double[tree.CLASS_COUNT];
         sum_grad_rho = new double[tree.CLASS_COUNT];
+
+        P1 = new double[tree.CLASS_COUNT];
+        P2 = new double[tree.CLASS_COUNT];
+        gradient_P1 = new double[tree.CLASS_COUNT];
+        gradient_P2 = new double[tree.CLASS_COUNT];
+        sum_grad_P1 = new double[tree.CLASS_COUNT];
+        sum_grad_P2 = new double[tree.CLASS_COUNT];
         y = new double[tree.CLASS_COUNT];
         g = new double[tree.CLASS_COUNT];
+
+
+
         delta = new double[tree.CLASS_COUNT];
         Arrays.fill(y, 0);
         Arrays.fill(g, 0);
         Arrays.fill(gradient_rho, 0);
         Arrays.fill(sum_grad_rho, 0);
+        Arrays.fill(P1, 0);
+        Arrays.fill(P2, 0);
+        Arrays.fill(gradient_P1, 0);
+        Arrays.fill(gradient_P2, 0);
+        Arrays.fill(sum_grad_P1, 0);
+        Arrays.fill(sum_grad_P2, 0);
 
         for (int i = 0; i < rho.length; i++)
             rho[i] = rand(-0.01, 0.01);
+
+        for (int i = 0; i < rho.length; i++) {
+            P1[i] = tree.percentages1[i];
+            P2[i] = tree.percentages2[i];
+            P1[i] = 0.05;
+            P2[i] = 0.05;
+        }
 
         gama = 1;
         gradient_w = new double[tree.ATTRIBUTE_COUNT];
@@ -145,11 +186,16 @@ class Node {
                     sum2 += w[j] * instance.x[j];
                 }
             }
+            sum1 += w00;
+            sum2 += w01;
+            g1 = sigmoid(sum1);
+            g2 = sigmoid(sum2);
             for (int i = 0; i < g.length; i++) {
-                if (tree.percentages1[i] == 0 || tree.percentages2[i] == 0)
+                if (P1[i] == 0 || P2[i] == 0)
                     g[i] = (sigmoid(sum1) + sigmoid(sum2)) / 2;
                 else
-                    g[i] = (tree.percentages1[i] * sigmoid(sum1) + tree.percentages2[i] * sigmoid(sum2)) / (tree.percentages1[i] + tree.percentages2[i]);
+//                    g[i] = (tree.percentages1[i] * sigmoid(sum1) + tree.percentages2[i] * sigmoid(sum2)) / (tree.percentages1[i] + tree.percentages2[i]);
+                    g[i] = (P1[i] * sigmoid(sum1) + P2[i] * sigmoid(sum2)) / (P1[i] + P2[i]);
             }
         } else {
             double gg = sigmoid(dotProduct(w, instance.x) + w0);
@@ -269,18 +315,52 @@ class Node {
 
         gradient_w = new double[tree.ATTRIBUTE_COUNT];
         Arrays.fill(gradient_w, 0);
+//        for (int i = 0; i < tree.ATTRIBUTE_COUNT; i++) {
+//            for (int j = 0; j < tree.CLASS_COUNT; j++)
+//                gradient_w[i] += delta[j] * (1 - gama) * g[j] * (1 - g[j]) * (left_y[j] - right_y[j]) * instance.x[i];
+//            //gradient_w[i] /= tree.CLASS_COUNT;
+//            // gradient_w[i] = delta[(int) instance.classValue] * (1 - gama) * g * (1 - g) * (left_y[(int) instance.classValue] - right_y[(int) instance.classValue]) * instance.attributes[i];
+//        }
+
         for (int i = 0; i < tree.ATTRIBUTE_COUNT; i++) {
-            for (int j = 0; j < tree.CLASS_COUNT; j++)
-                gradient_w[i] += delta[j] * (1 - gama) * g[j] * (1 - g[j]) * (left_y[j] - right_y[j]) * instance.x[i];
-            //gradient_w[i] /= tree.CLASS_COUNT;
-            // gradient_w[i] = delta[(int) instance.classValue] * (1 - gama) * g * (1 - g) * (left_y[(int) instance.classValue] - right_y[(int) instance.classValue]) * instance.attributes[i];
+            for (int j = 0; j < tree.CLASS_COUNT; j++) {
+                if (i < SetReader.tag_size)
+                    gradient_w[i] += delta[j] * (1 - gama) * g1 * (P1[j] / (P1[j] + P2[j])) * (1 - g1) * (left_y[j] - right_y[j]) * instance.x[i];
+                else
+                    gradient_w[i] += delta[j] * (1 - gama) * g2 * (P2[j] / (P1[j] + P2[j])) * (1 - g2) * (left_y[j] - right_y[j]) * instance.x[i];
+                //gradient_w[i] /= tree.CLASS_COUNT;
+                // gradient_w[i] = delta[(int) instance.classValue] * (1 - gama) * g * (1 - g) * (left_y[(int) instance.classValue] - right_y[(int) instance.classValue]) * instance.attributes[i];
+            }
         }
+
+
+
+
+        gradient_P1 = new double[tree.CLASS_COUNT];
+        Arrays.fill(gradient_P1, 0);
+        for (int i = 0; i < tree.CLASS_COUNT; i++)
+            gradient_P1[i] += delta[i] * (1 - gama) * (left_y[i] - right_y[i]) * ((g1 * (P1[i] + P2[i]) - (P1[i] * g1 + P2[i] * g2)) / ((P1[i] + P2[i]) * (P1[i] + P2[i])));
+
+        gradient_P2 = new double[tree.CLASS_COUNT];
+        Arrays.fill(gradient_P2, 0);
+        for (int i = 0; i < tree.CLASS_COUNT; i++)
+            gradient_P2[i] += delta[i] * (1 - gama) * (left_y[i] - right_y[i]) * ((g2 * (P1[i] + P2[i]) - (P1[i] * g1 + P2[i] * g2)) / ((P1[i] + P2[i]) * (P1[i] + P2[i])));
+
 
         gradient_w0 = 0;
         for (int i = 0; i < tree.CLASS_COUNT; i++)
             gradient_w0 += delta[i] * (1 - gama) * g[i] * (1 - g[i]) * (left_y[i] - right_y[i]);
-//         gradient_w0 = delta[i] * (gama);
+        // gradient_w0 = delta[(int) instance.classValue] * (gama);
         // gradient_w0 /= tree.CLASS_COUNT;
+
+        gradient_w00 = 0;
+        for (int i = 0; i < tree.CLASS_COUNT; i++)
+            gradient_w00 += delta[i] * (1 - gama) * g1 * (P1[i]/(P1[i] + P2[i])) * (1 - g1) * (left_y[i] - right_y[i]);;
+
+        gradient_w01 = 0;
+        for (int i = 0; i < tree.CLASS_COUNT; i++)
+            gradient_w01 += delta[i] * (1 - gama) * g2 * (P2[i]/(P1[i] + P2[i])) * (1 - g2) * (left_y[i] - right_y[i]);
+
 
         gradient_rho = new double[tree.CLASS_COUNT];
         for (int i = 0; i < tree.CLASS_COUNT; i++) {
@@ -315,7 +395,19 @@ class Node {
             sum_grad_w[i] += gradient_w[i] * gradient_w[i];
         }
 
+        for (int i = 0; i < sum_grad_P1.length; i++) {
+            sum_grad_P1[i] += gradient_P1[i] * gradient_P1[i];
+        }
+
+        for (int i = 0; i < sum_grad_P2.length; i++) {
+            sum_grad_P2[i] += gradient_P2[i] * gradient_P2[i];
+        }
+
         sum_grad_w0 += gradient_w0 * gradient_w0;
+
+        sum_grad_w00 += gradient_w00 * gradient_w00;
+
+        sum_grad_w01 += gradient_w01 * gradient_w01;
 
         for (int i = 0; i < sum_grad_rho.length; i++) {
             sum_grad_rho[i] += gradient_rho[i] * gradient_rho[i];
@@ -331,6 +423,26 @@ class Node {
         if (sum_grad_w0 == 0)
             sum_grad_w0 = 0.01;
         w0 = w0 - tree.LEARNING_RATE * gradient_w0 / Math.sqrt(sum_grad_w0);
+
+        if (sum_grad_w00 == 0)
+            sum_grad_w00 = 0.01;
+        w00 = w00 - tree.LEARNING_RATE * gradient_w00 / Math.sqrt(sum_grad_w00);
+
+        if (sum_grad_w01 == 0)
+            sum_grad_w01 = 0.01;
+        w01 = w01 - tree.LEARNING_RATE * gradient_w01 / Math.sqrt(sum_grad_w01);
+
+        for (int i = 0; i < sum_grad_P1.length; i++) {
+            if (sum_grad_P1[i] == 0)
+                sum_grad_P1[i] = 0.01;
+            P1[i] = P1[i] - tree.LEARNING_RATE * gradient_P1[i] / Math.sqrt(sum_grad_P1[i]);
+        }
+
+        for (int i = 0; i < sum_grad_P2.length; i++) {
+            if (sum_grad_P2[i] == 0)
+                sum_grad_P2[i] = 0.01;
+            P2[i] = P2[i] - tree.LEARNING_RATE * gradient_P2[i] / Math.sqrt(sum_grad_P2[i]) / 100;
+        }
 
         if (sum_grad_gama == 0)
             sum_grad_gama = 0.01;

@@ -9,7 +9,7 @@ import SDT.SDT;
 
 @SuppressWarnings({"unused", "Duplicates"})
 public class TreeRunner {
-    public static double LEARNING_RATE = 1;//2 0.001 is nice for msd
+    public static double LEARNING_RATE = 0.2;//2 0.001 is nice for msd
     public static int EPOCH = 40;
     public static int MAX_STEP = 5;
     public static boolean isMnist = false;
@@ -21,8 +21,8 @@ public class TreeRunner {
     public static void main(String[] args) throws IOException {
         Locale.setDefault(Locale.US);
 
-SDT sdt = new SDT("mnist"+File.separator+"train.txt","mnist"+File.separator+"test.txt","mnist"+File.separator+"test.txt",true,2,10,5);
-        sdt.learnTree();
+//SDT sdt = new SDT("mnist"+File.separator+"train.txt","mnist"+File.separator+"test.txt","mnist"+File.separator+"test.txt",true,2,10,5);
+//        sdt.learnTree();
 
         //System.out.println("-----BT-----");
         //run_single_multi_class_set(BT.class, "balance-scale.data");
@@ -66,12 +66,12 @@ SDT sdt = new SDT("mnist"+File.separator+"train.txt","mnist"+File.separator+"tes
 //        run_single_multi_class_set(BT.class,"millionsong_yearpred_clsfirst");
 //        run_single_regression_set(BT.class, "millionsong_yearpred_clsfirst");
 //        run_single_regression_set(SDT.class, "millionsong_yearpred_clsfirst");
-//        run_single_multi_class_set(BT.class,"mnist");
+        run_single_multi_class_set(BT.class,"mnist");
 //        run_single_multi_class_set(SDT.class,"mnist");
 
 //        run_single_multi_class_set(BuddingTree2.BT.class,"get_flickr");
 //        run_single_multi_class_set(BuddingTree2.BT.class,"complete_mirflickr_notags");
-        run_single_multi_class_set(BuddingTree.BT.class,"complete_mirflickr_tags");
+//        run_single_multi_class_set(BuddingTree.BT.class,"complete_mirflickr_tags");
     }
 
 

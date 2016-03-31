@@ -24,7 +24,7 @@ public class BT implements Graphable {
     public int ATTRIBUTE_COUNT;
     public int CLASS_COUNT;
     public ArrayList<String> CLASS_NAMES = new ArrayList<>();
-    public double Lambda = 0.001;//in general 0.01 is optimum. make it lower if you wish to increase the tree size and vice versa.
+    public double Lambda = 0.0001;//in general 0.01 is optimum. make it lower if you wish to increase the tree size and vice versa.
 
     ArrayList<Instance> X = new ArrayList<>();
     ArrayList<Instance> V = new ArrayList<>();

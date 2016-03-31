@@ -224,7 +224,7 @@ class Node {
 
         gradient_w0 = 0;
         for (int i = 0; i < tree.CLASS_COUNT; i++)
-            gradient_w0 += delta[i] * (gama);
+            gradient_w0 += delta[i] * (1 - gama) * g * (1 - g) * (left_y[i] - right_y[i]);
         // gradient_w0 = delta[(int) instance.classValue] * (gama);
         // gradient_w0 /= tree.CLASS_COUNT;
 
