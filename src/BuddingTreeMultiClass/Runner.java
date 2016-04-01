@@ -15,7 +15,7 @@ public class Runner {
 
     public static void main(String[] args) throws IOException {
         ArrayList<Instance>[] sets = getGithubDatasetNoTag();
-        BTM btm = new BTM(sets[0], sets[1], 12.5, 100, 0.00003);
+        BTM btm = new BTM(sets[0], sets[1], 0.3, 100, 0.00001);
         System.out.println(SetReader.tag_size + " " + sets[0].get(0).x.length + " " + btm.LEARNING_RATE + " " + btm.LAMBDA + " " + g_newversion);
         btm.learnTree();
 //        btm.printToFile("print.txt");

@@ -19,6 +19,8 @@ public class BTM {
     final ArrayList<Instance> X;
     final ArrayList<Instance> V;
 
+
+    Instance LAST;
     //1 only tags, 2 only image
     public double[] percentages1 = new double[]{0.565, 0.329, 0.567, 0.533, 0.680, 0.663, 0.510, 0.603, 0.418, 0.562, 0.549, 0.520, 0.507, 0.907, 0.654, 0.487, 0.596, 0.620, 0.691, 0.684, 0.607, 0.531, 0.603, 0.629
             , 0.694, 0.366, 0.534, 0.679, 0.724, 0.467, 0.737, 0.476, 0.622, 0.574, 0.488, 0.489, 0.565, 0.545, 0.000};
@@ -59,10 +61,11 @@ public class BTM {
 
         for (int e = 0; e < EPOCH; e++) {
             Collections.shuffle(X);
+            LAST = X.get(X.size()-1);
             for (Instance instance : X) {
                 ROOT.F(instance);
                 ROOT.backPropagate(instance);
-                ROOT.update();
+                ROOT.update(instance);
             }
             LEARNING_RATE *= 0.99;
             System.out.println("Epoch :" + e + "\nSize: " + size() + " " + eff_size() + "\n" + getErrors() + "\nEpoch :" + e + "\n-----------------------\n");

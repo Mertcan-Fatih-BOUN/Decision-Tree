@@ -223,18 +223,18 @@ class Node {
         }
     }
 
-    public void update() {
+    public void update(Instance instance) {
         learnParameters();
         last_instance_id_delta = -1;
         last_instance_id_y = -1;
         last_instance_id_g = -1;
 
         if (leftNode != null) {
-            leftNode.update();
-            rightNode.update();
+            leftNode.update(instance);
+            rightNode.update(instance);
         }
 
-        if (gama < 1 && leftNode == null) {
+        if (gama < 1 && leftNode == null && tree.LAST == instance ) {
             splitNode();
         }
     }
@@ -325,20 +325,20 @@ class Node {
 
         for (int i = 0; i < sum_grad_w.length; i++) {
             if (sum_grad_w[i] == 0)
-                sum_grad_w[i] = 0.01;
+                sum_grad_w[i] = Double.MIN_VALUE;
             w[i] = w[i] - tree.LEARNING_RATE * gradient_w[i] / Math.sqrt(sum_grad_w[i]);
         }
         if (sum_grad_w0 == 0)
-            sum_grad_w0 = 0.01;
+            sum_grad_w0 = Double.MIN_VALUE;
         w0 = w0 - tree.LEARNING_RATE * gradient_w0 / Math.sqrt(sum_grad_w0);
 
         if (sum_grad_gama == 0)
-            sum_grad_gama = 0.01;
+            sum_grad_gama = Double.MIN_VALUE;
         setGama(gama - tree.LEARNING_RATE * gradient_gama / Math.sqrt(sum_grad_gama));
 
         for (int i = 0; i < sum_grad_rho.length; i++) {
             if (sum_grad_rho[i] == 0)
-                sum_grad_rho[i] = 0.01;
+                sum_grad_rho[i] = Double.MIN_VALUE;
             rho[i] = rho[i] - tree.LEARNING_RATE * gradient_rho[i] / Math.sqrt(sum_grad_rho[i]);
         }
     }
@@ -349,6 +349,7 @@ class Node {
 
         rightNode = new Node(tree);
         rightNode.parent = this;
+        System.out.println(tree.size());
     }
 
     public String toString(int tab) {
