@@ -1,8 +1,5 @@
-package BuddingTreeMultiClass2;
+package BuddingTreeMultiClass3;
 
-
-import BuddingTreeMultiClass3.*;
-import BuddingTreeMultiClass3.Result;
 
 import java.io.*;
 import java.lang.reflect.Array;
@@ -28,9 +25,9 @@ public class BTM {
     public double[] percentages2 = new double[]{0.533, 0.447, 0.708, 0.744, 0.926, 0.701, 0.911, 0.684, 0.64, 0.966, 0.678, 0.932, 0.811, 0.951, 0.926, 0.949, 0.683, 0.85, 0.946, 0.947, 0.815, 0.685, 0.928, 0.743, 0.667, 0.62, 0.828, 0.905, 0.786, 0.944, 0.843, 0.958, 0.88, 0.952, 0.957, 0.659, 0.756, 0.755, 0.328};
 
 
-    public ArrayList<Result> results = new ArrayList<>();
-
     public static Node ROOT;
+
+    public ArrayList<Result> results = new ArrayList<>();
 
     /**
      * @param X             Training Set
@@ -65,9 +62,9 @@ public class BTM {
         for (int e = 0; e < EPOCH; e++) {
             Collections.shuffle(X);
             for (Instance instance : X) {
-                ROOT.F(instance);
-                ROOT.backPropagate(instance);
-                ROOT.update();
+//                ROOT.F(instance);
+//                ROOT.backPropagate(instance);
+//                ROOT.update();
             }
             LEARNING_RATE *= 0.99;
             addNewResult(e);
@@ -113,7 +110,6 @@ public class BTM {
         r.setValidationPrecAll(prec.precision);
         results.add(r);
     }
-
 
 
     public String getErrors() {
@@ -162,27 +158,28 @@ public class BTM {
         return error2;
     }
 
-    public void printToFile(String filename) throws IOException {
-        BufferedWriter writer = new BufferedWriter(new FileWriter(filename));
-        writer.write(LEARNING_RATE+"\n");
-        writer.write(LAMBDA+"\n");
-        writer.write(CLASS_COUNT+"\n");
-        writer.write(ATTRIBUTE_COUNT+"\n");
-        ROOT.printToFile(writer);
-        writer.flush();
-        writer.close();
-    }
 
-    public BTM(ArrayList<Instance> X, ArrayList<Instance> V, String filename, int epoch) throws FileNotFoundException {
-        Scanner scanner = new Scanner(new FileReader(filename));
-        this.LEARNING_RATE = scanner.nextDouble();
-        this.LAMBDA = scanner.nextDouble();
-        this.CLASS_COUNT = scanner.nextInt();
-        this.ATTRIBUTE_COUNT = scanner.nextInt();
-        this.EPOCH = epoch;
-        this.X = X;
-        this.V = V;
+//    public void printToFile(String filename) throws IOException {
+//        BufferedWriter writer = new BufferedWriter(new FileWriter(filename));
+//        writer.write(LEARNING_RATE+"\n");
+//        writer.write(LAMBDA+"\n");
+//        writer.write(CLASS_COUNT+"\n");
+//        writer.write(ATTRIBUTE_COUNT+"\n");
+//        ROOT.printToFile(writer);
+//        writer.flush();
+//        writer.close();
+//    }
 
-        ROOT = new Node(this,scanner,null);
-    }
+//    public BTM(ArrayList<Instance> X, ArrayList<Instance> V, String filename, int epoch) throws FileNotFoundException {
+//        Scanner scanner = new Scanner(new FileReader(filename));
+//        this.LEARNING_RATE = scanner.nextDouble();
+//        this.LAMBDA = scanner.nextDouble();
+//        this.CLASS_COUNT = scanner.nextInt();
+//        this.ATTRIBUTE_COUNT = scanner.nextInt();
+//        this.EPOCH = epoch;
+//        this.X = X;
+//        this.V = V;
+//
+//        ROOT = new Node(this,scanner,null);
+//    }
 }

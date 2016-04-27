@@ -1,4 +1,4 @@
-package BuddingTreeMultiClass2;
+package BuddingTreeMultiClass3;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
