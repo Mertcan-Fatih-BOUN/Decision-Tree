@@ -62,9 +62,9 @@ public class BTM {
         for (int e = 0; e < EPOCH; e++) {
             Collections.shuffle(X);
             for (Instance instance : X) {
-//                ROOT.F(instance);
-//                ROOT.backPropagate(instance);
-//                ROOT.update();
+                ROOT.F(instance);
+                ROOT.backPropagate(instance);
+                ROOT.update();
             }
             LEARNING_RATE *= 0.99;
             addNewResult(e);
@@ -74,18 +74,35 @@ public class BTM {
     }
 
     private void printResults() {
-        File file2 = new File("results" + File.separator + "flickr" + File.separator + Runner.properties + "_" + Runner.currentDate + ".txt");
+        File file2 = new File("results" + File.separator + "flickrbtm3" + File.separator + Runner.properties + "_" + Runner.currentDate + ".txt");
         file2.getParentFile().mkdirs();
         BufferedWriter writer = null;
         try {
             writer = new BufferedWriter(new FileWriter(file2));
             writer.write("Size EffSize MapTraining PrecTraining MapValidation PrecValidation\n");
-            for(int i = 0; i < results.size(); i++){
+            for (int i = 0; i < results.size(); i++) {
                 Result r = results.get(i);
                 writer.write(String.format("%d %d %.3f %.3f %.3f %.3f\n",
                         r.getSize(), r.getEffsize(), r.getTrainingMap(), r.getTrainingPrec(),
                         r.getValidationMap(), r.getValitadionPrec()));
             }
+            writer.flush();
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        file2 = new File("results" + File.separator + "flickr" + File.separator + "allclasses_" + Runner.properties + "_" + Runner.currentDate + ".txt");
+        file2.getParentFile().mkdirs();
+        try {
+            writer = new BufferedWriter(new FileWriter(file2));
+            writer.write("MapTraining PrecTraining MapValidation PrecValidation\n");
+            Result r = results.get(results.size() - 1);
+            for(int i = 0; i < r.getTrainingMapAll().length; i++){
+                writer.write(String.format("%.3f %.3f %.3f %.3f\n",
+                        r.getTrainingMapAll()[i], r.getTraininPrecAll()[i], r.getValidationMapAll()[i], r.getValidationPrecAll()[i]));
+            }
+
             writer.flush();
             writer.close();
         } catch (IOException e) {
@@ -116,9 +133,9 @@ public class BTM {
         return "Training \n" + MAP_error(X) + "\n\nValidation: \n" + MAP_error(V);
     }
 
-    public void followInstance(Instance i){
+    public void followInstance(Instance i) {
         double[] y = ROOT.F(i).clone();
-        for(int t = 0; t < i.r.length; t++){
+        for (int t = 0; t < i.r.length; t++) {
             System.out.print(i.r[t] + " ");
         }
         System.out.println();

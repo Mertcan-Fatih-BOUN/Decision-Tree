@@ -83,12 +83,29 @@ public class BTM {
         try {
             writer = new BufferedWriter(new FileWriter(file2));
             writer.write("Size EffSize MapTraining PrecTraining MapValidation PrecValidation\n");
-            for(int i = 0; i < results.size(); i++){
+            for (int i = 0; i < results.size(); i++) {
                 Result r = results.get(i);
                 writer.write(String.format("%d %d %.3f %.3f %.3f %.3f\n",
                         r.getSize(), r.getEffsize(), r.getTrainingMap(), r.getTrainingPrec(),
                         r.getValidationMap(), r.getValitadionPrec()));
             }
+            writer.flush();
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        file2 = new File("results" + File.separator + "flickrbtm2" + File.separator + "allclasses_" + Runner.properties + "_" + Runner.currentDate + ".txt");
+        file2.getParentFile().mkdirs();
+        try {
+            writer = new BufferedWriter(new FileWriter(file2));
+            writer.write("MapTraining PrecTraining MapValidation PrecValidation\n");
+            Result r = results.get(results.size() - 1);
+            for(int i = 0; i < r.getTrainingMapAll().length; i++){
+                writer.write(String.format("%.3f %.3f %.3f %.3f\n",
+                        r.getTrainingMapAll()[i], r.getTraininPrecAll()[i], r.getValidationMapAll()[i], r.getValidationPrecAll()[i]));
+            }
+
             writer.flush();
             writer.close();
         } catch (IOException e) {
