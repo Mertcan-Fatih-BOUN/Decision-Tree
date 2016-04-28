@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Random;
 
 public class Util {
     public static double rand(double s, double e) {
@@ -14,6 +15,19 @@ public class Util {
         }
         return (e - s) * Math.random() + s;
     }
+
+    public static double rand(double s, double e, Random r) {
+        if (e < s) {
+            double t = e;
+            e = s;
+            s = t;
+        }
+
+
+        return (e - s) * r.nextDouble() + s;
+
+    }
+
 
     public static double[] softmax(double[] input) {
         double[] result = new double[input.length];
