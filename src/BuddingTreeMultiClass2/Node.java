@@ -209,8 +209,8 @@ class Node {
                 if (P1[i] == 0 || P2[i] == 0)
                     g[i] = (sigmoid(sum1) + sigmoid(sum2)) / 2;
                 else
-//                    g[i] = (tree.percentages1[i] * sigmoid(sum1) + tree.percentages2[i] * sigmoid(sum2)) / (tree.percentages1[i] + tree.percentages2[i]);
-                    g[i] = (P1[i] * sigmoid(sum1) + P2[i] * sigmoid(sum2)) / (P1[i] + P2[i]);
+                    g[i] = (tree.percentages1[i] * sigmoid(sum1) + tree.percentages2[i] * sigmoid(sum2)) / (tree.percentages1[i] + tree.percentages2[i]);
+//                    g[i] = (P1[i] * sigmoid(sum1) + P2[i] * sigmoid(sum2)) / (P1[i] + P2[i]);
             }
         } else {
             double gg = sigmoid(dotProduct(w, instance.x) + w0);

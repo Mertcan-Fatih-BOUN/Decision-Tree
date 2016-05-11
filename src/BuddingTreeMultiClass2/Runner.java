@@ -14,15 +14,14 @@ public class Runner {
     static String properties;
     static String currentDate;
 
-    static boolean g_newversion = false;
+    static boolean g_newversion = true;
 
     public static void main(String[] args) throws IOException {
         ArrayList<Instance>[] sets = getGithubDataset();
-        BTM btm = new BTM(sets[0], sets[1], 0.3, 100, 0.001);
-        properties = "btm2 " + BuddingTreeMultiClass3.SetReader.tag_size + " " + sets[0].get(0).x.length + " " + btm.LEARNING_RATE + " " + btm.LAMBDA + " " + g_newversion;
+        BTM btm = new BTM(sets[0], sets[1], 0.6, 100, 0.0001);
+        properties = "btm2 " + SetReader.tag_size + " " + sets[0].get(0).x.length + " " + btm.LEARNING_RATE + " " + btm.LAMBDA + " " + g_newversion;
         System.out.println(properties);
         currentDate = Long.toString((new Date()).getTime());
-        System.out.println("btm2 " + SetReader.tag_size + " " + sets[0].get(0).x.length + " " + btm.LEARNING_RATE + " " + btm.LAMBDA + " " + g_newversion);
         btm.learnTree();
 //        btm.printToFile("print.txt");
 

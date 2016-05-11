@@ -92,7 +92,7 @@ public class BTM {
             e.printStackTrace();
         }
 
-        file2 = new File("results" + File.separator + "flickr" + File.separator + "allclasses_" + Runner.properties + "_" + Runner.currentDate + ".txt");
+        file2 = new File("results" + File.separator + "flickrbtm3" + File.separator + "allclasses_" + Runner.properties + "_" + Runner.currentDate + ".txt");
         file2.getParentFile().mkdirs();
         try {
             writer = new BufferedWriter(new FileWriter(file2));

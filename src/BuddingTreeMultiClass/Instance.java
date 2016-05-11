@@ -15,4 +15,13 @@ public class Instance {
             d[i] = y[i] - r[i];
         }
     }
+
+    public String toStringX(){
+        String s = x[0] + "";
+        for(int i = 1; i < x.length; i++){
+            s += " " + x[i];
+        }
+        return s;
+    }
+
 }

@@ -18,8 +18,8 @@ public class Runner {
     static boolean rho_newversion = false;
 
     public static void main(String[] args) throws IOException {
-        ArrayList<Instance>[] sets = getGithubDatasetNoTag();
-        BTM btm = new BTM(sets[0], sets[1], 0.3, 100, 0.001);
+        ArrayList<Instance>[] sets = getGithubDataset();
+        BTM btm = new BTM(sets[0], sets[1], 0.6, 100, 0.001);
         properties = "btm3 rho_" + rho_newversion + "_" + SetReader.tag_size + " " + sets[0].get(0).x.length + " " + btm.LEARNING_RATE + " " + btm.LAMBDA + " " + g_newversion;
         System.out.println(properties);
         currentDate = Long.toString((new Date()).getTime());
@@ -37,6 +37,5 @@ public class Runner {
 
 //        btm2.learnTree();
     }
-
 
 }

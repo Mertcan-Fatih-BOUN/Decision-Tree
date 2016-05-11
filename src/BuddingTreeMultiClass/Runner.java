@@ -11,16 +11,31 @@ import static BuddingTreeMultiClass.SetReader.getGithubDatasetNoTag;
 
 public class Runner {
 
-    static boolean g_newversion = false;
+    static int similar_count = 3;
+    static boolean g_newversion = true;
 
     public static void main(String[] args) throws IOException {
+//        ArrayList<Instance>[] sets = getGithubDataset();
         ArrayList<Instance>[] sets = getGithubDatasetNoTag();
-        BTM btm = new BTM(sets[0], sets[1], 0.3, 100, 0.00001);
-        System.out.println(SetReader.tag_size + " " + sets[0].get(0).x.length + " " + btm.LEARNING_RATE + " " + btm.LAMBDA + " " + g_newversion);
-        btm.learnTree();
-//        btm.printToFile("print.txt");
+//        BTM btm = new BTM(sets[0], sets[1], 0.3, 10, 0.0001);
+//        System.out.println(SetReader.tag_size + " " + sets[0].get(0).x.length + " " + btm.LEARNING_RATE + " " + btm.LAMBDA + " " + g_newversion);
+//        btm.learnTree();
+//        btm.printToFile("btm_notag.txt");
 
-//        BTM btm2 = new BTM(sets[0], sets[1], "print50.txt", 1);
+        BTM btm2 = new BTM(sets[0], sets[1], "btm_notag.txt", 0);
+//        btm2.find_ymeans(sets[1]);
+//        System.out.println("Size: " + btm2.size() + " " + btm2.eff_size() + "\n" + btm2.getErrors() + "\n-----------------------\n");
+//        btm2.write_ymeans();
+//        System.out.println(BTM.ROOT.toStringWeights() + "\n" + BTM.ROOT.leftNode.toStringWeights() + "\n" + BTM.ROOT.rightNode.toStringWeights());
+//        System.out.println("\n" + sets[0].get(0).toStringX() + "\n" + sets[0].get(1).toStringX() + "\n" + sets[0].get(2).toStringX());
+
+        btm2.findAllMinDifferences(sets[0]);
+        btm2.findScaledRhos();
+        btm2.findCumulativeG(sets[0]);
+
+        System.out.println(BTM.ROOT.toStringIndexesAndRhos(0, sets[0]));
+
+//        System.out.println(BTM.ROOT.minDifferences(sets[0]));
 //        btm2.followInstance(sets[1].get(0));
 //
 //        btm2.followInstance(sets[1].get(1));

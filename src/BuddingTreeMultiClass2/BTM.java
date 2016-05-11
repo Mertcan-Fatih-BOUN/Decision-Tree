@@ -77,7 +77,7 @@ public class BTM {
     }
 
     private void printResults() {
-        File file2 = new File("results" + File.separator + "flickr" + File.separator + Runner.properties + "_" + Runner.currentDate + ".txt");
+        File file2 = new File("results" + File.separator + "flickrbtm2" + File.separator + Runner.properties + "_" + Runner.currentDate + ".txt");
         file2.getParentFile().mkdirs();
         BufferedWriter writer = null;
         try {

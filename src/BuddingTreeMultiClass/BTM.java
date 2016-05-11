@@ -2,9 +2,7 @@ package BuddingTreeMultiClass;
 
 
 import java.io.*;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Scanner;
 
@@ -18,6 +16,18 @@ public class BTM {
 
     final ArrayList<Instance> X;
     final ArrayList<Instance> V;
+
+    public double min_rho = 10000;
+    public double max_rho = -10000;
+
+    public double min_rho_times_gama = 10000;
+    public double max_rho_times_gama = -10000;
+
+
+    public double a1;
+    public double b1;
+    public double a2;
+    public double b2;
 
 
     Instance LAST;
@@ -72,6 +82,37 @@ public class BTM {
         }
     }
 
+    public void findAllMinDifferences(ArrayList<Instance> X){
+        ROOT.findAllMinMaxDifferences(X);
+    }
+
+    public void findScaledRhos(){
+        findMinMaxRho();
+        ROOT.findScaledRhos();
+    }
+
+    public void findCumulativeG(ArrayList<Instance> X){
+        for(int i = 0; i < X.size(); i++) {
+            ROOT.cumulative_g(X.get(i));
+        }
+    }
+
+    private void findMinMaxRho(){
+        ROOT.findMinMaxRho();
+        a1 = 255 / (max_rho - min_rho);
+        b1 = -min_rho * a1;
+        a2 = 255 / (max_rho_times_gama - min_rho_times_gama);
+        b2 = -min_rho_times_gama * a2;
+    }
+
+    public void find_ymeans(ArrayList<Instance> A){
+        for (Instance instance : A) {
+            LAST = instance;
+            ROOT.F(instance);
+            ROOT.update_ymeans(A.size());
+        }
+    }
+
 
     public String getErrors() {
         return "Training \n" + MAP_error(X) + "\n\nValidation: \n" + MAP_error(V);
@@ -84,6 +125,10 @@ public class BTM {
         }
         System.out.println();
         System.out.println(ROOT.toString(0) + "\n\n");
+    }
+
+    public void write_ymeans(){
+        System.out.println(ROOT.toStringy_means(0) + "\n\n");
     }
 
 
