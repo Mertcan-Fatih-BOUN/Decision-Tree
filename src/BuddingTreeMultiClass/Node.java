@@ -453,13 +453,15 @@ class Node {
         int[] minDiffIndex = new int[count];
         double[] minDifferences = new double[count];
         for (int i = 0; i < count; i++) {
-            double diff = difference((X.get(0).x));
+//            double diff = difference((X.get(0).x));
+            double diff = dotProduct(w,(X.get(0).x));
             minDifferences[i] = diff;
             minDiffIndex[i] = 0;
         }
 
         for (int i = 1; i < X.size(); i++) {
-            double diff = difference(X.get(i).x);
+//            double diff = difference(X.get(i).x);
+            double diff = dotProduct(w,(X.get(0).x));
             for (int j = 0; j < count; j++) {
                 if (diff < minDifferences[j]) {
                     for (int t = count - 1; t > j; t--) {
@@ -487,13 +489,15 @@ class Node {
         int[] maxDiffIndex = new int[count];
         double[] maxDifferences = new double[count];
         for (int i = 0; i < count; i++) {
-            double diff = difference((X.get(0).x));
+//            double diff = difference((X.get(0).x));
+            double diff = dotProduct(w,(X.get(0).x));
             maxDifferences[i] = diff;
             maxDiffIndex[i] = 0;
         }
 
         for (int i = 1; i < X.size(); i++) {
-            double diff = difference(X.get(i).x);
+//            double diff = difference(X.get(i).x);
+            double diff = dotProduct(w,(X.get(0).x));
             for (int j = 0; j < count; j++) {
                 if (diff > maxDifferences[j]) {
                     for (int t = count - 1; t > j; t--) {
