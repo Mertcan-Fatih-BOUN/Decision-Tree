@@ -63,7 +63,11 @@ public class TreeNode {
         if (leftTreeNode != null) {
             int below_count = (int) Math.pow(2, i + 1);
             int below_gap = (width - below_count  * single_width) / (below_count );
-
+            Graphics2D graphics2D = (Graphics2D) graphics;
+            graphics2D.setColor(Color.BLUE);
+            graphics2D.setStroke(new BasicStroke(5));
+            graphics2D.drawLine(x,y+64, x - below_gap/2 - single_width/2, y +128 );
+            graphics2D.drawLine(x,y+64, x + below_gap/2 + single_width/2, y + 128 );
             leftTreeNode.add_images(graphics, i + 1, x - below_gap/2 - single_width/2);
             rightTreeNode.add_images(graphics, i + 1,  x + below_gap/2 + single_width/2);
         }
