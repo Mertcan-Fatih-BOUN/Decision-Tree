@@ -1,5 +1,7 @@
 package BuddingTreeMultiClass;
 
+import tree.TreeNode;
+
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -416,23 +418,33 @@ class Node {
                 current_cumulative_g = parent.current_cumulative_g * (1 - parent.g(instance)[0]);
             }
         }
-        for(int i = 0; i < cumulative_g.length; i++){
-            if(instance.r[i] == 1)
+        for (int i = 0; i < cumulative_g.length; i++) {
+            if (instance.r[i] == 1)
                 cumulative_g[i] += current_cumulative_g;
         }
-        if(leftNode != null){
+        if (leftNode != null) {
             leftNode.cumulative_g(instance);
             rightNode.cumulative_g(instance);
         }
         return current_cumulative_g;
     }
 
-    public void findAllMinMaxDifferences(ArrayList<Instance> X) {
+    public void findAllMinMaxDifferences(ArrayList<Instance> X, TreeNode treeNode) {
         min_diff_indexes = minDifferences(X);
         max_diff_indexes = maxDifferences(X);
+
+        treeNode.leftTreeNode = new TreeNode();
+        for (int i = 0; i < max_diff_indexes.length; i++)
+            treeNode.leftTreeNode.ids[i] = X.get(max_diff_indexes[i]).mirflicker_id;
+
+        treeNode.rightTreeNode = new TreeNode();
+        for (int i = 0; i < min_diff_indexes.length; i++)
+            treeNode.rightTreeNode.ids[i] = X.get(min_diff_indexes[i]).mirflicker_id;
+
+
         if (leftNode != null) {
-            leftNode.findAllMinMaxDifferences(X);
-            rightNode.findAllMinMaxDifferences(X);
+            leftNode.findAllMinMaxDifferences(X, treeNode.rightTreeNode);
+            rightNode.findAllMinMaxDifferences(X, treeNode.leftTreeNode);
         }
     }
 
@@ -566,22 +578,22 @@ class Node {
         }
     }
 
-    public int[] toGrayScale(double[] array){
+    public int[] toGrayScale(double[] array) {
         int[] grayScale = new int[array.length];
         double max = array[0];
         double min = array[0];
-        for(int i = 1; i < array.length; i++){
-            if(max < array[i]){
+        for (int i = 1; i < array.length; i++) {
+            if (max < array[i]) {
                 max = array[i];
             }
-            if(min > array[i]){
+            if (min > array[i]) {
                 min = array[i];
             }
         }
         double a1 = 255 / (max - min);
         double b1 = -min * a1;
-        for(int i = 0; i < array.length; i++){
-            grayScale[i] = (int)(a1 * array[i] + b1);
+        for (int i = 0; i < array.length; i++) {
+            grayScale[i] = (int) (a1 * array[i] + b1);
         }
         return grayScale;
     }

@@ -20,7 +20,7 @@ public class SetReader {
     public static int tag_size = 0;
 
     public static final String[] POTENTIAL_LABELS = new String[]{"bird", "baby", "animals", "car", "clouds", "dog", "female", "flower",
-            "food", "indoor", "lake", "male", "night", "people", "plant_life", "portrait","river", "sea",
+            "food", "indoor", "lake", "male", "night", "people", "plant_life", "portrait", "river", "sea",
             "sky", "structures", "sunset", "transport", "tree", "water", "bird_r1", "baby_r1", "car_r1", "clouds_r1", "dog_r1", "female_r1",
             "flower_r1", "male_r1", "night_r1", "people_r1", "portrait_r1", "river_r1", "sea_r1",
             "tree_r1"};
@@ -188,6 +188,7 @@ public class SetReader {
             Instance instance = new Instance();
             instance.x = x;
             instance.r = annotations.get(i);
+            instance.mirflicker_id = i + 1;
             instance.id = i;
 
             if (i % 5 < 3) {
@@ -258,7 +259,7 @@ public class SetReader {
             instance.x = x;
             instance.r = annotations.get(i);
             instance.id = 0;
-
+            instance.mirflicker_id = i + 1;
             if (i % 5 < 3) {
                 ret[0].add(instance);
             } else

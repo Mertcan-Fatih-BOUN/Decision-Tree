@@ -8,6 +8,8 @@ public class Instance {
     int id = 0;
     public double[] d;
 
+    int mirflicker_id = 0;
+
     public void setY(double[] y) {
         this.y = y;
         d = new double[y.length];
@@ -16,9 +18,9 @@ public class Instance {
         }
     }
 
-    public String toStringX(){
+    public String toStringX() {
         String s = x[0] + "";
-        for(int i = 1; i < x.length; i++){
+        for (int i = 1; i < x.length; i++) {
             s += " " + x[i];
         }
         return s;

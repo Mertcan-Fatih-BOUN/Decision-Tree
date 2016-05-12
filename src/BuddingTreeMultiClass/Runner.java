@@ -1,6 +1,8 @@
 package BuddingTreeMultiClass;
 
 
+import tree.TreeNode;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,6 +25,7 @@ public class Runner {
 //        btm.printToFile("btm_notag.txt");
 
         BTM btm2 = new BTM(sets[0], sets[1], "btm_notag.txt", 0);
+        btm2.treeNodeRoot = new TreeNode();
 //        btm2.find_ymeans(sets[1]);
 //        System.out.println("Size: " + btm2.size() + " " + btm2.eff_size() + "\n" + btm2.getErrors() + "\n-----------------------\n");
 //        btm2.write_ymeans();
@@ -33,6 +36,7 @@ public class Runner {
         btm2.findScaledRhos();
         btm2.findCumulativeG(sets[0]);
 
+        btm2.treeNodeRoot.printToFile("tree.png");
         System.out.println(BTM.ROOT.toStringIndexesAndRhos(0, sets[0]));
 
 //        System.out.println(BTM.ROOT.minDifferences(sets[0]));

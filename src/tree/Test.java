@@ -9,21 +9,21 @@ public class Test {
     public static void main(String[] args) throws IOException {
         TreeNode root = new TreeNode();
         TreeNode node1 = new TreeNode();
-        node1.ids = new long[]{154,432,454};
+        node1.ids = new int[]{154,432,454};
         TreeNode node2 = new TreeNode();
-        node2.ids = new long[]{24252,546,454};
+        node2.ids = new int[]{24252,546,454};
         TreeNode node3 = new TreeNode();
-        node3.ids = new long[]{154,546,524};
+        node3.ids = new int[]{154,546,524};
         TreeNode node4 = new TreeNode();
-        node4.ids = new long[]{154,546,454};
+        node4.ids = new int[]{154,546,454};
         TreeNode node5 = new TreeNode();
-        node5.ids = new long[]{154,546,4234};
+        node5.ids = new int[]{154,546,4234};
         TreeNode node6 = new TreeNode();
-        node6.ids = new long[]{3224,545,454};
+        node6.ids = new int[]{3224,545,454};
         TreeNode node7 = new TreeNode();
-        node7.ids = new long[]{3423,546,454};
+        node7.ids = new int[]{3423,546,454};
         TreeNode node8 = new TreeNode();
-        node8.ids = new long[]{154,4322,454};
+        node8.ids = new int[]{154,4322,454};
 
         root.leftTreeNode = node1;
         root.rightTreeNode = node2;

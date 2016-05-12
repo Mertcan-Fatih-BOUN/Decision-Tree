@@ -20,11 +20,11 @@ public class TreeNode {
     static int max_depth = 0;
     static int width = 0;
     static int height = 0;
-    long ids[] = new long[]{0, 0, 0};
-    TreeNode leftTreeNode;
-    TreeNode rightTreeNode;
+    public int[] ids = new int[]{0, 0, 0};
+    public TreeNode leftTreeNode;
+    public TreeNode rightTreeNode;
 
-    void printToFile(String filename) throws IOException {
+    public void printToFile(String filename) throws IOException {
         max_depth = 0;
         find_max_depth(0);
         height = 64 + 128 * (max_depth + 1);
@@ -78,4 +78,6 @@ public class TreeNode {
         if (rightTreeNode != null)
             rightTreeNode.find_max_depth(i + 1);
     }
+
+
 }

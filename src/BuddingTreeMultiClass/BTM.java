@@ -1,6 +1,8 @@
 package BuddingTreeMultiClass;
 
 
+import tree.TreeNode;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,6 +38,7 @@ public class BTM {
             , 0.694, 0.366, 0.534, 0.679, 0.724, 0.467, 0.737, 0.476, 0.622, 0.574, 0.488, 0.489, 0.565, 0.545, 0.000};
     public double[] percentages2 = new double[]{0.533, 0.447, 0.708, 0.744, 0.926, 0.701, 0.911, 0.684, 0.64, 0.966, 0.678, 0.932, 0.811, 0.951, 0.926, 0.949, 0.683, 0.85, 0.946, 0.947, 0.815, 0.685, 0.928, 0.743, 0.667, 0.62, 0.828, 0.905, 0.786, 0.944, 0.843, 0.958, 0.88, 0.952, 0.957, 0.659, 0.756, 0.755, 0.328};
 
+    public TreeNode treeNodeRoot;
 
     public static Node ROOT;
 
@@ -71,33 +74,33 @@ public class BTM {
 
         for (int e = 0; e < EPOCH; e++) {
             Collections.shuffle(X);
-            LAST = X.get(X.size()-1);
+            LAST = X.get(X.size() - 1);
             for (Instance instance : X) {
                 ROOT.F(instance);
                 ROOT.backPropagate(instance);
                 ROOT.update(instance);
             }
-          //  LEARNING_RATE *= 0.99;
+            //  LEARNING_RATE *= 0.99;
             System.out.println("Epoch :" + e + "\nSize: " + size() + " " + eff_size() + "\n" + getErrors() + "\nEpoch :" + e + "\n-----------------------\n");
         }
     }
 
-    public void findAllMinDifferences(ArrayList<Instance> X){
-        ROOT.findAllMinMaxDifferences(X);
+    public void findAllMinDifferences(ArrayList<Instance> X) {
+        ROOT.findAllMinMaxDifferences(X,treeNodeRoot);
     }
 
-    public void findScaledRhos(){
+    public void findScaledRhos() {
         findMinMaxRho();
         ROOT.findScaledRhos();
     }
 
-    public void findCumulativeG(ArrayList<Instance> X){
-        for(int i = 0; i < X.size(); i++) {
+    public void findCumulativeG(ArrayList<Instance> X) {
+        for (int i = 0; i < X.size(); i++) {
             ROOT.cumulative_g(X.get(i));
         }
     }
 
-    private void findMinMaxRho(){
+    private void findMinMaxRho() {
         ROOT.findMinMaxRho();
         a1 = 255 / (max_rho - min_rho);
         b1 = -min_rho * a1;
@@ -105,7 +108,7 @@ public class BTM {
         b2 = -min_rho_times_gama * a2;
     }
 
-    public void find_ymeans(ArrayList<Instance> A){
+    public void find_ymeans(ArrayList<Instance> A) {
         for (Instance instance : A) {
             LAST = instance;
             ROOT.F(instance);
@@ -118,16 +121,16 @@ public class BTM {
         return "Training \n" + MAP_error(X) + "\n\nValidation: \n" + MAP_error(V);
     }
 
-    public void followInstance(Instance i){
+    public void followInstance(Instance i) {
         double[] y = ROOT.F(i).clone();
-        for(int t = 0; t < i.r.length; t++){
+        for (int t = 0; t < i.r.length; t++) {
             System.out.print(i.r[t] + " ");
         }
         System.out.println();
         System.out.println(ROOT.toString(0) + "\n\n");
     }
 
-    public void write_ymeans(){
+    public void write_ymeans() {
         System.out.println(ROOT.toStringy_means(0) + "\n\n");
     }
 
@@ -166,10 +169,10 @@ public class BTM {
 
     public void printToFile(String filename) throws IOException {
         BufferedWriter writer = new BufferedWriter(new FileWriter(filename));
-        writer.write(LEARNING_RATE+"\n");
-        writer.write(LAMBDA+"\n");
-        writer.write(CLASS_COUNT+"\n");
-        writer.write(ATTRIBUTE_COUNT+"\n");
+        writer.write(LEARNING_RATE + "\n");
+        writer.write(LAMBDA + "\n");
+        writer.write(CLASS_COUNT + "\n");
+        writer.write(ATTRIBUTE_COUNT + "\n");
         ROOT.printToFile(writer);
         writer.flush();
         writer.close();
@@ -185,6 +188,6 @@ public class BTM {
         this.X = X;
         this.V = V;
 
-        ROOT = new Node(this,scanner,null);
+        ROOT = new Node(this, scanner, null);
     }
 }
