@@ -26,12 +26,12 @@ class Node {
     double[] sum_grad_rho;
     double[] sum_grad_w;
     double sum_grad_w0;
-    double sum_grad_gama;
+
 
     double[] gradient_w;
     double[] gradient_rho;
     double gradient_w0 = 0;
-    double gradient_gama = 0;
+
 
     int last_instance_id_g = -1;
     int last_instance_id_y = -1;
@@ -39,14 +39,14 @@ class Node {
 
     BTM tree;
 
-    Node(BTM tree) {
+    Node(BTM tree, Node parent) {
         this.tree = tree;
-
+        this.parent = parent;
         w = new double[tree.ATTRIBUTE_COUNT];
         for (int i = 0; i < tree.ATTRIBUTE_COUNT; i++)
-            w[i] = rand(-0.01, 0.01);
+            w[i] = rand(-0.01, 0.01, tree.random);
 
-        w0 = rand(-0.01, 0.01);
+        w0 = rand(-0.01, 0.01,tree.random);
 
 
         rho = new double[tree.CLASS_COUNT];
@@ -61,9 +61,13 @@ class Node {
         Arrays.fill(sum_grad_rho, 0);
 
         for (int i = 0; i < rho.length; i++)
-            rho[i] = rand(-0.01, 0.01);
+            rho[i] = rand(-0.01, 0.01,tree.random);
 
         gama = 1;
+
+        if (parent != null)
+            parent.gama = 0;
+
         gradient_w = new double[tree.ATTRIBUTE_COUNT];
         sum_grad_w = new double[tree.ATTRIBUTE_COUNT];
         Arrays.fill(gradient_w, 0);
@@ -91,7 +95,6 @@ class Node {
         for (int i = 0; i < rho.length; i++)
             rho[i] = scanner.nextDouble();
 
-        gradient_gama = scanner.nextDouble();
         gradient_w0 = scanner.nextDouble();
 
 
@@ -234,9 +237,6 @@ class Node {
             rightNode.update(instance);
         }
 
-        if (gama < 1 && leftNode == null && tree.LAST == instance ) {
-            splitNode();
-        }
     }
 
     public void setGama(double f) {
@@ -287,11 +287,6 @@ class Node {
             gradient_rho[i] = delta[i] * gama;
         }
 
-        gradient_gama = 0;
-        for (int i = 0; i < tree.CLASS_COUNT; i++)
-            gradient_gama += delta[i] * ((-g[i] * left_y[i]) - (1 - g[i]) * right_y[i] + rho[i]) - tree.LAMBDA;
-        // gradient_gama /= tree.CLASS_COUNT;
-        // gradient_gama = delta[(int) instance.classValue] * ((-g * left_y[(int) instance.classValue]) - (1 - g) * right_y[(int) instance.classValue] + rho[(int) instance.classValue]) - tree.LAMBDA;
 
     }
 
@@ -321,7 +316,7 @@ class Node {
             sum_grad_rho[i] += gradient_rho[i] * gradient_rho[i];
         }
 
-        sum_grad_gama += gradient_gama * gradient_gama;
+
 
         for (int i = 0; i < sum_grad_w.length; i++) {
             if (sum_grad_w[i] == 0)
@@ -332,9 +327,7 @@ class Node {
             sum_grad_w0 = Double.MIN_VALUE;
         w0 = w0 - tree.LEARNING_RATE * gradient_w0 / Math.sqrt(sum_grad_w0);
 
-        if (sum_grad_gama == 0)
-            sum_grad_gama = Double.MIN_VALUE;
-        setGama(gama - tree.LEARNING_RATE * gradient_gama / Math.sqrt(sum_grad_gama));
+
 
         for (int i = 0; i < sum_grad_rho.length; i++) {
             if (sum_grad_rho[i] == 0)
@@ -343,26 +336,17 @@ class Node {
         }
     }
 
-    void splitNode() {
-        leftNode = new Node(tree);
-        leftNode.parent = this;
-
-        rightNode = new Node(tree);
-        rightNode.parent = this;
-        System.out.println(tree.size());
-    }
-
     public String toString(int tab) {
         String s = "";
         for (int i = 0; i < tab; i++) {
             s += "\t";
         }
         String info = "\n" + s;
-        info += "gama: " + String.format("%.2f ",gama);
+        info += "gama: " + String.format("%.2f ", gama);
         info += "\n" + s;
-        info += "g: " + String.format("%.2f ",g[0]) + "\n" + s + "y: ";
-        for(int i = 0; i < g.length; i++){
-            info += String.format("%.2f ",y[i]);
+        info += "g: " + String.format("%.2f ", g[0]) + "\n" + s + "y: ";
+        for (int i = 0; i < g.length; i++) {
+            info += String.format("%.2f ", y[i]);
         }
         if (leftNode == null)
             s += "LEAF" + info;
@@ -394,7 +378,6 @@ class Node {
 
         writer.write("\n");
 
-        writer.write(sum_grad_gama + "\n");
         writer.write(sum_grad_w0 + "\n");
         for (double d : sum_grad_w)
             writer.write(d + " ");
@@ -409,5 +392,17 @@ class Node {
             leftNode.printToFile(writer);
             rightNode.printToFile(writer);
         }
+    }
+
+    public void increase_depth() {
+        if (leftNode == null)
+            leftNode = new Node(tree,this);
+        else
+            leftNode.increase_depth();
+
+        if (rightNode == null)
+            rightNode = new Node(tree,this);
+        else
+            rightNode.increase_depth();
     }
 }

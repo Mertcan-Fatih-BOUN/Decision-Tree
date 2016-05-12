@@ -5,7 +5,7 @@ public class Error {
     double[] MAP;
     double[] precision;
 
-    public Error(int class_count, int instance_count) {
+    public Error(int class_count) {
         MAP = new double[class_count];
         precision = new double[class_count];
     }
@@ -13,6 +13,14 @@ public class Error {
     public double getAverageMAP() {
         double r = 0;
         for (double d : MAP)
+            r += d;
+
+        return r / MAP.length;
+    }
+
+    public double getAveragePrec() {
+        double r = 0;
+        for (double d : precision)
             r += d;
 
         return r / MAP.length;

@@ -1,12 +1,11 @@
 package BuddingTreeMultiClass;
 
 
+import SDTMultiClass.*;
+
 import java.io.*;
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Scanner;
+import java.util.*;
 
 
 public class BTM {
@@ -15,10 +14,10 @@ public class BTM {
     final public int ATTRIBUTE_COUNT;
     final public int CLASS_COUNT;
     final public double LAMBDA;
-
+    public int DEPTH;
     final ArrayList<Instance> X;
     final ArrayList<Instance> V;
-
+    Random random = new Random(465643);
 
     Instance LAST;
     //1 only tags, 2 only image
@@ -37,7 +36,7 @@ public class BTM {
      * @param lambda        in general 0.01 is optimum. make it lower if you wish to increase the tree size and vice versa.
      * @throws IOException
      */
-    public BTM(ArrayList<Instance> X, ArrayList<Instance> V, double learning_rate, int epoch, double lambda) {
+    public BTM(ArrayList<Instance> X, ArrayList<Instance> V, double learning_rate, int epoch, double lambda, int depth) {
         this.LEARNING_RATE = learning_rate;
         this.EPOCH = epoch;
         this.X = X;
@@ -45,8 +44,8 @@ public class BTM {
         this.LAMBDA = lambda;
         this.ATTRIBUTE_COUNT = X.get(0).x.length;
         this.CLASS_COUNT = X.get(0).r.length;
-
-        ROOT = new Node(this);
+        this.DEPTH = depth;
+        ROOT = new Node(this, null);
     }
 
     public int size() {
@@ -58,17 +57,40 @@ public class BTM {
     }
 
     public void learnTree() throws IOException {
-
+        double preMAP = 0;
         for (int e = 0; e < EPOCH; e++) {
-            Collections.shuffle(X);
-            LAST = X.get(X.size()-1);
+            Collections.shuffle(X, random);
+            LAST = X.get(X.size() - 1);
             for (Instance instance : X) {
                 ROOT.F(instance);
                 ROOT.backPropagate(instance);
                 ROOT.update(instance);
             }
-          //  LEARNING_RATE *= 0.99;
-            System.out.println("Epoch :" + e + "\nSize: " + size() + " " + eff_size() + "\n" + getErrors() + "\nEpoch :" + e + "\n-----------------------\n");
+
+            Error2 errorV = MAP_error(V);
+            Error2 errorX = MAP_error(X);
+            double avXmap = errorX.getAverageMAP();
+            double avXprec = errorX.getAveragePrec();
+            double avVmap = errorV.getAverageMAP();
+            double avVprec = errorV.getAveragePrec();
+
+            System.out.printf("%2d %3d %.3f %.3f %.3f %.3f", e, size(), avXmap, avXprec, avVmap, avVprec);
+            for (double d : errorX.MAP)
+                System.out.printf(" %.3f", d);
+            for (double d : errorX.precision)
+                System.out.printf(" %.3f", d);
+            for (double d : errorV.MAP)
+                System.out.printf(" %.3f", d);
+            for (double d : errorV.precision)
+                System.out.printf(" %.3f", d);
+            System.out.printf("\n");
+
+            if (avVmap <= preMAP) {
+                ROOT.increase_depth();
+                preMAP = 0;
+            }
+            else
+                preMAP = avVmap;
         }
     }
 
@@ -77,9 +99,9 @@ public class BTM {
         return "Training \n" + MAP_error(X) + "\n\nValidation: \n" + MAP_error(V);
     }
 
-    public void followInstance(Instance i){
+    public void followInstance(Instance i) {
         double[] y = ROOT.F(i).clone();
-        for(int t = 0; t < i.r.length; t++){
+        for (int t = 0; t < i.r.length; t++) {
             System.out.print(i.r[t] + " ");
         }
         System.out.println();
@@ -121,10 +143,10 @@ public class BTM {
 
     public void printToFile(String filename) throws IOException {
         BufferedWriter writer = new BufferedWriter(new FileWriter(filename));
-        writer.write(LEARNING_RATE+"\n");
-        writer.write(LAMBDA+"\n");
-        writer.write(CLASS_COUNT+"\n");
-        writer.write(ATTRIBUTE_COUNT+"\n");
+        writer.write(LEARNING_RATE + "\n");
+        writer.write(LAMBDA + "\n");
+        writer.write(CLASS_COUNT + "\n");
+        writer.write(ATTRIBUTE_COUNT + "\n");
         ROOT.printToFile(writer);
         writer.flush();
         writer.close();
@@ -140,6 +162,6 @@ public class BTM {
         this.X = X;
         this.V = V;
 
-        ROOT = new Node(this,scanner,null);
+        ROOT = new Node(this, scanner, null);
     }
 }

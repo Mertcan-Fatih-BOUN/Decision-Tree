@@ -43,14 +43,16 @@ public class SDTM {
     public void learnTree() {
         for (int e = 0; e < EPOCH; e++) {
             Collections.shuffle(X, random);
-            double i = 0;
             for (Instance instance : X) {
                 //    System.out.printf("%d\n", (int) (((++i) / X.size()) * 100));
                 instance.setY(ROOT.F(instance).clone());
                 ROOT.learn(instance);
             }
             LEARNING_RATE *= 0.99;
-            System.out.printf("Epoch: %d Training MAP: %.3f Validation MAP: %.3f\n", e, MAP_error(X).getAverageMAP(), MAP_error(V).getAverageMAP());
+            Error errorX = MAP_error(X);
+            Error errorV = MAP_error(V);
+
+            System.out.printf("%.3f %.3f %.3f %.3f\n", errorX.getAverageMAP(), errorX.getAveragePrec(), errorV.getAverageMAP(), errorV.getAveragePrec());
         }
     }
 
@@ -59,8 +61,9 @@ public class SDTM {
         return "Training \n" + MAP_error(X) + "\n\nValidation: \n" + MAP_error(V);
     }
 
+    @SuppressWarnings("Duplicates")
     public Error MAP_error(ArrayList<Instance> A) {
-        Error error2 = new Error(CLASS_COUNT, A.size());
+        Error error2 = new Error(CLASS_COUNT);
 
         for (Instance instance : A) {
             instance.y = ROOT.F(instance).clone();

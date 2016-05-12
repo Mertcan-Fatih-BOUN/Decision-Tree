@@ -14,9 +14,19 @@ public class Runner {
     static boolean g_newversion = false;
 
     public static void main(String[] args) throws IOException {
-        ArrayList<Instance>[] sets = getGithubDatasetNoTag();
-        BTM btm = new BTM(sets[0], sets[1], 0.3, 100, 0.00001);
+        ArrayList<Instance>[] sets = getGithubDataset();
+        BTM btm = new BTM(sets[0], sets[1], 1, 100, 0.00001,7);
         System.out.println(SetReader.tag_size + " " + sets[0].get(0).x.length + " " + btm.LEARNING_RATE + " " + btm.LAMBDA + " " + g_newversion);
+        System.out.printf("%2s %3s %5s %5s %5s %5s", "e", "Sz", "TrMap", "TrPre", "VaMap", "VaPre");
+        for (int  i= 0; i < 38; i++)
+            System.out.printf(" %5s","C" + i + "TM" );
+        for (int  i= 0; i < 38; i++)
+            System.out.printf(" %5s","C" + i + "TP" );
+        for (int  i= 0; i < 38; i++)
+            System.out.printf(" %5s","C" + i + "VM" );
+        for (int  i= 0; i < 38; i++)
+            System.out.printf(" %5s","C" + i + "TP" );
+        System.out.println("");
         btm.learnTree();
 //        btm.printToFile("print.txt");
 
