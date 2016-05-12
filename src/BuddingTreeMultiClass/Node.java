@@ -442,7 +442,7 @@ class Node {
             treeNode.rightTreeNode.ids[i] = X.get(min_diff_indexes[i]).mirflicker_id;
 
 
-        if (leftNode != null) {
+        if (this.gama < 0.99) {
             leftNode.findAllMinMaxDifferences(X, treeNode.rightTreeNode);
             rightNode.findAllMinMaxDifferences(X, treeNode.leftTreeNode);
         }
