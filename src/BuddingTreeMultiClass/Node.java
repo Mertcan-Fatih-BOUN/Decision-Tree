@@ -461,7 +461,7 @@ class Node {
 
         for (int i = 1; i < X.size(); i++) {
 //            double diff = difference(X.get(i).x);
-            double diff = dotProduct(w,(X.get(0).x));
+            double diff = dotProduct(w,(X.get(i).x));
             for (int j = 0; j < count; j++) {
                 if (diff < minDifferences[j]) {
                     for (int t = count - 1; t > j; t--) {
@@ -497,7 +497,7 @@ class Node {
 
         for (int i = 1; i < X.size(); i++) {
 //            double diff = difference(X.get(i).x);
-            double diff = dotProduct(w,(X.get(0).x));
+            double diff = dotProduct(w,(X.get(i).x));
             for (int j = 0; j < count; j++) {
                 if (diff > maxDifferences[j]) {
                     for (int t = count - 1; t > j; t--) {
