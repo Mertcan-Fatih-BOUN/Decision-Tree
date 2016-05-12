@@ -24,6 +24,7 @@ public class TreeNode {
     public TreeNode leftTreeNode;
     public TreeNode rightTreeNode;
 
+    public double leafness = 0;
     public void printToFile(String filename) throws IOException {
         max_depth = 0;
         find_max_depth(0);
@@ -65,7 +66,7 @@ public class TreeNode {
             int below_gap = (width - below_count  * single_width) / (below_count );
             Graphics2D graphics2D = (Graphics2D) graphics;
             graphics2D.setColor(Color.BLUE);
-            graphics2D.setStroke(new BasicStroke(5));
+            graphics2D.setStroke(new BasicStroke((float) (10 * (1 - leafness))));
             graphics2D.drawLine(x,y+64, x - below_gap/2 - single_width/2, y +128 );
             graphics2D.drawLine(x,y+64, x + below_gap/2 + single_width/2, y + 128 );
             leftTreeNode.add_images(graphics, i + 1, x - below_gap/2 - single_width/2);
