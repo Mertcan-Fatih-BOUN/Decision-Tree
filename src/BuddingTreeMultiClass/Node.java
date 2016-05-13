@@ -1,7 +1,5 @@
 package BuddingTreeMultiClass;
 
-import tree.TreeNode;
-
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -11,7 +9,7 @@ import java.util.Scanner;
 import static misc.Util.*;
 
 @SuppressWarnings("Duplicates")
-class Node {
+public class Node {
 
     Node parent = null;
     Node leftNode = null;
@@ -37,7 +35,7 @@ class Node {
     double[] rho;
     double[] w;
     double w0;
-    double gama = 1;
+    public double gama = 1;
     double[] y;
 
     double[] y_means;
@@ -430,22 +428,23 @@ class Node {
     }
 
     public void findAllMinMaxDifferences(ArrayList<Instance> X, TreeNode treeNode) {
-        min_diff_indexes = minDifferences(X);
-        max_diff_indexes = maxDifferences(X);
+        treeNode.node = this;
+        if (this.gama< 0.99) {
+            min_diff_indexes = minDifferences(X);
+            max_diff_indexes = maxDifferences(X);
 
-        treeNode.leafness = gama;
-        treeNode.leftTreeNode = new TreeNode();
-        for (int i = 0; i < max_diff_indexes.length; i++)
-            treeNode.leftTreeNode.ids[i] = X.get(max_diff_indexes[i]).mirflicker_id;
+            treeNode.leftTreeNode = new TreeNode();
+            for (int i = 0; i < max_diff_indexes.length; i++)
+                treeNode.leftTreeNode.instances[i] = X.get(max_diff_indexes[i]);
 
-        treeNode.rightTreeNode = new TreeNode();
-        for (int i = 0; i < min_diff_indexes.length; i++)
-            treeNode.rightTreeNode.ids[i] = X.get(min_diff_indexes[i]).mirflicker_id;
+            treeNode.rightTreeNode = new TreeNode();
+            for (int i = 0; i < min_diff_indexes.length; i++)
+                treeNode.rightTreeNode.instances[i] = X.get(min_diff_indexes[i]);
 
-
-        if (this.gama < 0.99) {
-            leftNode.findAllMinMaxDifferences(X, treeNode.rightTreeNode);
-            rightNode.findAllMinMaxDifferences(X, treeNode.leftTreeNode);
+            if (this.leftNode != null) {
+                leftNode.findAllMinMaxDifferences(X, treeNode.rightTreeNode);
+                rightNode.findAllMinMaxDifferences(X, treeNode.leftTreeNode);
+            }
         }
     }
 

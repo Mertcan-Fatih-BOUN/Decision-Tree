@@ -1,19 +1,14 @@
 package BuddingTreeMultiClass;
 
 
-import tree.TreeNode;
-
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import static BuddingTreeMultiClass.SetReader.getDataset;
-import static BuddingTreeMultiClass.SetReader.getGithubDataset;
 import static BuddingTreeMultiClass.SetReader.getGithubDatasetNoTag;
 
 public class Runner {
 
-    static int similar_count = 3;
+    public static int similar_count = 5;
     static boolean g_newversion = true;
 
     public static void main(String[] args) throws IOException {
