@@ -17,7 +17,8 @@ public class TreeNode {
      * im0-im30000 64x64 images
      * im0 is complete black 64x64 image
      */
-    static String thumbnail_folder = "D:\\Users\\Fatih\\Downloads\\mirflickr\\mirflickr25k\\combined\\";
+//    static String thumbnail_folder = "D:\\Users\\Fatih\\Downloads\\mirflickr\\mirflickr25k\\combined\\";
+    static String thumbnail_folder = "combined_thumbs\\";
 
     static final int image_width = 64;
     static final int image_height = 64;
@@ -76,6 +77,7 @@ public class TreeNode {
 
     private void add_images(Graphics graphics, int level, int x) throws IOException {
         BufferedImage[] images = new BufferedImage[instance_count];
+//        System.out.println(instances[3].mirflicker_id);
         for (int i = 0; i < images.length; i++)
             images[i] = ImageIO.read(new File(thumbnail_folder + "im" + instances[i].mirflicker_id + ".jpg"));
 
@@ -95,21 +97,33 @@ public class TreeNode {
         }
 
 
+
         int local_x = x - instance_group_width / 2;
         for (int i = 0; i < images.length; i++) {
             graphics.drawImage(images[i], local_x + i * (instance_width + instance_gap), y + class_bar_height, null);
+
             for (int c = -1; c <= instances[i].r.length; c++) {
                 if (c == -1 || c == instances[i].r.length)
                     graphics.setColor(Color.blue);
                 else if (instances[i].r[c] == 0)
                     graphics.setColor(Color.black);
                 else
-                    continue;
+                    graphics.setColor(Color.white);
 
                 graphics.drawRect(local_x + i * (instance_width + instance_gap) + c, y + class_bar_height + image_height, 1, class_bar_height);
 
             }
         }
+
+
+//        graphics.setFont(graphics.getFont().deriveFont(15f));
+        graphics.setFont(new Font("TimesRoman", Font.PLAIN, 15));
+
+        for(int i = 0; i < node.max_g_indexes.length; i++){
+            String s = String.format("  %3d %.2f %.2f %.2f %s", node.max_g_indexes[i], node.max_g_values[i], node.max_g_values[i] - node.total_decision[node.max_g_indexes[i]], node.total_decision[node.max_g_indexes[i]], SetReader.POTENTIAL_LABELS[node.max_g_indexes[i]]);
+            graphics.drawString(s, local_x + (images.length - 1) * (instance_width + instance_gap) + image_width + 10,10 + y + class_bar_height + i * 15);
+        }
+
 
 
         if (leftTreeNode != null)

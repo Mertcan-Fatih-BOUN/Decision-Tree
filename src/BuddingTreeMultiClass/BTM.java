@@ -78,6 +78,7 @@ public class BTM {
                 ROOT.backPropagate(instance);
                 ROOT.update(instance);
             }
+            printToFile(Runner.toFile);
             //  LEARNING_RATE *= 0.99;
             System.out.println("Epoch :" + e + "\nSize: " + size() + " " + eff_size() + "\n" + getErrors() + "\nEpoch :" + e + "\n-----------------------\n");
         }
@@ -96,6 +97,7 @@ public class BTM {
         for (int i = 0; i < X.size(); i++) {
             ROOT.cumulative_g(X.get(i));
         }
+        ROOT.max_cumulative_g();
     }
 
     private void findMinMaxRho() {
