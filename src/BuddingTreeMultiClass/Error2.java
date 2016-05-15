@@ -5,8 +5,8 @@ import java.util.Arrays;
 
 
 public class Error2 {
-    double[] MAP;
-    double[] precision;
+    public double[] MAP;
+    public double[] precision;
 
     public Error2(int class_count, int instance_count) {
         MAP = new double[class_count];
