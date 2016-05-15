@@ -25,6 +25,17 @@ public class SetReader {
             "flower_r1", "male_r1", "night_r1", "people_r1", "portrait_r1", "river_r1", "sea_r1",
             "tree_r1"};
 
+    public static int[] class_counts(ArrayList<Instance> X){
+        int[] class_counts = new int[38];
+        for(Instance i:X){
+            for(int t = 0; t < i.r.length; t++){
+                if(i.r[t] == 1)
+                    class_counts[t]++;
+            }
+        }
+        return class_counts;
+    }
+
     private static ArrayList<double[]> readEdgehistogram() throws FileNotFoundException {
         if (edgehistogram != null)
             return edgehistogram;
@@ -200,6 +211,38 @@ public class SetReader {
         return ret;
     }
 
+    public static ArrayList<Instance>[] getGithubDatasetNoTag_v2() throws FileNotFoundException {
+        ArrayList<Instance>[] ret = new ArrayList[2];
+        ret[0] = new ArrayList<Instance>();
+        ret[1] = new ArrayList<Instance>();
+
+        ArrayList<double[]> gist = readGithub("complete_mirflickr.txt");
+
+        readAnnotations();
+
+        for (int i = 0; i < annotations.size(); i++) {
+            double[] x = new double[0];
+            x = gist.get(i);
+
+            Instance instance = new Instance();
+            instance.x = x;
+            instance.r = annotations.get(i);
+            instance.mirflicker_id = i + 1;
+            instance.id = i;
+
+            int add = 0;
+            for(int t = 0; t < instance.r.length; t++)
+                add += instance.r[t];
+
+            if (i % 5 < 3 && add > 0) {
+                ret[0].add(instance);
+            } else if(add > 0)
+                ret[1].add(instance);
+        }
+
+        return ret;
+    }
+
 
     public static ArrayList<Instance>[] getGithubDataset() throws FileNotFoundException {
         ArrayList<Instance>[] ret = new ArrayList[2];
@@ -218,6 +261,7 @@ public class SetReader {
             Instance instance = new Instance();
             instance.x = x;
             instance.r = annotations.get(i);
+            instance.mirflicker_id = i + 1;
             instance.id = i;
 
             if (i % 5 < 3) {

@@ -62,6 +62,12 @@ public class Node {
     int[] min_diff_indexes = new int[Runner.similar_count];
     int[] max_diff_indexes = new int[Runner.similar_count];
 
+    int[] max_g_indexes = new int[Runner.similar_count];
+    double[] max_g_values = new double[Runner.similar_count];
+
+
+    double[] total_decision;
+
     BTM tree;
 
     Node(BTM tree) {
@@ -85,6 +91,7 @@ public class Node {
         y_means = new double[tree.CLASS_COUNT];
         g = new double[tree.CLASS_COUNT];
         cumulative_g = new double[tree.CLASS_COUNT];
+        total_decision = new double[tree.CLASS_COUNT];
         delta = new double[tree.CLASS_COUNT];
         Arrays.fill(y, 0);
         Arrays.fill(g, 0);
@@ -119,6 +126,7 @@ public class Node {
             w[i] = scanner.nextDouble();
 
         cumulative_g = new double[tree.CLASS_COUNT];
+        total_decision = new double[tree.CLASS_COUNT];
         scaled_rho = new int[tree.CLASS_COUNT];
         scaled_rho_within = new int[tree.CLASS_COUNT];
         scaled_rho_gama = new int[tree.CLASS_COUNT];
@@ -411,9 +419,9 @@ public class Node {
             current_cumulative_g = 1;
         } else {
             if (this == this.parent.leftNode) {
-                current_cumulative_g = parent.current_cumulative_g * (parent.g(instance)[0]);
+                current_cumulative_g = (1 - parent.gama) * parent.current_cumulative_g * (parent.g(instance)[0]);
             } else {
-                current_cumulative_g = parent.current_cumulative_g * (1 - parent.g(instance)[0]);
+                current_cumulative_g = (1 - parent.gama) *  parent.current_cumulative_g * (1 - parent.g(instance)[0]);
             }
         }
         for (int i = 0; i < cumulative_g.length; i++) {
@@ -427,9 +435,11 @@ public class Node {
         return current_cumulative_g;
     }
 
+
+
     public void findAllMinMaxDifferences(ArrayList<Instance> X, TreeNode treeNode) {
         treeNode.node = this;
-        if (this.gama< 0.99) {
+        if (this.gama < 0.99) {
             min_diff_indexes = minDifferences(X);
             max_diff_indexes = maxDifferences(X);
 
@@ -463,7 +473,7 @@ public class Node {
 //            double diff = difference(X.get(i).x);
             double diff = dotProduct(w, (X.get(i).x));
             for (int j = 0; j < count; j++) {
-                if (diff < minDifferences[j]) {
+                if (diff <= minDifferences[j]) {
                     for (int t = count - 1; t > j; t--) {
                         minDifferences[t] = minDifferences[t - 1];
                         minDiffIndex[t] = minDiffIndex[t - 1];
@@ -499,7 +509,7 @@ public class Node {
 //            double diff = difference(X.get(i).x);
             double diff = dotProduct(w, (X.get(i).x));
             for (int j = 0; j < count; j++) {
-                if (diff > maxDifferences[j]) {
+                if (diff >= maxDifferences[j]) {
                     for (int t = count - 1; t > j; t--) {
                         maxDifferences[t] = maxDifferences[t - 1];
                         maxDiffIndex[t] = maxDiffIndex[t - 1];
@@ -518,6 +528,41 @@ public class Node {
 //        System.out.println(s);
 
         return maxDiffIndex;
+    }
+
+    public void max_cumulative_g() {
+        int count = Runner.similar_count;
+        for(int i = 0; i < cumulative_g.length; i++){
+            cumulative_g[i] /= Runner.class_counts[i];
+            total_decision[i] = cumulative_g[i] * gama;
+        }
+
+        for (int i = 0; i < count; i++) {
+//            double diff = difference((X.get(0).x));
+            double diff = cumulative_g[0];
+            max_g_values[i] = diff;
+            max_g_indexes[i] = 0;
+        }
+
+        for (int i = 1; i < cumulative_g.length; i++) {
+//            double diff = difference(X.get(i).x);
+            double diff = cumulative_g[i];
+            for (int j = 0; j < count; j++) {
+                if (diff >= max_g_values[j]) {
+                    for (int t = count - 1; t > j; t--) {
+                        max_g_values[t] = max_g_values[t - 1];
+                        max_g_indexes[t] = max_g_indexes[t - 1];
+                    }
+                    max_g_values[j] = diff;
+                    max_g_indexes[j] = i;
+                    break;
+                }
+            }
+        }
+        if(leftNode != null){
+            leftNode.max_cumulative_g();
+            rightNode.max_cumulative_g();
+        }
     }
 
     public double difference(double[] x) {
@@ -670,6 +715,18 @@ public class Node {
 
         for (int i = 0; i < rho.length; i++) {
             info += String.format("%d ", gray_scale[i]);
+        }
+
+        info += "\n" + s + "max_cumulative_gs: ";
+
+        for (int i = 0; i < max_g_indexes.length; i++) {
+            info += String.format("%d ", max_g_indexes[i]);
+        }
+
+        info += "\n" + s + "max_cumulative_gs: ";
+
+        for (int i = 0; i < max_g_indexes.length; i++) {
+            info += String.format("%.2f ", max_g_values[i]);
         }
 
         info += "\n" + s + "rho_scaled_within: ";
