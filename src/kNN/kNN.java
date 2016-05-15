@@ -10,7 +10,6 @@ public class kNN {
     public final ArrayList<Instance> X;
     public final ArrayList<Instance> V;
     public final int CLASS_COUNT;
-    public final int TOTAL_SIZE;
     private double count = 0;
 
     public kNN(int k, ArrayList<Instance> X, ArrayList<Instance> V) {
@@ -18,7 +17,6 @@ public class kNN {
         this.X = X;
         this.V = V;
         this.CLASS_COUNT = X.get(0).r.length;
-        this.TOTAL_SIZE = X.size() * V.size();
     }
 
     public void run() {
@@ -38,7 +36,7 @@ public class kNN {
             for (int j = 0; j < instanceA.y.length; j++) {
                 instanceA.y[j] = instanceA.y[j] / k;
             }
-            System.out.printf("Completed: %.2f\n", count++ / TOTAL_SIZE);
+            System.out.printf("Completed: %.2f\n", count++ / V.size());
         }
     }
 

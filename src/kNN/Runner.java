@@ -29,6 +29,7 @@ public class Runner {
         kNN knn = new kNN(k, sets[0], sets[1]);
         knn.run();
         Error2 error2 = knn.MAP_error();
+        System.out.println(error2.toString());
 
     }
 }
