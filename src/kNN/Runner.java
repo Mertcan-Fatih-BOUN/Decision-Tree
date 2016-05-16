@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import static BuddingTreeMultiClass.SetReader.*;
 
 public class Runner {
-    public static int k = 20;
+    public static int k = 10;
     public static boolean noTag = true;
 
     public static void main(String[] args) throws FileNotFoundException {

@@ -70,8 +70,12 @@ public class Node {
 
     BTM tree;
 
+    public double learning_rate;
+
     Node(BTM tree) {
         this.tree = tree;
+
+        learning_rate = tree.LEARNING_RATE;
 
         w = new double[tree.ATTRIBUTE_COUNT];
         for (int i = 0; i < tree.ATTRIBUTE_COUNT; i++)
@@ -173,6 +177,17 @@ public class Node {
 //        return g;
 //    }
 
+    public void downgradeLearning() {
+        learning_rate *= Runner.down_learning_rate;
+        if (Runner.punish_gama != 0) {
+            if (gama < 0.6)
+                setGama(gama - Runner.punish_gama);
+        }
+        if (leftNode != null) {
+            leftNode.downgradeLearning();
+            rightNode.downgradeLearning();
+        }
+    }
 
     public double[] g(Instance instance) {
         if (last_instance_id_g == instance.id) {
@@ -374,6 +389,8 @@ public class Node {
             return 1 + leftNode.myEffSize() + rightNode.myEffSize();
     }
 
+    boolean firstTime = true;
+
     void learnParameters() {
 
         for (int i = 0; i < sum_grad_w.length; i++) {
@@ -388,20 +405,36 @@ public class Node {
 
         sum_grad_gama += gradient_gama * gradient_gama;
 
+//        if(Runner.down_learning_rate != 0) {
+//            for (int i = 0; i < sum_grad_w.length; i++) {
+//                sum_grad_w[i] = 1;
+//            }
+//
+//            sum_grad_w0 = 1;
+//
+//            for (int i = 0; i < sum_grad_rho.length; i++) {
+//                sum_grad_rho[i] = 1;
+//            }
+//            sum_grad_gama = 1;
+//        }
+
         for (int i = 0; i < sum_grad_w.length; i++) {
             if (sum_grad_w[i] != 0)
-                w[i] = w[i] - tree.LEARNING_RATE * gradient_w[i] / Math.sqrt(sum_grad_w[i]);
+                w[i] = w[i] - learning_rate * gradient_w[i] / Math.sqrt(sum_grad_w[i]);
         }
+
         if (sum_grad_w0 != 0)
-            w0 = w0 - tree.LEARNING_RATE * gradient_w0 / Math.sqrt(sum_grad_w0);
+            w0 = w0 - learning_rate * gradient_w0 / Math.sqrt(sum_grad_w0);
 
         if (sum_grad_gama != 0)
-            setGama(gama - tree.LEARNING_RATE * gradient_gama / Math.sqrt(sum_grad_gama));
+            setGama(gama - learning_rate * gradient_gama / Math.sqrt(sum_grad_gama));
 
         for (int i = 0; i < sum_grad_rho.length; i++) {
             if (sum_grad_rho[i] != 0)
-                rho[i] = rho[i] - tree.LEARNING_RATE * gradient_rho[i] / Math.sqrt(sum_grad_rho[i]);
+                rho[i] = rho[i] - learning_rate * gradient_rho[i] / Math.sqrt(sum_grad_rho[i]);
         }
+
+
     }
 
     void splitNode() {
@@ -421,7 +454,7 @@ public class Node {
             if (this == this.parent.leftNode) {
                 current_cumulative_g = (1 - parent.gama) * parent.current_cumulative_g * (parent.g(instance)[0]);
             } else {
-                current_cumulative_g = (1 - parent.gama) *  parent.current_cumulative_g * (1 - parent.g(instance)[0]);
+                current_cumulative_g = (1 - parent.gama) * parent.current_cumulative_g * (1 - parent.g(instance)[0]);
             }
         }
         for (int i = 0; i < cumulative_g.length; i++) {
@@ -434,7 +467,6 @@ public class Node {
         }
         return current_cumulative_g;
     }
-
 
 
     public void findAllMinMaxDifferences(ArrayList<Instance> X, TreeNode treeNode) {
@@ -452,8 +484,8 @@ public class Node {
                 treeNode.rightTreeNode.instances[i] = X.get(min_diff_indexes[i]);
 
             if (this.leftNode != null) {
-                leftNode.findAllMinMaxDifferences(X, treeNode.rightTreeNode);
-                rightNode.findAllMinMaxDifferences(X, treeNode.leftTreeNode);
+                leftNode.findAllMinMaxDifferences(X, treeNode.leftTreeNode);
+                rightNode.findAllMinMaxDifferences(X, treeNode.rightTreeNode);
             }
         }
     }
@@ -532,7 +564,7 @@ public class Node {
 
     public void max_cumulative_g() {
         int count = Runner.similar_count;
-        for(int i = 0; i < cumulative_g.length; i++){
+        for (int i = 0; i < cumulative_g.length; i++) {
             cumulative_g[i] /= Runner.class_counts[i];
             total_decision[i] = cumulative_g[i] * gama;
         }
@@ -559,7 +591,7 @@ public class Node {
                 }
             }
         }
-        if(leftNode != null){
+        if (leftNode != null) {
             leftNode.max_cumulative_g();
             rightNode.max_cumulative_g();
         }

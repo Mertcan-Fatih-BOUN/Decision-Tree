@@ -69,10 +69,11 @@ public class BTM {
                 ROOT.backPropagate(instance);
                 ROOT.update();
             }
-            LEARNING_RATE *= 0.99;
+//            LEARNING_RATE *= 0.99;
             addNewResult(e);
             printResults();
             System.out.println("Epoch :" + e + "\nSize: " + size() + " " + eff_size() + "\n" + getErrors() + "\nEpoch :" + e + "\n-----------------------\n");
+            ROOT.downgradeLearning();
         }
     }
 

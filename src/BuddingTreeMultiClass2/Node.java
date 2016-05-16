@@ -14,6 +14,8 @@ class Node {
     Node leftNode = null;
     Node rightNode = null;
 
+    double learning_rate;
+    
     double[][] rho;
     double[][] sum_grad_rho;
     double[][] gradient_rho;
@@ -61,6 +63,7 @@ class Node {
 
     Node(BTM tree) {
         this.tree = tree;
+        this.learning_rate = tree.LEARNING_RATE;
 
         w = new double[tree.ATTRIBUTE_COUNT];
         for (int i = 0; i < tree.ATTRIBUTE_COUNT; i++)
@@ -183,7 +186,18 @@ class Node {
 //        return g;
 //    }
 
-
+    public void downgradeLearning() {
+        learning_rate *= Runner.down_learning_rate;
+        if (Runner.punish_gama != 0) {
+            if (gama < 0.6)
+                setGama(gama - Runner.punish_gama);
+        }
+        if (leftNode != null) {
+            leftNode.downgradeLearning();
+            rightNode.downgradeLearning();
+        }
+    }
+    
     public double[] g(Instance instance) {
         if (last_instance_id_g == instance.id) {
 //            System.out.println("ggg");
@@ -450,40 +464,40 @@ class Node {
         for(int i = 0; i < tree.CLASS_COUNT; i++){
             for(int j = 0; j < tree.ATTRIBUTE_COUNT; j++){
                 if(sum_grad_rho[i][j] != 0){
-                    rho[i][j] = rho[i][j] - tree.LEARNING_RATE * gradient_rho[i][j] / Math.sqrt(sum_grad_rho[i][j]);
+                    rho[i][j] = rho[i][j] - learning_rate * gradient_rho[i][j] / Math.sqrt(sum_grad_rho[i][j]);
                 }
             }
         }
 
         for (int i = 0; i < sum_grad_w.length; i++) {
             if (sum_grad_w[i] != 0)
-                 w[i] = w[i] - tree.LEARNING_RATE * gradient_w[i] / Math.sqrt(sum_grad_w[i]);
+                 w[i] = w[i] - learning_rate * gradient_w[i] / Math.sqrt(sum_grad_w[i]);
         }
         if (sum_grad_w0 != 0)
-             w0 = w0 - tree.LEARNING_RATE * gradient_w0 / Math.sqrt(sum_grad_w0);
+             w0 = w0 - learning_rate * gradient_w0 / Math.sqrt(sum_grad_w0);
 
         if (sum_grad_w00 != 0)
-            w00 = w00 - tree.LEARNING_RATE * gradient_w00 / Math.sqrt(sum_grad_w00);
+            w00 = w00 - learning_rate * gradient_w00 / Math.sqrt(sum_grad_w00);
 
         if (sum_grad_w01 != 0)
-             w01 = w01 - tree.LEARNING_RATE * gradient_w01 / Math.sqrt(sum_grad_w01);
+             w01 = w01 - learning_rate * gradient_w01 / Math.sqrt(sum_grad_w01);
 
         for (int i = 0; i < sum_grad_P1.length; i++) {
             if (sum_grad_P1[i] != 0)
-                 P1[i] = P1[i] - tree.LEARNING_RATE * gradient_P1[i] / Math.sqrt(sum_grad_P1[i]);
+                 P1[i] = P1[i] - learning_rate * gradient_P1[i] / Math.sqrt(sum_grad_P1[i]);
         }
 
         for (int i = 0; i < sum_grad_P2.length; i++) {
             if (sum_grad_P2[i] != 0)
-                P2[i] = P2[i] - tree.LEARNING_RATE * gradient_P2[i] / Math.sqrt(sum_grad_P2[i]) / 100;
+                P2[i] = P2[i] - learning_rate * gradient_P2[i] / Math.sqrt(sum_grad_P2[i]) / 100;
         }
 
         if (sum_grad_gama != 0)
-            setGama(gama - tree.LEARNING_RATE * gradient_gama / Math.sqrt(sum_grad_gama));
+            setGama(gama - learning_rate * gradient_gama / Math.sqrt(sum_grad_gama));
 
         for (int i = 0; i < sum_grad_rho0.length; i++) {
             if (sum_grad_rho0[i] != 0)
-                rho0[i] = rho0[i] - tree.LEARNING_RATE * gradient_rho0[i] / Math.sqrt(sum_grad_rho0[i]);
+                rho0[i] = rho0[i] - learning_rate * gradient_rho0[i] / Math.sqrt(sum_grad_rho0[i]);
         }
     }
 
