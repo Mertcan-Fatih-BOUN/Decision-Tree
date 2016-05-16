@@ -36,7 +36,7 @@ public class kNN {
             for (int j = 0; j < instanceA.y.length; j++) {
                 instanceA.y[j] = instanceA.y[j] / k;
             }
-            System.out.printf("Completed: %.2f\n", count++ / V.size());
+            System.out.printf("\rCompleted: %.2f", count++ / V.size());
         }
     }
 
