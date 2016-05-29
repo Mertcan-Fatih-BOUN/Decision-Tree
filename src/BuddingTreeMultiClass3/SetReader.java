@@ -297,6 +297,9 @@ public class SetReader {
                 stdev += (value[i] - mean) * (value[i] - mean);
             }
 
+            stdev /= (values.size() - 1);
+            stdev = Math.sqrt(stdev);
+
             for (double[] value : values) {
                 value[i] -= mean;
                 if (stdev != 0)

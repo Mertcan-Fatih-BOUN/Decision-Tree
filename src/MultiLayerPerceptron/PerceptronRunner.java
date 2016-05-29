@@ -56,7 +56,7 @@ public class PerceptronRunner {
 //        }
 //        System.out.println(b2.test(b1.predicted_attribute(no_third, 2)));
 
-        BackPropagation b = new BackPropagation("data_multi" + File.separator + "complete_mirflickr_notags-train.txt", "data_multi" + File.separator + "complete_mirflickr_notags-test.txt", 150, 50, 0.01, false, true);
+        BackPropagation b = new BackPropagation("data_multi" + File.separator + "complete_mirflickr_notags-train.txt", "data_multi" + File.separator + "complete_mirflickr_notags-test.txt", 150, 50, 0.01, false, true);//0.01 works fine
 //        BackPropagation b = new BackPropagation("get_flickr", "data_multi" + File.separator + "complete_mirflickr_notags-test.txt", 150, 50, 0.06, false, true);
 //        BackPropagation b = new BackPropagation( "data_multi" + File.separator + "complete_mirflickr-train.txt", "data_multi" + File.separator + "complete_mirflickr-test.txt", 150, 50, 0.06, false, true);
 //        BackPropagation b = new BackPropagation("data_multi" + File.separator + "complete_mirflickr-train.txt", "data_multi" + File.separator + "complete_mirflickr-test.txt", 80, 100, 0.05, false, true);

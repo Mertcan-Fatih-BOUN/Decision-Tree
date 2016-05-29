@@ -179,7 +179,9 @@ public class SetReader {
             }
             list.add(x);
         }
+
         normalize(list);
+
         return list;
     }
 
@@ -329,25 +331,85 @@ public class SetReader {
 
 
     private static void normalize(ArrayList<double[]> values) {
+        for(int i = 0; i < 200; i++)
+            System.out.print(values.get(0)[i] + " ");
+        System.out.println();
         for (int i = 0; i < values.get(0).length; i++) {
             double mean = 0;
 
             for (double[] value : values) {
                 mean += value[i];
             }
-            mean /= values.size();
+
+//            for (int j = 0; j < values.size(); j++) {
+//                if(j % 5 < 3)
+//                    mean += values.get(j)[i];
+//            }
+            mean /= (values.size() * 5 / 5);
 
             double stdev = 0;
             for (double[] value : values) {
                 stdev += (value[i] - mean) * (value[i] - mean);
             }
+//            for (int j = 0; j < values.size(); j++) {
+//                if(j % 5 < 3)
+//                    stdev += (values.get(j)[i] - mean) * (values.get(j)[i] - mean);
+//            }
+
+
+//            System.out.print(i + " " + stdev + " ");
+
+            stdev /= ((values.size() * 5 / 5) - 1);
+            stdev = Math.sqrt(stdev);
+
+//            System.out.println(stdev);
 
             for (double[] value : values) {
                 value[i] -= mean;
                 if (stdev != 0)
                     value[i] /= stdev;
+//                value[i] *= Math.sqrt(values.size() - 1);
             }
 
         }
+//        for(int i = 0; i < 200; i++)
+//            System.out.print(values.get(0)[i] + " ");
+//        System.out.println();
+//        for(int i = 0; i < 200; i++)
+//            System.out.print(values.get(0)[i] * Math.sqrt(values.size() - 1) + " ");
+//        System.out.println();
+    }
+
+    public static void to0_1(ArrayList<double[]> values) {
+        double[] mins = new double[values.get(0).length];
+        double[] maxs = new double[values.get(0).length];
+        Arrays.fill(mins, Integer.MAX_VALUE);
+        Arrays.fill(maxs, Integer.MIN_VALUE);
+
+        for (double[] value : values) {
+            for(int i = 0; i < value.length; i++){
+                if(value[i] < mins[i]){
+                    mins[i] = value[i];
+                }
+                if(value[i] > maxs[i]){
+                    maxs[i] = value[i];
+                }
+            }
+        }
+
+        double[] as = new double[values.get(0).length];
+        double[] bs = new double[values.get(0).length];
+
+        for(int i = 0; i < values.get(0).length; i++){
+            as[i] = 1.0 / (maxs[i] - mins[i]);
+            bs[i] = -mins[i] * as[i];
+        }
+
+        for (double[] value : values) {
+            for(int i = 0; i < value.length; i++){
+                value[i] = as[i] * value[i] + bs[i];
+            }
+        }
+
     }
 }

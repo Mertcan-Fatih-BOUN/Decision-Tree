@@ -40,6 +40,7 @@ public class BTM {
 
     public static Node ROOT;
 
+
     /**
      * @param X             Training Set
      * @param V             Validation Set
@@ -81,6 +82,7 @@ public class BTM {
             printToFile(Runner.toFile);
             //  LEARNING_RATE *= 0.99;
             System.out.println("Epoch :" + e + "\nSize: " + size() + " " + eff_size() + "\n" + getErrors() + "\nEpoch :" + e + "\n-----------------------\n");
+//            ROOT.resetSums();
             ROOT.downgradeLearning();
         }
     }

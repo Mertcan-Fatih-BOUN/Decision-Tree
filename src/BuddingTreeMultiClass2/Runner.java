@@ -16,11 +16,11 @@ public class Runner {
 
     static boolean g_newversion = false;
     public static double down_learning_rate = 1;//if 1, works normal
-    public static double punish_gama = 0.05;
+    public static double punish_gama = 0.00;
 
     public static void main(String[] args) throws IOException {
         ArrayList<Instance>[] sets = getGithubDatasetNoTag();
-        BTM btm = new BTM(sets[0], sets[1], 1, 100, 0.0001);
+        BTM btm = new BTM(sets[0], sets[1], 0.1, 100, 0.0001);
         properties = "btm2 " + SetReader.tag_size + " " + sets[0].get(0).x.length + " " + btm.LEARNING_RATE + " " + btm.LAMBDA + " " + g_newversion;
         System.out.println(properties);
         currentDate = Long.toString((new Date()).getTime());

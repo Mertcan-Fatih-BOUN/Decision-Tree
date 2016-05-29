@@ -97,18 +97,27 @@ public class TreeNode {
         }
 
 
+        graphics.setFont(new Font("TimesRoman", Font.PLAIN, 10));
 
         int local_x = x - instance_group_width / 2;
         for (int i = 0; i < images.length; i++) {
             graphics.drawImage(images[i], local_x + i * (instance_width + instance_gap), y + class_bar_height, null);
 
+            int count_class = 0;
+            String s = "";
             for (int c = -1; c <= instances[i].r.length; c++) {
                 if (c == -1 || c == instances[i].r.length)
                     graphics.setColor(Color.blue);
                 else if (instances[i].r[c] == 0)
                     graphics.setColor(Color.black);
-                else
+                else {
+                    s += c + " ";
+                    graphics.setColor(Color.blue);
+                    graphics.drawString(s, local_x + i * (instance_width + instance_gap) + 40 + (count_class / 3) * 15,10 + y + class_bar_height + image_height + (count_class % 3) * 10);
+                    s = "";
+                    count_class++;
                     graphics.setColor(Color.white);
+                }
 
                 graphics.drawRect(local_x + i * (instance_width + instance_gap) + c, y + class_bar_height + image_height, 1, class_bar_height);
 
@@ -116,13 +125,23 @@ public class TreeNode {
         }
 
 
+
+
 //        graphics.setFont(graphics.getFont().deriveFont(15f));
+
         graphics.setFont(new Font("TimesRoman", Font.PLAIN, 15));
 
         for(int i = 0; i < node.max_g_indexes.length; i++){
             String s = String.format("  %3d %.2f %.2f %.2f %s", node.max_g_indexes[i], node.max_g_values[i], node.max_g_values[i] - node.total_decision[node.max_g_indexes[i]], node.total_decision[node.max_g_indexes[i]], SetReader.POTENTIAL_LABELS[node.max_g_indexes[i]]);
             graphics.drawString(s, local_x + (images.length - 1) * (instance_width + instance_gap) + image_width + 10,10 + y + class_bar_height + i * 15);
         }
+
+        graphics.setFont(new Font("TimesRoman", Font.PLAIN, 60));
+        for(int i = 0; i < SetReader.POTENTIAL_LABELS.length; i++){
+            String s = String.format("%2d %s", i, SetReader.POTENTIAL_LABELS[i]);
+            graphics.drawString(s, 10 + (i/19) * 350, (i % 19) * 60 + 60);
+        }
+
 
 
 

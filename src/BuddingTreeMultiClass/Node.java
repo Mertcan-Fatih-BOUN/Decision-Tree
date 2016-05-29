@@ -79,9 +79,9 @@ public class Node {
 
         w = new double[tree.ATTRIBUTE_COUNT];
         for (int i = 0; i < tree.ATTRIBUTE_COUNT; i++)
-            w[i] = rand(-0.01, 0.01);
+            w[i] = rand(-Runner.w_start_point, Runner.w_start_point);
 
-        w0 = rand(-0.01, 0.01);
+        w0 = rand(-Runner.w_start_point, Runner.w_start_point);
 
         scaled_rho = new int[tree.CLASS_COUNT];
         scaled_rho_within = new int[tree.CLASS_COUNT];
@@ -103,7 +103,7 @@ public class Node {
         Arrays.fill(sum_grad_rho, 0);
 
         for (int i = 0; i < rho.length; i++)
-            rho[i] = rand(-0.01, 0.01);
+            rho[i] = rand(-Runner.w_start_point, Runner.w_start_point);
 
         gama = 1;
         gradient_w = new double[tree.ATTRIBUTE_COUNT];
@@ -183,6 +183,23 @@ public class Node {
             if (gama < 0.6)
                 setGama(gama - Runner.punish_gama);
         }
+        if (leftNode != null) {
+            leftNode.downgradeLearning();
+            rightNode.downgradeLearning();
+        }
+    }
+
+    public void resetSums() {
+        for (int i = 0; i < sum_grad_w.length; i++) {
+            sum_grad_w[i] = 0;
+        }
+
+        sum_grad_w0 = 0;
+
+        for (int i = 0; i < sum_grad_rho.length; i++) {
+            sum_grad_rho[i] = 0;
+        }
+        sum_grad_gama = 0;
         if (leftNode != null) {
             leftNode.downgradeLearning();
             rightNode.downgradeLearning();
@@ -405,35 +422,50 @@ public class Node {
 
         sum_grad_gama += gradient_gama * gradient_gama;
 
-//        if(Runner.down_learning_rate != 0) {
-//            for (int i = 0; i < sum_grad_w.length; i++) {
-//                sum_grad_w[i] = 1;
-//            }
-//
-//            sum_grad_w0 = 1;
-//
-//            for (int i = 0; i < sum_grad_rho.length; i++) {
-//                sum_grad_rho[i] = 1;
-//            }
-//            sum_grad_gama = 1;
-//        }
+        if(Runner.down_learning_rate != 1) {
+            for (int i = 0; i < sum_grad_w.length; i++) {
+                sum_grad_w[i] = 1;
+            }
 
-        for (int i = 0; i < sum_grad_w.length; i++) {
-            if (sum_grad_w[i] != 0)
-                w[i] = w[i] - learning_rate * gradient_w[i] / Math.sqrt(sum_grad_w[i]);
+            sum_grad_w0 = 1;
+
+            for (int i = 0; i < sum_grad_rho.length; i++) {
+                sum_grad_rho[i] = 1;
+            }
+            sum_grad_gama = 1;
         }
+//        System.out.println(gradient_gama * gradient_gama + " " + sum_grad_gama);
+        if(gradient_gama * gradient_gama != sum_grad_gama) {
+            for (int i = 0; i < sum_grad_w.length; i++) {
+//                if (sum_grad_w[i] != 0) {
+//                    if (
+////                            last_instance_id_g % 15000 == 200 &&
+//                                    gradient_w[i] / Math.sqrt(sum_grad_w[i])  > 0.01) {
+//                        System.out.println(String.format("%.5f %.5f %.5f %.5f %.5f ", w[i], gradient_w[i], sum_grad_w[i], Math.sqrt(sum_grad_w[i]), gradient_w[i] / Math.sqrt(sum_grad_w[i])));
+//                    }
+//                    if (last_instance_id_g % 15000 == 200 && gradient_w[i] / Math.sqrt(sum_grad_w[i])  > 0.01 && i == sum_grad_w.length - 1) {
+//                        System.out.println("\n");
+//                    }
+//                }
+                if (sum_grad_w[i] != 0)
+                    w[i] = w[i] - learning_rate * gradient_w[i] / Math.sqrt(sum_grad_w[i]);
+            }
 
-        if (sum_grad_w0 != 0)
-            w0 = w0 - learning_rate * gradient_w0 / Math.sqrt(sum_grad_w0);
 
-        if (sum_grad_gama != 0)
-            setGama(gama - learning_rate * gradient_gama / Math.sqrt(sum_grad_gama));
+            if (sum_grad_w0 != 0)
+                w0 = w0 - learning_rate * gradient_w0 / Math.sqrt(sum_grad_w0);
 
-        for (int i = 0; i < sum_grad_rho.length; i++) {
-            if (sum_grad_rho[i] != 0)
-                rho[i] = rho[i] - learning_rate * gradient_rho[i] / Math.sqrt(sum_grad_rho[i]);
+            if (sum_grad_gama != 0)
+                setGama(gama - learning_rate * gradient_gama / Math.sqrt(sum_grad_gama));
+
+            for (int i = 0; i < sum_grad_rho.length; i++) {
+                if (sum_grad_rho[i] != 0)
+                    rho[i] = rho[i] - learning_rate * gradient_rho[i] / Math.sqrt(sum_grad_rho[i]);
+            }
+        }else{
+//            if(parent == null)
+//                 System.out.println("qsdadasd " + gradient_gama + " " + sum_grad_gama);
         }
-
 
     }
 
@@ -496,12 +528,12 @@ public class Node {
         double[] minDifferences = new double[count];
         for (int i = 0; i < count; i++) {
 //            double diff = difference((X.get(0).x));
-            double diff = dotProduct(w, (X.get(0).x));
-            minDifferences[i] = diff;
-            minDiffIndex[i] = 0;
+//            double diff = dotProduct(w, (X.get(0).x));
+            minDifferences[i] = Integer.MAX_VALUE;
+            minDiffIndex[i] = -1;
         }
 
-        for (int i = 1; i < X.size(); i++) {
+        for (int i = 0; i < X.size(); i++) {
 //            double diff = difference(X.get(i).x);
             double diff = dotProduct(w, (X.get(i).x));
             for (int j = 0; j < count; j++) {
@@ -532,12 +564,12 @@ public class Node {
         double[] maxDifferences = new double[count];
         for (int i = 0; i < count; i++) {
 //            double diff = difference((X.get(0).x));
-            double diff = dotProduct(w, (X.get(0).x));
-            maxDifferences[i] = diff;
-            maxDiffIndex[i] = 0;
+//            double diff = dotProduct(w, (X.get(0).x));
+            maxDifferences[i] = Integer.MIN_VALUE;
+            maxDiffIndex[i] = -1;
         }
 
-        for (int i = 1; i < X.size(); i++) {
+        for (int i = 0; i < X.size(); i++) {
 //            double diff = difference(X.get(i).x);
             double diff = dotProduct(w, (X.get(i).x));
             for (int j = 0; j < count; j++) {
@@ -571,12 +603,12 @@ public class Node {
 
         for (int i = 0; i < count; i++) {
 //            double diff = difference((X.get(0).x));
-            double diff = cumulative_g[0];
-            max_g_values[i] = diff;
-            max_g_indexes[i] = 0;
+//            double diff = cumulative_g[0];
+            max_g_values[i] = Integer.MIN_VALUE;
+            max_g_indexes[i] = -1;
         }
 
-        for (int i = 1; i < cumulative_g.length; i++) {
+        for (int i = 0; i < cumulative_g.length; i++) {
 //            double diff = difference(X.get(i).x);
             double diff = cumulative_g[i];
             for (int j = 0; j < count; j++) {
