@@ -1,14 +1,12 @@
-package BuddingTreeMultiClass;
+package BuddingTreeMultiClass.readers;
 
 
 public class Instance {
     public int[] r;
     public double[] x;
     public double[] y;
-    int id = 0;
     public double[] d;
 
-    public int mirflicker_id = 0;
 
     public void setY(double[] y) {
         this.y = y;

@@ -1,13 +1,16 @@
 package BuddingTreeMultiClass;
 
 
+import BuddingTreeMultiClass.readers.FlickerDataSet;
+import BuddingTreeMultiClass.readers.FlickerInstance;
+import BuddingTreeMultiClass.readers.Instance;
+
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.color.ColorSpace;
 import java.awt.image.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 
 import static BuddingTreeMultiClass.Runner.similar_count;
@@ -42,7 +45,7 @@ public class TreeNode {
     public Node node;
 
     public TreeNode() {
-        Instance instance = new Instance();
+        FlickerInstance instance = new FlickerInstance();
         instance.mirflicker_id = 0;
         instance.r = new int[38];
         Arrays.fill(instance.r, 0);
@@ -52,6 +55,9 @@ public class TreeNode {
     }
 
     public void printToFile(String filename) throws IOException {
+        if (!node.tree.dataSet.getClass().isInstance(FlickerDataSet.class))
+            return;
+
         max_depth = 0;
         find_max_depth(0);
 
@@ -79,7 +85,7 @@ public class TreeNode {
         BufferedImage[] images = new BufferedImage[instance_count];
 //        System.out.println(instances[3].mirflicker_id);
         for (int i = 0; i < images.length; i++)
-            images[i] = ImageIO.read(new File(thumbnail_folder + "im" + instances[i].mirflicker_id + ".jpg"));
+            images[i] = ImageIO.read(new File(thumbnail_folder + "im" + ((FlickerInstance) instances[i]).mirflicker_id + ".jpg"));
 
         int y = level_gap + level * (level_gap + instance_group_height);
 
@@ -95,7 +101,6 @@ public class TreeNode {
             }
             graphics.drawRect(local_class_x + i, y, 1, class_bar_height);
         }
-
 
 
         int local_x = x - instance_group_width / 2;
@@ -119,11 +124,10 @@ public class TreeNode {
 //        graphics.setFont(graphics.getFont().deriveFont(15f));
         graphics.setFont(new Font("TimesRoman", Font.PLAIN, 15));
 
-        for(int i = 0; i < node.max_g_indexes.length; i++){
-            String s = String.format("  %3d %.2f %.2f %.2f %s", node.max_g_indexes[i], node.max_g_values[i], node.max_g_values[i] - node.total_decision[node.max_g_indexes[i]], node.total_decision[node.max_g_indexes[i]], SetReader.POTENTIAL_LABELS[node.max_g_indexes[i]]);
-            graphics.drawString(s, local_x + (images.length - 1) * (instance_width + instance_gap) + image_width + 10,10 + y + class_bar_height + i * 15);
+        for (int i = 0; i < node.max_g_indexes.length; i++) {
+            String s = String.format("  %3d %.2f %.2f %.2f %s", node.max_g_indexes[i], node.max_g_values[i], node.max_g_values[i] - node.total_decision[node.max_g_indexes[i]], node.total_decision[node.max_g_indexes[i]], ((FlickerDataSet) node.tree.dataSet).POTENTIAL_LABELS[node.max_g_indexes[i]]);
+            graphics.drawString(s, local_x + (images.length - 1) * (instance_width + instance_gap) + image_width + 10, 10 + y + class_bar_height + i * 15);
         }
-
 
 
         if (leftTreeNode != null)

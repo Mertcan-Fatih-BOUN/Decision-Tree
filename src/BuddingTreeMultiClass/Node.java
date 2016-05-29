@@ -1,5 +1,8 @@
 package BuddingTreeMultiClass;
 
+import BuddingTreeMultiClass.readers.FlickerDataSet;
+import BuddingTreeMultiClass.readers.Instance;
+
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -55,9 +58,9 @@ public class Node {
     double gradient_w0 = 0;
     double gradient_gama = 0;
 
-    int last_instance_id_g = -1;
-    int last_instance_id_y = -1;
-    int last_instance_id_delta = -1;
+    Instance last_instance_g = null;
+    Instance last_instance_y = null;
+    Instance last_instance_delta = null;
 
     int[] min_diff_indexes = new int[Runner.similar_count];
     int[] max_diff_indexes = new int[Runner.similar_count];
@@ -70,12 +73,9 @@ public class Node {
 
     BTM tree;
 
-    public double learning_rate;
 
     Node(BTM tree) {
         this.tree = tree;
-
-        learning_rate = tree.LEARNING_RATE;
 
         w = new double[tree.ATTRIBUTE_COUNT];
         for (int i = 0; i < tree.ATTRIBUTE_COUNT; i++)
@@ -172,35 +172,17 @@ public class Node {
     }
 
 
-//    public double g(Instance instance) {
-//        g = sigmoid(dotProduct(w, instance.x) + w0);
-//        return g;
-//    }
-
-    public void downgradeLearning() {
-        learning_rate *= Runner.down_learning_rate;
-        if (Runner.punish_gama != 0) {
-            if (gama < 0.6)
-                setGama(gama - Runner.punish_gama);
-        }
-        if (leftNode != null) {
-            leftNode.downgradeLearning();
-            rightNode.downgradeLearning();
-        }
-    }
-
     public double[] g(Instance instance) {
-        if (last_instance_id_g == instance.id) {
-//            System.out.println("ggg");
+        if (last_instance_g == instance) {
             return g;
         }
 
-        if (Runner.g_newversion) {
+        if (tree.use_g_new_version) {
             double sum1 = 0;
             double sum2 = 0;
             int lenght = instance.x.length;
             for (int j = 0; j < lenght; j++) {
-                if (j < SetReader.tag_size) {
+                if (j < ((FlickerDataSet) (tree.dataSet)).tag_size) {
                     sum1 += w[j] * instance.x[j];
                 } else {
                     sum2 += w[j] * instance.x[j];
@@ -217,13 +199,13 @@ public class Node {
             for (int i = 0; i < g.length; i++)
                 g[i] = gg;
         }
-        last_instance_id_g = instance.id;
+        last_instance_g = instance;
 
         return g;
     }
 
     public double[] F(Instance instance) {
-        if (last_instance_id_y == instance.id) {
+        if (last_instance_y == instance) {
             System.out.println("yyy");
             return y;
         }
@@ -246,7 +228,7 @@ public class Node {
 //                y[i] = sigmoid(y[i]);
 //        }
 
-        last_instance_id_y = instance.id;
+        last_instance_y = instance;
 
         for (int i = 0; i < tree.CLASS_COUNT; i++) {
             y_means[i] += y[i] / tree.X.size();
@@ -268,7 +250,7 @@ public class Node {
     }
 
     public double[] delta(Instance instance) {
-        if (last_instance_id_delta == instance.id) {
+        if (last_instance_delta == instance) {
             System.out.println("ddd");
             return delta;
         }
@@ -289,7 +271,7 @@ public class Node {
             }
         }
 
-        last_instance_id_delta = instance.id;
+        last_instance_delta = instance;
         return delta;
     }
 
@@ -303,9 +285,9 @@ public class Node {
 
     public void update(Instance instance) {
         learnParameters();
-        last_instance_id_delta = -1;
-        last_instance_id_y = -1;
-        last_instance_id_g = -1;
+        last_instance_delta = null;
+        last_instance_y = null;
+        last_instance_g = null;
 
         if (leftNode != null) {
             leftNode.update(instance);
@@ -405,7 +387,7 @@ public class Node {
 
         sum_grad_gama += gradient_gama * gradient_gama;
 
-//        if(Runner.down_learning_rate != 0) {
+//        if(Runner.LEARNING_RATE_DECAY != 0) {
 //            for (int i = 0; i < sum_grad_w.length; i++) {
 //                sum_grad_w[i] = 1;
 //            }
@@ -420,18 +402,18 @@ public class Node {
 
         for (int i = 0; i < sum_grad_w.length; i++) {
             if (sum_grad_w[i] != 0)
-                w[i] = w[i] - learning_rate * gradient_w[i] / Math.sqrt(sum_grad_w[i]);
+                w[i] = w[i] - tree.LEARNING_RATE * gradient_w[i] / Math.sqrt(sum_grad_w[i]);
         }
 
         if (sum_grad_w0 != 0)
-            w0 = w0 - learning_rate * gradient_w0 / Math.sqrt(sum_grad_w0);
+            w0 = w0 - tree.LEARNING_RATE * gradient_w0 / Math.sqrt(sum_grad_w0);
 
         if (sum_grad_gama != 0)
-            setGama(gama - learning_rate * gradient_gama / Math.sqrt(sum_grad_gama));
+            setGama(gama - tree.LEARNING_RATE * gradient_gama / Math.sqrt(sum_grad_gama));
 
         for (int i = 0; i < sum_grad_rho.length; i++) {
             if (sum_grad_rho[i] != 0)
-                rho[i] = rho[i] - learning_rate * gradient_rho[i] / Math.sqrt(sum_grad_rho[i]);
+                rho[i] = rho[i] - tree.LEARNING_RATE * gradient_rho[i] / Math.sqrt(sum_grad_rho[i]);
         }
 
 
@@ -565,7 +547,7 @@ public class Node {
     public void max_cumulative_g() {
         int count = Runner.similar_count;
         for (int i = 0; i < cumulative_g.length; i++) {
-            cumulative_g[i] /= Runner.class_counts[i];
+            cumulative_g[i] /= ((FlickerDataSet) tree.dataSet).class_counts[i];
             total_decision[i] = cumulative_g[i] * gama;
         }
 
