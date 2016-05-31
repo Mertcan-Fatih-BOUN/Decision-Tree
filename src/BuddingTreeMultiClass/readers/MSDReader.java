@@ -2,7 +2,6 @@ package BuddingTreeMultiClass.readers;
 
 
 import java.io.*;
-import java.lang.reflect.Array;
 import java.util.*;
 
 public class MSDReader {
@@ -16,6 +15,7 @@ public class MSDReader {
     static HashMap<String, MSDInstance> msdInstances_lyrics = new HashMap<>();
     static ArrayList<MSDInstance> merged = new ArrayList<>();
     static ArrayList<String> genres = new ArrayList<>();
+    static double[] learning_rate_modifier;
 
     public static void readGenre() throws FileNotFoundException {
         Scanner scanner = new Scanner(new File("msd_genre_dataset.txt"));
@@ -147,11 +147,8 @@ public class MSDReader {
                 val.add(instance);
         }
 
-        DataSet dataSet = new DataSet();
-        dataSet.TRAINING_INSTANCES = tra;
-        dataSet.VALIDATION_INSTANCES = val;
-        dataSet.type = DataSet.TYPE.MULTI_CLASS_CLASSIFICATION;
-        return dataSet;
+
+        return new DataSet("MSD Sound only", tra, val, DataSet.TYPE.MULTI_CLASS_CLASSIFICATION, learning_rate_modifier);
     }
 
 
@@ -190,12 +187,7 @@ public class MSDReader {
                 val.add(instance);
         }
 
-        DataSet dataSet = new DataSet();
-        dataSet.TRAINING_INSTANCES = tra;
-        dataSet.VALIDATION_INSTANCES = val;
-
-        dataSet.type = DataSet.TYPE.MULTI_CLASS_CLASSIFICATION;
-        return dataSet;
+        return new DataSet("MSD Lyrics only", tra, val, DataSet.TYPE.MULTI_CLASS_CLASSIFICATION, learning_rate_modifier);
     }
 
     public static DataSet getBoth() throws FileNotFoundException {
@@ -231,16 +223,13 @@ public class MSDReader {
                 val.add(instance);
         }
 
-        DataSet dataSet = new DataSet();
-        dataSet.TRAINING_INSTANCES = tra;
-        dataSet.VALIDATION_INSTANCES = val;
-
-        dataSet.type = DataSet.TYPE.MULTI_CLASS_CLASSIFICATION;
-        return dataSet;
+        return new DataSet("MSD Both", tra, val, DataSet.TYPE.MULTI_CLASS_CLASSIFICATION, learning_rate_modifier);
     }
 
     private static void normalize(ArrayList<Instance> instances) {
+        learning_rate_modifier = new double[instances.get(0).x.length];
         for (int i = 0; i < instances.get(0).x.length; i++) {
+            double n = 0;
             double mean = 0;
 
             for (Instance instance : instances)
@@ -260,8 +249,11 @@ public class MSDReader {
                 instance.x[i] -= mean;
                 if (stdev != 0)
                     instance.x[i] /= stdev;
+
+                n += instance.x[i];
             }
 
+            learning_rate_modifier[i] = 1;
         }
     }
 

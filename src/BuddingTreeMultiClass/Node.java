@@ -402,7 +402,7 @@ public class Node {
 
         for (int i = 0; i < sum_grad_w.length; i++) {
             if (sum_grad_w[i] != 0)
-                w[i] = w[i] - tree.LEARNING_RATE * gradient_w[i] / Math.sqrt(sum_grad_w[i]);
+                w[i] = w[i] - tree.LEARNING_RATE * tree.dataSet.learning_rate_modifier[i] *  gradient_w[i] / Math.sqrt(sum_grad_w[i]);
         }
 
         if (sum_grad_w0 != 0)

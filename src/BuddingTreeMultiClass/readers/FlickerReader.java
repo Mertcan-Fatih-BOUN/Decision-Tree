@@ -206,14 +206,8 @@ public class FlickerReader {
                 ret[1].add(instance);
         }
 
-        FlickerDataSet dataset = new FlickerDataSet();
-        dataset.POTENTIAL_LABELS = POTENTIAL_LABELS;
-        dataset.tag_size = tag_size;
-        dataset.TRAINING_INSTANCES = ret[0];
-        dataset.VALIDATION_INSTANCES = ret[1];
-        dataset.class_counts = class_counts(dataset.TRAINING_INSTANCES);
-        dataset.type = DataSet.TYPE.MULTI_LABEL_CLASSIFICATION;
-        return dataset;
+        return new FlickerDataSet("FLICKER noTag", ret[0], ret[1], DataSet.TYPE.MULTI_LABEL_CLASSIFICATION, POTENTIAL_LABELS, tag_size, class_counts(ret[0]));
+
     }
 
     public static DataSet getGithubDatasetNoTag_v2() throws FileNotFoundException {
@@ -245,14 +239,8 @@ public class FlickerReader {
         }
 
 
-        FlickerDataSet dataset = new FlickerDataSet();
-        dataset.POTENTIAL_LABELS = POTENTIAL_LABELS;
-        dataset.tag_size = tag_size;
-        dataset.TRAINING_INSTANCES = ret[0];
-        dataset.VALIDATION_INSTANCES = ret[1];
-        dataset.class_counts = class_counts(dataset.TRAINING_INSTANCES);
-        dataset.type = DataSet.TYPE.MULTI_LABEL_CLASSIFICATION;
-        return dataset;
+        return new FlickerDataSet("FLICKER notagv2", ret[0], ret[1], DataSet.TYPE.MULTI_LABEL_CLASSIFICATION, POTENTIAL_LABELS, tag_size, class_counts(ret[0]));
+
     }
 
 
@@ -282,14 +270,7 @@ public class FlickerReader {
         }
 
 
-        FlickerDataSet dataset = new FlickerDataSet();
-        dataset.POTENTIAL_LABELS = POTENTIAL_LABELS;
-        dataset.tag_size = tag_size;
-        dataset.TRAINING_INSTANCES = ret[0];
-        dataset.VALIDATION_INSTANCES = ret[1];
-        dataset.class_counts = class_counts(dataset.TRAINING_INSTANCES);
-        dataset.type = DataSet.TYPE.MULTI_LABEL_CLASSIFICATION;
-        return dataset;
+        return new FlickerDataSet("FLICKER GithubDataset", ret[0], ret[1], DataSet.TYPE.MULTI_LABEL_CLASSIFICATION, POTENTIAL_LABELS, tag_size, class_counts(ret[0]));
     }
 
     public static DataSet getDataset(boolean includeEdgeHistogram, boolean includeHomogeneousTexture, boolean includeTags) throws FileNotFoundException {
@@ -328,15 +309,15 @@ public class FlickerReader {
                 ret[1].add(instance);
         }
 
+        String name = "FLICKER ";
+        if (includeEdgeHistogram)
+            name += "EdgeHistogram ";
+        if (includeHomogeneousTexture)
+            name += "HomogeneousTexture ";
+        if (includeTags)
+            name += "Tags";
 
-        FlickerDataSet dataset = new FlickerDataSet();
-        dataset.POTENTIAL_LABELS = POTENTIAL_LABELS;
-        dataset.tag_size = tag_size;
-        dataset.TRAINING_INSTANCES = ret[0];
-        dataset.VALIDATION_INSTANCES = ret[1];
-        dataset.class_counts = class_counts(dataset.TRAINING_INSTANCES);
-        dataset.type = DataSet.TYPE.MULTI_LABEL_CLASSIFICATION;
-        return dataset;
+        return new FlickerDataSet(name, ret[0], ret[1], DataSet.TYPE.MULTI_LABEL_CLASSIFICATION, POTENTIAL_LABELS, tag_size, class_counts(ret[0]));
     }
 
     private static double[] concat(double[] a, double[] b) {

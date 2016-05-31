@@ -5,9 +5,7 @@ import BuddingTreeMultiClass.readers.FlickerDataSet;
 import BuddingTreeMultiClass.readers.Instance;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Scanner;
+import java.util.*;
 
 import static misc.Util.argMax;
 import static misc.Util.sigmoid;
@@ -62,7 +60,19 @@ public class BTM {
         this.LAMBDA = lambda;
         this.LEARNING_RATE_DECAY = learning_rate_decay;
 
-        for (int e = 0; e < EPOCH; e++) {
+
+        for (int e = 0; e <= EPOCH; e++) {
+            if (this.type == DataSet.TYPE.MULTI_LABEL_CLASSIFICATION)
+                System.out.println("Epoch :" + e + "\nSize: " + size() + " " + eff_size() + "\n" + getMAP_P50_error(X) + "\n" + getMAP_P50_error(V) + "\nEpoch :" + e + "\n-----------------------\n");
+            else if (this.type == DataSet.TYPE.MULTI_CLASS_CLASSIFICATION || this.type == DataSet.TYPE.BINARY_CLASSIFICATION) {
+                ClassificationError Xerror = getClassificationError(X);
+                ClassificationError Verror = getClassificationError(V);
+                System.out.printf("Epoch : %d Size: %d X: %.2f V: %.2f\n", e, size(), Xerror.getAccuracy(), Verror.getAccuracy());
+                System.out.println("X Confusion Matrix\n" + Xerror.getStringConfusionMatrix());
+                System.out.println("V Confusion Matrix\n" + Verror.getStringConfusionMatrix());
+            } else if (this.type == DataSet.TYPE.REGRESSION)
+                System.out.printf("Epoch: %d Size: %d MSE X: %.2f MSE V: %.2f\n", e, size(), getMeanSquareError(X), getMeanSquareError(V));
+
             Collections.shuffle(X);
             LAST = X.get(X.size() - 1);
             for (Instance instance : X) {
@@ -73,15 +83,7 @@ public class BTM {
             if (enableSaveFile)
                 printToFile(saveFilePath);
 
-            if (this.type == DataSet.TYPE.MULTI_LABEL_CLASSIFICATION)
-                System.out.println("Epoch :" + e + "\nSize: " + size() + " " + eff_size() + "\n" + getMAP_P50_error(X) + "\n" + getMAP_P50_error(V) + "\nEpoch :" + e + "\n-----------------------\n");
-            else if (this.type == DataSet.TYPE.MULTI_CLASS_CLASSIFICATION || this.type == DataSet.TYPE.BINARY_CLASSIFICATION)
-                System.out.printf("Epoch : %d Size: %d Miss Class X: %.2f Miss Class Y: %.2f\n", e, size(), getMissClassificationError(X), getMissClassificationError(V));
-            else if (this.type == DataSet.TYPE.REGRESSION)
-                System.out.printf("Epoch: %d Size: %d MSE X: %.2f MSE V: %.2f\n", e, size(), getMeanSquareError(X), getMeanSquareError(V));
-
             LEARNING_RATE *= learning_rate_decay;
-
         }
     }
 
@@ -196,11 +198,11 @@ public class BTM {
     //</editor-fold>
 
     //<editor-fold desc="Error calculation">
-    public double getMissClassificationError(ArrayList<Instance> instances) {
+    public ClassificationError getClassificationError(ArrayList<Instance> instances) {
         if (type != DataSet.TYPE.BINARY_CLASSIFICATION && type != DataSet.TYPE.MULTI_CLASS_CLASSIFICATION)
-            return -1;
+            return null;
 
-        int miss_classified = 0;
+        ClassificationError classificationError = new ClassificationError(instances.get(0).r.length);
 
         for (Instance instance : instances) {
             double[] y = ROOT.F(instance);
@@ -211,16 +213,17 @@ public class BTM {
                     _y = 1;
                 else
                     _y = 0;
-                if (instance.r[0] != _y)
-                    miss_classified++;
+                classificationError.add(instance.r[0], _y);
+
             } else {
                 y = softmax(y);
                 _y = argMax(y);
             }
-            if (instance.r[_y] == 0)
-                miss_classified++;
+
+            classificationError.add(argMax(instance.r), _y);
+
         }
-        return (miss_classified * 1.0) / instances.size();
+        return classificationError;
     }
 
     public double getAbsoluteDifference(ArrayList<Instance> instances) {
@@ -307,6 +310,59 @@ public class BTM {
             }
             s += String.format("\nPrecission Average : %.3f", sumprecision / precision.length);
             return s;
+        }
+    }
+
+    public static class ClassificationError {
+        int true_count;
+        int false_count;
+        int[][] confusion_matrix;
+
+        final int class_count;
+
+        public ClassificationError(int class_count) {
+            if (class_count == 1)
+                class_count++;
+            this.class_count = class_count;
+            confusion_matrix = new int[class_count][class_count];
+            for (int i = 0; i < class_count; i++)
+                Arrays.fill(confusion_matrix[i], 0);
+        }
+
+        public void add(int real_class, int predicted_class) {
+            confusion_matrix[real_class][predicted_class]++;
+            if (real_class == predicted_class)
+                true_count++;
+            else
+                false_count++;
+        }
+
+        public double getMissClassificationError() {
+            return (false_count * 1.0) / (true_count + false_count);
+        }
+
+        public double getAccuracy() {
+            return 1 - getMissClassificationError();
+        }
+
+        public String getStringConfusionMatrix() {
+            String s = "";
+            StringBuilder stringBuilder = new StringBuilder();
+            Formatter formatter = new Formatter(stringBuilder, Locale.US);
+
+            for (int i = 0; i < class_count; i++) {
+                int t = 0;
+                int f = 0;
+                for (int j = 0; j < class_count; j++) {
+                    if (i == j)
+                        t += confusion_matrix[i][j];
+                    else
+                        f += confusion_matrix[i][j];
+                    formatter.format("%5d  ", confusion_matrix[i][j]);
+                }
+                formatter.format("%.2f\n", (t * 1.0) / (t + f));
+            }
+            return stringBuilder.toString();
         }
     }
     //</editor-fold>

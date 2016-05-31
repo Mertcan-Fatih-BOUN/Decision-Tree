@@ -72,6 +72,18 @@ public class Util {
         return tmpIndex;
     }
 
+    public static int argMax(int[] d) {
+        int tmp = d[0];
+        int tmpIndex = 0;
+        for (int i = 1; i < d.length; i++) {
+            if (d[i] > tmp) {
+                tmp = d[i];
+                tmpIndex = i;
+            }
+        }
+        return tmpIndex;
+    }
+
     public static void printOutMatrix(double[][] m, String filename) {
         File file = new File("log" + File.separator + "weights" + File.separator + filename);
         //noinspection ResultOfMethodCallIgnored

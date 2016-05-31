@@ -2,30 +2,28 @@ package BuddingTreeMultiClass;
 
 
 import BuddingTreeMultiClass.readers.DataSet;
-import BuddingTreeMultiClass.readers.FlickerDataSet;
-import BuddingTreeMultiClass.readers.FlickerReader;
 import BuddingTreeMultiClass.readers.MSDReader;
 
 import java.io.IOException;
-import java.util.ArrayList;
-
-import static BuddingTreeMultiClass.readers.FlickerReader.getGithubDatasetNoTag;
 
 public class Runner {
 
     public static int similar_count = 5;
 
     public static void main(String[] args) throws IOException {
-        DataSet dataSet = FlickerReader.getGithubDatasetNoTag();
+        DataSet dataSet = MSDReader.getSoundOnly();
         System.out.println("File read");
-        double learning_rate = 1;
+        double learning_rate = 0.5;
         int epoch = 100;
         double lambda = 0.0001;
-        double learnin_rate_decay = 0.99;
+        double learning_rate_decay = 0.99;
+        System.out.println("Dataset: " + dataSet.name);
+        System.out.println("learning_rate: " + learning_rate + " lambda: " + lambda + " learning_rate_decay :" + learning_rate_decay);
+        System.out.println("Special note: ");
         BTM btm = new BTM(dataSet);
         //btm.enableSaveFile("btm_notag_v2__.txt");
         //btm.enable_g_new_version();s
-        btm.learnTree(learning_rate, epoch, lambda, learnin_rate_decay);
+        btm.learnTree(learning_rate, epoch, lambda, learning_rate_decay);
 
 
 //System.out.println(FlickerReader.tag_size + " " + sets[0].get(0).x.length + " " + sets[0].size() + " " + sets[1].size() + " " + btm.LEARNING_RATE + " " + btm.LAMBDA + " " + g_newversion + " " + LEARNING_RATE_DECAY);
