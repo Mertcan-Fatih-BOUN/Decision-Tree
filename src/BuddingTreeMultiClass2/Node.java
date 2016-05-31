@@ -5,6 +5,10 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Scanner;
 
+import Readers.FlickerDataSet;
+import Readers.Instance;
+import Readers.FlickerInstance;
+
 import static misc.Util.*;
 
 @SuppressWarnings("Duplicates")
@@ -54,11 +58,9 @@ class Node {
     double[] sum_grad_P1;
     double[] sum_grad_P2;
 
-    int last_instance_id_g = -1;
-    int last_instance_id_rho = -1;
-    int last_instance_id_y = -1;
-    int last_instance_id_delta = -1;
-
+    Instance last_instance_g = null;
+    Instance last_instance_y = null;
+    Instance last_instance_delta = null;
     BTM tree;
 
     Node(BTM tree) {
@@ -118,8 +120,8 @@ class Node {
         for (int i = 0; i < rho0.length; i++) {
             P1[i] = tree.percentages1[i];
             P2[i] = tree.percentages2[i];
-            P1[i] = 0.05;
-            P2[i] = 0.05;
+            P1[i] = 0.5;
+            P2[i] = 0.5;
         }
 
         gama = 1;
@@ -199,7 +201,7 @@ class Node {
     }
     
     public double[] g(Instance instance) {
-        if (last_instance_id_g == instance.id) {
+        if (last_instance_g == instance) {
 //            System.out.println("ggg");
             return g;
         }
@@ -208,8 +210,14 @@ class Node {
             double sum1 = 0;
             double sum2 = 0;
             int lenght = instance.x.length;
+            int firstmodal_size;
+            if(tree.dataSet instanceof FlickerDataSet)
+                firstmodal_size = ((FlickerDataSet) (tree.dataSet)).tag_size;
+            else {
+                firstmodal_size = 30;
+            }
             for (int j = 0; j < lenght; j++) {
-                if (j < SetReader.tag_size) {
+                if (j < firstmodal_size) {
                     sum1 += w[j] * instance.x[j];
                 } else {
                     sum2 += w[j] * instance.x[j];
@@ -231,14 +239,14 @@ class Node {
             for (int i = 0; i < g.length; i++)
                 g[i] = gg;
         }
-        last_instance_id_g = instance.id;
+        last_instance_g = instance;
 
         return g;
     }
 
 
     public double[] F(Instance instance) {
-        if (last_instance_id_y == instance.id) {
+        if (last_instance_y == instance) {
             System.out.println("yyy");
             return y;
         }
@@ -261,12 +269,12 @@ class Node {
                 y[i] = sigmoid(y[i]);
         }
 
-        last_instance_id_y = instance.id;
+        last_instance_y = instance;
         return y;
     }
 
     public double[] delta(Instance instance) {
-        if (last_instance_id_delta == instance.id) {
+        if (last_instance_delta == instance) {
             System.out.println("ddd");
             return delta;
         }
@@ -287,7 +295,7 @@ class Node {
             }
         }
 
-        last_instance_id_delta = instance.id;
+        last_instance_delta = instance;
         return delta;
     }
 
@@ -301,9 +309,9 @@ class Node {
 
     public void update() {
         learnParameters();
-        last_instance_id_delta = -1;
-        last_instance_id_y = -1;
-        last_instance_id_g = -1;
+        last_instance_delta = null;
+        last_instance_y = null;
+        last_instance_g = null;
 
         if (leftNode != null) {
             leftNode.update();
@@ -355,7 +363,14 @@ class Node {
         for (int i = 0; i < tree.ATTRIBUTE_COUNT; i++) {
             for (int j = 0; j < tree.CLASS_COUNT; j++) {
                 if(Runner.g_newversion) {
-                    if (i < SetReader.tag_size)
+
+                    int firstmodal_size;
+                    if(tree.dataSet instanceof FlickerDataSet)
+                        firstmodal_size = ((FlickerDataSet) (tree.dataSet)).tag_size;
+                    else {
+                        firstmodal_size = 30;
+                    }
+                    if (i < firstmodal_size)
                         gradient_w[i] += delta[j] * (1 - gama) * g1 * (P1[j] / (P1[j] + P2[j])) * (1 - g1) * (left_y[j] - right_y[j]) * instance.x[i];
                     else
                         gradient_w[i] += delta[j] * (1 - gama) * g2 * (P2[j] / (P1[j] + P2[j])) * (1 - g2) * (left_y[j] - right_y[j]) * instance.x[i];
@@ -464,7 +479,7 @@ class Node {
         for(int i = 0; i < tree.CLASS_COUNT; i++){
             for(int j = 0; j < tree.ATTRIBUTE_COUNT; j++){
                 if(sum_grad_rho[i][j] != 0){
-                    rho[i][j] = rho[i][j] - learning_rate * gradient_rho[i][j] / Math.sqrt(sum_grad_rho[i][j]);
+                    rho[i][j] = (rho[i][j] - learning_rate * gradient_rho[i][j] / Math.sqrt(sum_grad_rho[i][j]));
                 }
             }
         }
@@ -497,7 +512,7 @@ class Node {
 
         for (int i = 0; i < sum_grad_rho0.length; i++) {
             if (sum_grad_rho0[i] != 0)
-                rho0[i] = rho0[i] - learning_rate * gradient_rho0[i] / Math.sqrt(sum_grad_rho0[i]);
+                rho0[i] = (rho0[i] - learning_rate * gradient_rho0[i] / Math.sqrt(sum_grad_rho0[i]));
         }
     }
 

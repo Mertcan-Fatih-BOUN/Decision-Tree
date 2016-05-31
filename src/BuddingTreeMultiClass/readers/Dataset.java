@@ -14,6 +14,7 @@ public class DataSet {
     public String name = "";
     public ArrayList<Instance> TRAINING_INSTANCES;
     public ArrayList<Instance> VALIDATION_INSTANCES;
+    public ArrayList<String> CLASS_NAMES;
     public TYPE type;
     public double[] learning_rate_modifier;
 
@@ -31,5 +32,14 @@ public class DataSet {
 
     public DataSet(String name, ArrayList<Instance> X, ArrayList<Instance> V, TYPE type) {
         this(name, X, V, type, null);
+    }
+
+    public double[] norm;
+    public double norm_avg;
+
+    public void setPotentialLabels(String[] POTENTIAL_LABELS){
+        CLASS_NAMES = new ArrayList<>();
+        for(int i = 0; i < POTENTIAL_LABELS.length; i++)
+            CLASS_NAMES.add(POTENTIAL_LABELS[i]);
     }
 }

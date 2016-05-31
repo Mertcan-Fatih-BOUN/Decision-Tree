@@ -7,13 +7,17 @@ import BuddingTreeMultiClass.readers.FlickerReader;
 import BuddingTreeMultiClass.readers.MSDReader;
 
 import java.io.IOException;
+import java.util.ArrayList;
+
+import static BuddingTreeMultiClass.readers.FlickerReader.getGithubDatasetNoTag;
 
 public class Runner {
 
     public static int similar_count = 5;
+    public static boolean g_newversion = true;
 
     public static void main(String[] args) throws IOException {
-        DataSet dataSet = MSDReader.getLyricsOnly();
+        DataSet dataSet = MSDReader.getBoth();
         System.out.println("File read");
         double learning_rate = 0.5;
         int epoch = 100;

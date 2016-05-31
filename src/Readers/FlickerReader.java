@@ -1,4 +1,4 @@
-package BuddingTreeMultiClass2;
+package Readers;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -6,7 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.*;
 
-public class SetReader {
+public class FlickerReader {
     static {
         Locale.setDefault(Locale.US);
     }
@@ -16,14 +16,24 @@ public class SetReader {
     private static ArrayList<double[]> tags;
     private static ArrayList<int[]> annotations;
     private static ArrayList<double[]> github_gist;
+    private static int tag_size = 0;
 
-    public static int tag_size = 0;
-
-    public static final String[] POTENTIAL_LABELS = new String[]{"bird", "baby", "animals", "car", "clouds", "dog", "female", "flower",
-            "food", "indoor", "lake", "male", "night", "people", "plant_life", "portrait","river", "sea",
+    private static final String[] POTENTIAL_LABELS = new String[]{"bird", "baby", "animals", "car", "clouds", "dog", "female", "flower",
+            "food", "indoor", "lake", "male", "night", "people", "plant_life", "portrait", "river", "sea",
             "sky", "structures", "sunset", "transport", "tree", "water", "bird_r1", "baby_r1", "car_r1", "clouds_r1", "dog_r1", "female_r1",
             "flower_r1", "male_r1", "night_r1", "people_r1", "portrait_r1", "river_r1", "sea_r1",
             "tree_r1"};
+
+    public static int[] class_counts(ArrayList<Instance> X) {
+        int[] class_counts = new int[38];
+        for (Instance i : X) {
+            for (int t = 0; t < i.r.length; t++) {
+                if (i.r[t] == 1)
+                    class_counts[t]++;
+            }
+        }
+        return class_counts;
+    }
 
     private static ArrayList<double[]> readEdgehistogram() throws FileNotFoundException {
         if (edgehistogram != null)
@@ -172,7 +182,7 @@ public class SetReader {
         return list;
     }
 
-    public static ArrayList<Instance>[] getGithubDatasetNoTag() throws FileNotFoundException {
+    public static DataSet getGithubDatasetNoTag() throws FileNotFoundException {
         ArrayList<Instance>[] ret = new ArrayList[2];
         ret[0] = new ArrayList<Instance>();
         ret[1] = new ArrayList<Instance>();
@@ -188,7 +198,7 @@ public class SetReader {
             Instance instance = new Instance();
             instance.x = x;
             instance.r = annotations.get(i);
-            instance.id = i;
+
 
             if (i % 5 < 3) {
                 ret[0].add(instance);
@@ -196,11 +206,57 @@ public class SetReader {
                 ret[1].add(instance);
         }
 
-        return ret;
+        FlickerDataSet dataset = new FlickerDataSet();
+        dataset.setPotentialLabels(POTENTIAL_LABELS);
+        dataset.tag_size = tag_size;
+        dataset.TRAINING_INSTANCES = ret[0];
+        dataset.VALIDATION_INSTANCES = ret[1];
+        dataset.class_counts = class_counts(dataset.TRAINING_INSTANCES);
+        dataset.type = DataSet.TYPE.MULTI_LABEL_CLASSIFICATION;
+        return dataset;
+    }
+
+    public static DataSet getGithubDatasetNoTag_v2() throws FileNotFoundException {
+        ArrayList<Instance>[] ret = new ArrayList[2];
+        ret[0] = new ArrayList<Instance>();
+        ret[1] = new ArrayList<Instance>();
+
+        ArrayList<double[]> gist = readGithub("complete_mirflickr.txt");
+
+        readAnnotations();
+
+        for (int i = 0; i < annotations.size(); i++) {
+            double[] x = new double[0];
+            x = gist.get(i);
+
+            Instance instance = new Instance();
+            instance.x = x;
+            instance.r = annotations.get(i);
+
+
+            int add = 0;
+            for (int t = 0; t < instance.r.length; t++)
+                add += instance.r[t];
+
+            if (i % 5 < 3 && add > 0) {
+                ret[0].add(instance);
+            } else if (add > 0)
+                ret[1].add(instance);
+        }
+
+
+        FlickerDataSet dataset = new FlickerDataSet();
+        dataset.setPotentialLabels(POTENTIAL_LABELS);
+        dataset.tag_size = tag_size;
+        dataset.TRAINING_INSTANCES = ret[0];
+        dataset.VALIDATION_INSTANCES = ret[1];
+        dataset.class_counts = class_counts(dataset.TRAINING_INSTANCES);
+        dataset.type = DataSet.TYPE.MULTI_LABEL_CLASSIFICATION;
+        return dataset;
     }
 
 
-    public static ArrayList<Instance>[] getGithubDataset() throws FileNotFoundException {
+    public static DataSet getGithubDataset() throws FileNotFoundException {
         ArrayList<Instance>[] ret = new ArrayList[2];
         ret[0] = new ArrayList<Instance>();
         ret[1] = new ArrayList<Instance>();
@@ -217,7 +273,7 @@ public class SetReader {
             Instance instance = new Instance();
             instance.x = x;
             instance.r = annotations.get(i);
-            instance.id = i;
+
 
             if (i % 5 < 3) {
                 ret[0].add(instance);
@@ -225,10 +281,18 @@ public class SetReader {
                 ret[1].add(instance);
         }
 
-        return ret;
+
+        FlickerDataSet dataset = new FlickerDataSet();
+        dataset.setPotentialLabels(POTENTIAL_LABELS);
+        dataset.tag_size = tag_size;
+        dataset.TRAINING_INSTANCES = ret[0];
+        dataset.VALIDATION_INSTANCES = ret[1];
+        dataset.class_counts = class_counts(dataset.TRAINING_INSTANCES);
+        dataset.type = DataSet.TYPE.MULTI_LABEL_CLASSIFICATION;
+        return dataset;
     }
 
-    public static ArrayList<Instance>[] getDataset(boolean includeEdgeHistogram, boolean includeHomogeneousTexture, boolean includeTags) throws FileNotFoundException {
+    public static DataSet getDataset(boolean includeEdgeHistogram, boolean includeHomogeneousTexture, boolean includeTags) throws FileNotFoundException {
         ArrayList<Instance>[] ret = new ArrayList[2];
         ret[0] = new ArrayList<Instance>();
         ret[1] = new ArrayList<Instance>();
@@ -257,7 +321,6 @@ public class SetReader {
             Instance instance = new Instance();
             instance.x = x;
             instance.r = annotations.get(i);
-            instance.id = 0;
 
             if (i % 5 < 3) {
                 ret[0].add(instance);
@@ -265,7 +328,15 @@ public class SetReader {
                 ret[1].add(instance);
         }
 
-        return ret;
+
+        FlickerDataSet dataset = new FlickerDataSet();
+        dataset.setPotentialLabels(POTENTIAL_LABELS);
+        dataset.tag_size = tag_size;
+        dataset.TRAINING_INSTANCES = ret[0];
+        dataset.VALIDATION_INSTANCES = ret[1];
+        dataset.class_counts = class_counts(dataset.TRAINING_INSTANCES);
+        dataset.type = DataSet.TYPE.MULTI_LABEL_CLASSIFICATION;
+        return dataset;
     }
 
     private static double[] concat(double[] a, double[] b) {
@@ -285,6 +356,7 @@ public class SetReader {
 
     private static void normalize(ArrayList<double[]> values) {
         for (int i = 0; i < values.get(0).length; i++) {
+            double norm = 0;
             double mean = 0;
 
             for (double[] value : values) {
@@ -297,12 +369,19 @@ public class SetReader {
                 stdev += (value[i] - mean) * (value[i] - mean);
             }
 
+//            stdev = stdev / (values.size() - 1);
+            stdev = Math.sqrt(stdev);
+
             for (double[] value : values) {
                 value[i] -= mean;
                 if (stdev != 0)
                     value[i] /= stdev;
+
+                norm += value[i] * value[i];
             }
 
         }
     }
+
+
 }

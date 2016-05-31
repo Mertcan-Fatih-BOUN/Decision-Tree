@@ -48,6 +48,23 @@ public class Node {
     double[] cumulative_g;
     double current_cumulative_g;
 
+    double[] P1;
+    double[] P2;
+
+    double g1;
+    double g2;
+    double[] gradient_P1;
+    double[] gradient_P2;
+
+    double[] sum_grad_P1;
+    double[] sum_grad_P2;
+    double w00;
+    double w01;
+    double gradient_w00 = 0;
+    double gradient_w01 = 0;
+    double sum_grad_w00;
+    double sum_grad_w01;
+
     double[] sum_grad_rho;
     double[] sum_grad_w;
     double sum_grad_w0;
@@ -82,6 +99,14 @@ public class Node {
             w[i] = rand(-0.01, 0.01);
 
         w0 = rand(-0.01, 0.01);
+        w00 = rand(-0.01, 0.01);
+        w01 = rand(-0.01, 0.01);
+        P1 = new double[tree.CLASS_COUNT];
+        P2 = new double[tree.CLASS_COUNT];
+        gradient_P1 = new double[tree.CLASS_COUNT];
+        gradient_P2 = new double[tree.CLASS_COUNT];
+        sum_grad_P1 = new double[tree.CLASS_COUNT];
+        sum_grad_P2 = new double[tree.CLASS_COUNT];
 
         scaled_rho = new int[tree.CLASS_COUNT];
         scaled_rho_within = new int[tree.CLASS_COUNT];
@@ -101,6 +126,19 @@ public class Node {
         Arrays.fill(g, 0);
         Arrays.fill(gradient_rho, 0);
         Arrays.fill(sum_grad_rho, 0);
+        Arrays.fill(P1, 0);
+        Arrays.fill(P2, 0);
+        Arrays.fill(gradient_P1, 0);
+        Arrays.fill(gradient_P2, 0);
+        Arrays.fill(sum_grad_P1, 0);
+        Arrays.fill(sum_grad_P2, 0);
+
+        for (int i = 0; i < rho.length; i++) {
+            P1[i] = tree.percentages1[i];
+            P2[i] = tree.percentages2[i];
+            P1[i] = 0.6;
+            P2[i] = 0.4;
+        }
 
         for (int i = 0; i < rho.length; i++)
             rho[i] = rand(-0.01, 0.01);
@@ -177,22 +215,33 @@ public class Node {
             return g;
         }
 
-        if (tree.use_g_new_version) {
+        if (Runner.g_newversion) {
             double sum1 = 0;
             double sum2 = 0;
             int lenght = instance.x.length;
+            int firstmodal_size;
+            if(tree.dataSet instanceof FlickerDataSet)
+                firstmodal_size = ((FlickerDataSet) (tree.dataSet)).tag_size;
+            else {
+                firstmodal_size = 30;
+            }
             for (int j = 0; j < lenght; j++) {
-                if (j < ((FlickerDataSet) (tree.dataSet)).tag_size) {
+                if (j < firstmodal_size) {
                     sum1 += w[j] * instance.x[j];
                 } else {
                     sum2 += w[j] * instance.x[j];
                 }
             }
+            sum1 += w00;
+            sum2 += w01;
+            g1 = sigmoid(sum1);
+            g2 = sigmoid(sum2);
             for (int i = 0; i < g.length; i++) {
-                if (tree.percentages1[i] == 0 || tree.percentages2[i] == 0)
+                if (P1[i] == 0 || P2[i] == 0)
                     g[i] = (sigmoid(sum1) + sigmoid(sum2)) / 2;
                 else
                     g[i] = (tree.percentages1[i] * sigmoid(sum1) + tree.percentages2[i] * sigmoid(sum2)) / (tree.percentages1[i] + tree.percentages2[i]);
+//                    g[i] = (P1[i] * sigmoid(sum1) + P2[i] * sigmoid(sum2)) / (P1[i] + P2[i]);
             }
         } else {
             double gg = sigmoid(dotProduct(w, instance.x) + w0);
@@ -333,17 +382,55 @@ public class Node {
         Arrays.fill(gradient_w, 0);
         for (int i = 0; i < tree.ATTRIBUTE_COUNT; i++) {
             for (int j = 0; j < tree.CLASS_COUNT; j++)
-                gradient_w[i] += delta[j] * (1 - gama) * g[j] * (1 - g[j]) * (left_y[j] - right_y[j]) * instance.x[i];
+                if(Runner.g_newversion) {
+
+                    int firstmodal_size;
+                    if(tree.dataSet instanceof FlickerDataSet)
+                        firstmodal_size = ((FlickerDataSet) (tree.dataSet)).tag_size;
+                    else {
+                        firstmodal_size = 30;
+                    }
+                    if (i < firstmodal_size)
+                        gradient_w[i] += delta[j] * (1 - gama) * g1 * (P1[j] / (P1[j] + P2[j])) * (1 - g1) * (left_y[j] - right_y[j]) * instance.x[i];
+                    else
+                        gradient_w[i] += delta[j] * (1 - gama) * g2 * (P2[j] / (P1[j] + P2[j])) * (1 - g2) * (left_y[j] - right_y[j]) * instance.x[i];
+                }else{
+                    gradient_w[i] += delta[j] * (1 - gama) * g[j] * (1 - g[j]) * (left_y[j] - right_y[j]) * instance.x[i];
+                }
             //gradient_w[i] /= tree.CLASS_COUNT;
             // gradient_w[i] = delta[(int) instance.classValue] * (1 - gama) * g * (1 - g) * (left_y[(int) instance.classValue] - right_y[(int) instance.classValue]) * instance.attributes[i];
         }
 
+
         gradient_w0 = 0;
         for (int i = 0; i < tree.CLASS_COUNT; i++)
             gradient_w0 += delta[i] * (1 - gama) * g[i] * (1 - g[i]) * (left_y[i] - right_y[i]);
-//         gradient_w0 = delta[i] * (gama);
+        // gradient_w0 = delta[(int) instance.classValue] * (gama);
         // gradient_w0 /= tree.CLASS_COUNT;
 
+        if(Runner.g_newversion) {
+            gradient_P1 = new double[tree.CLASS_COUNT];
+            Arrays.fill(gradient_P1, 0);
+            for (int i = 0; i < tree.CLASS_COUNT; i++)
+                gradient_P1[i] += delta[i] * (1 - gama) * (left_y[i] - right_y[i]) * ((g1 * (P1[i] + P2[i]) - (P1[i] * g1 + P2[i] * g2)) / ((P1[i] + P2[i]) * (P1[i] + P2[i])));
+
+            gradient_P2 = new double[tree.CLASS_COUNT];
+            Arrays.fill(gradient_P2, 0);
+            for (int i = 0; i < tree.CLASS_COUNT; i++)
+                gradient_P2[i] += delta[i] * (1 - gama) * (left_y[i] - right_y[i]) * ((g2 * (P1[i] + P2[i]) - (P1[i] * g1 + P2[i] * g2)) / ((P1[i] + P2[i]) * (P1[i] + P2[i])));
+
+            gradient_w00 = 0;
+            for (int i = 0; i < tree.CLASS_COUNT; i++)
+                gradient_w00 += delta[i] * (1 - gama) * g1 * (P1[i] / (P1[i] + P2[i])) * (1 - g1) * (left_y[i] - right_y[i]);
+            ;
+
+            gradient_w01 = 0;
+            for (int i = 0; i < tree.CLASS_COUNT; i++)
+                gradient_w01 += delta[i] * (1 - gama) * g2 * (P2[i] / (P1[i] + P2[i])) * (1 - g2) * (left_y[i] - right_y[i]);
+//         gradient_w0 = delta[i] * (gama);
+            // gradient_w0 /= tree.CLASS_COUNT;
+
+        }
         gradient_rho = new double[tree.CLASS_COUNT];
         for (int i = 0; i < tree.CLASS_COUNT; i++) {
             gradient_rho[i] = delta[i] * gama;
@@ -379,6 +466,20 @@ public class Node {
             sum_grad_w[i] += gradient_w[i] * gradient_w[i];
         }
 
+        if(Runner.g_newversion) {
+            for (int i = 0; i < sum_grad_P1.length; i++) {
+                sum_grad_P1[i] += gradient_P1[i] * gradient_P1[i];
+            }
+
+            for (int i = 0; i < sum_grad_P2.length; i++) {
+                sum_grad_P2[i] += gradient_P2[i] * gradient_P2[i];
+            }
+
+            sum_grad_w00 += gradient_w00 * gradient_w00;
+
+            sum_grad_w01 += gradient_w01 * gradient_w01;
+        }
+
         sum_grad_w0 += gradient_w0 * gradient_w0;
 
         for (int i = 0; i < sum_grad_rho.length; i++) {
@@ -408,6 +509,24 @@ public class Node {
         if (sum_grad_w0 != 0)
             w0 = w0 - tree.LEARNING_RATE * gradient_w0 / Math.sqrt(sum_grad_w0);
 
+        if(Runner.g_newversion) {
+
+            if (sum_grad_w00 != 0)
+                w00 = w00 - tree.LEARNING_RATE * gradient_w00 / Math.sqrt(sum_grad_w00);
+
+            if (sum_grad_w01 != 0)
+                w01 = w01 - tree.LEARNING_RATE * gradient_w01 / Math.sqrt(sum_grad_w01);
+
+            for (int i = 0; i < sum_grad_P1.length; i++) {
+                if (sum_grad_P1[i] != 0)
+                    P1[i] = P1[i] - tree.LEARNING_RATE * gradient_P1[i] / Math.sqrt(sum_grad_P1[i]);
+            }
+
+            for (int i = 0; i < sum_grad_P2.length; i++) {
+                if (sum_grad_P2[i] != 0)
+                    P2[i] = P2[i] - tree.LEARNING_RATE * gradient_P2[i] / Math.sqrt(sum_grad_P2[i]) / 100;
+            }
+        }
         if (sum_grad_gama != 0)
             setGama(gama - tree.LEARNING_RATE * gradient_gama / Math.sqrt(sum_grad_gama));
 

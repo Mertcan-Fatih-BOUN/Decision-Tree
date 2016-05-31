@@ -3,13 +3,20 @@ package BuddingTreeMultiClass2;
 
 import BuddingTreeMultiClass3.*;
 import BuddingTreeMultiClass3.Result;
+import Readers.DataSet;
 
 import java.io.*;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import Readers.Instance;
+import Readers.FlickerInstance;
 import java.util.Scanner;
+
+import static Utils.Util.sigmoid;
+import static misc.Util.argMax;
+import static misc.Util.softmax;
 
 
 public class BTM {
@@ -31,6 +38,8 @@ public class BTM {
     public ArrayList<Result> results = new ArrayList<>();
 
     public static Node ROOT;
+    DataSet dataSet;
+    DataSet.TYPE type;
 
     /**
      * @param X             Training Set
@@ -46,6 +55,20 @@ public class BTM {
         this.X = X;
         this.V = V;
         this.LAMBDA = lambda;
+        this.ATTRIBUTE_COUNT = X.get(0).x.length;
+        this.CLASS_COUNT = X.get(0).r.length;
+
+        ROOT = new Node(this);
+    }
+
+    public BTM(DataSet dataSet, double learning_rate, int epoch, double lambda) {
+        this.dataSet = dataSet;
+        this.type = dataSet.type;
+        this.LAMBDA = lambda;
+        this.X = dataSet.TRAINING_INSTANCES;
+        this.V = dataSet.VALIDATION_INSTANCES;
+        this.LEARNING_RATE = learning_rate;
+        this.EPOCH = epoch;
         this.ATTRIBUTE_COUNT = X.get(0).x.length;
         this.CLASS_COUNT = X.get(0).r.length;
 
@@ -70,9 +93,14 @@ public class BTM {
                 ROOT.update();
             }
 //            LEARNING_RATE *= 0.99;
-            addNewResult(e);
-            printResults();
-            System.out.println("Epoch :" + e + "\nSize: " + size() + " " + eff_size() + "\n" + getErrors() + "\nEpoch :" + e + "\n-----------------------\n");
+//            addNewResult(e);
+//            printResults();
+            if (this.type == Readers.DataSet.TYPE.MULTI_LABEL_CLASSIFICATION)
+                System.out.println("Epoch :" + e + "\nSize: " + size() + " " + eff_size() + "\n" + getMAP_P50_error(X) + "\n" + getMAP_P50_error(V) + "\nEpoch :" + e + "\n-----------------------\n");
+            else if (this.type == Readers.DataSet.TYPE.MULTI_CLASS_CLASSIFICATION || this.type == Readers.DataSet.TYPE.BINARY_CLASSIFICATION)
+                System.out.printf("Epoch : %d Size: %d Miss Class X: %.2f Miss Class Y: %.2f\n", e, size(), getMissClassificationError(X), getMissClassificationError(V));
+            else if (this.type == Readers.DataSet.TYPE.REGRESSION)
+                System.out.printf("Epoch: %d Size: %d MSE X: %.2f MSE V: %.2f\n", e, size(), getMeanSquareError(X), getMeanSquareError(V));
             ROOT.downgradeLearning();
         }
     }
@@ -202,5 +230,121 @@ public class BTM {
         this.V = V;
 
         ROOT = new Node(this,scanner,null);
+    }
+
+    public double getMissClassificationError(ArrayList<Instance> instances) {
+        if (type != DataSet.TYPE.BINARY_CLASSIFICATION && type != DataSet.TYPE.MULTI_CLASS_CLASSIFICATION)
+            return -1;
+
+        int miss_classified = 0;
+
+        for (Instance instance : instances) {
+            double[] y = ROOT.F(instance);
+            int _y;
+            if (type == DataSet.TYPE.BINARY_CLASSIFICATION) {
+                y[0] = sigmoid(y[0]);
+                if (y[0] > 0.5)
+                    _y = 1;
+                else
+                    _y = 0;
+                if (instance.r[0] != _y)
+                    miss_classified++;
+            } else {
+                y = softmax(y);
+                _y = argMax(y);
+            }
+            if (instance.r[_y] == 0)
+                miss_classified++;
+        }
+        return (miss_classified * 1.0) / instances.size();
+    }
+
+
+
+    public double getAbsoluteDifference(ArrayList<Instance> instances) {
+        double difference = 0;
+
+        for (Instance instance : instances) {
+            double y = ROOT.F(instance)[0];
+            difference += Math.abs(y - instance.r[0]);
+        }
+
+        return difference / instances.size();
+    }
+
+    public double getMeanSquareError(ArrayList<Instance> instances) {
+        double difference = 0;
+
+        for (Instance instance : instances) {
+            double y = ROOT.F(instance)[0];
+            difference += Math.pow(y - instance.r[0], 2);
+        }
+
+        return difference / instances.size();
+    }
+
+    public MAPError getMAP_P50_error(ArrayList<Instance> instances) {
+        if (type != DataSet.TYPE.MULTI_LABEL_CLASSIFICATION)
+            return null;
+
+        int CLASS_COUNT = instances.get(0).r.length;
+        MAPError MAPError = new MAPError(CLASS_COUNT);
+
+        for (Instance instance : instances) {
+            instance.y = ROOT.F(instance).clone();
+        }
+
+        for (int i = 0; i < CLASS_COUNT; i++) {
+            double error = 0;
+            double positive_count = 0;
+            double pre_count = 0;
+            final int finalI = i;
+            Collections.sort(instances, (o1, o2) -> Double.compare(o2.y[finalI], o1.y[finalI]));
+
+            for (int j = 0; j < instances.size(); j++) {
+                if (instances.get(j).r[i] == 1) {
+                    if (j < 50)
+                        pre_count++;
+                    positive_count++;
+                    error += (positive_count * 1.0) / (j + 1);
+                }
+            }
+
+            error /= positive_count;
+
+            MAPError.MAP[i] = error;
+            MAPError.precision[i] = pre_count / 50.0f;
+        }
+
+        return MAPError;
+    }
+
+    public static class MAPError {
+        public double[] MAP;
+        public double[] precision;
+
+        public MAPError(int class_count) {
+            MAP = new double[class_count];
+            precision = new double[class_count];
+        }
+
+        public String toString() {
+            String s = "MAP: \n";
+            double sumaMap = 0;
+            for (double aMAP : MAP) {
+                sumaMap += aMAP;
+                s += String.format("%.3f\n", aMAP);
+            }
+            s += String.format("\nMAP Average : %.3f\n", sumaMap / MAP.length);
+
+            s += "Precission: \n";
+            double sumprecision = 0;
+            for (double aprecission : precision) {
+                sumprecision += aprecission;
+                s += String.format("%.3f\n", aprecission);
+            }
+            s += String.format("\nPrecission Average : %.3f", sumprecision / precision.length);
+            return s;
+        }
     }
 }

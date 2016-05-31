@@ -1,14 +1,19 @@
 package BuddingTreeMultiClass2;
 
 
+import BuddingTreeMultiClass.*;
+import BuddingTreeMultiClass.readers.*;
+import Readers.*;
+import Readers.DataSet;
+import Readers.FlickerReader;
+import Readers.MSDReader;
+
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 
-import static BuddingTreeMultiClass2.SetReader.getDataset;
-import static BuddingTreeMultiClass2.SetReader.getGithubDataset;
-import static BuddingTreeMultiClass2.SetReader.getGithubDatasetNoTag;
 
 public class Runner {
     static String properties;
@@ -16,12 +21,22 @@ public class Runner {
 
     static boolean g_newversion = false;
     public static double down_learning_rate = 1;//if 1, works normal
-    public static double punish_gama = 0.05;
+    public static double punish_gama = 0.00;
 
     public static void main(String[] args) throws IOException {
-        ArrayList<Instance>[] sets = getGithubDatasetNoTag();
-        BTM btm = new BTM(sets[0], sets[1], 1, 100, 0.0001);
-        properties = "btm2 " + SetReader.tag_size + " " + sets[0].get(0).x.length + " " + btm.LEARNING_RATE + " " + btm.LAMBDA + " " + g_newversion;
+
+//        DataSet dataSet = FlickerReader.getGithubDatasetNoTag();
+        DataSet dataSet = MSDReader.getSoundOnly();
+        System.out.println("File read");
+        double learning_rate = 1;
+        int epoch = 100;
+        double lambda = 0.0001;
+        double learnin_rate_decay = 0.99;
+        int firstmodalsize = 30;
+        BTM btm = new BTM(dataSet, learning_rate, epoch, lambda);
+        //btm.enableSaveFile("btm_notag_v2__.txt");
+        //btm.enable_g_new_version();s
+        properties = "btm2 " + firstmodalsize + " " + dataSet.TRAINING_INSTANCES.get(0).x.length + " " + btm.LEARNING_RATE + " " + btm.LAMBDA + " " + g_newversion;
         System.out.println(properties);
         currentDate = Long.toString((new Date()).getTime());
         btm.learnTree();
