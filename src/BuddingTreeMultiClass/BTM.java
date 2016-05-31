@@ -49,7 +49,7 @@ public class BTM {
         return ROOT.size();
     }
 
-    public int eff_size() {
+    public double eff_size() {
         return ROOT.myEffSize();
     }
 
@@ -79,7 +79,7 @@ public class BTM {
             if (this.type == DataSet.TYPE.MULTI_LABEL_CLASSIFICATION) {
                 MAPError mapErrorX = getMAP_P50_error(X);
                 MAPError mapErrorV = getMAP_P50_error(V);
-                System.out.printf("%3d %3d %3d %.2f %.2f %.2f %.2f ", e, size(), eff_size(), mapErrorX.getAverageMAP(), mapErrorX.getAveragePrec(), mapErrorV.getAverageMAP(), mapErrorV.getAveragePrec());
+                System.out.printf("%3d %3d %3d %.2f %.2f %.2f %.2f ", e, size(), (int) eff_size(), mapErrorX.getAverageMAP(), mapErrorX.getAveragePrec(), mapErrorV.getAverageMAP(), mapErrorV.getAveragePrec());
                 for (double d : mapErrorX.MAP) {
                     System.out.printf("%.2f ", d);
                 }

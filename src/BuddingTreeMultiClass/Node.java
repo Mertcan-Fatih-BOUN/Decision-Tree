@@ -364,11 +364,11 @@ public class Node {
             return 1 + leftNode.size() + rightNode.size();
     }
 
-    int myEffSize() {
+    double myEffSize() {
         if (leftNode == null || gama == 1)
             return 1;
         else
-            return 1 + leftNode.myEffSize() + rightNode.myEffSize();
+            return 1 + (1 - gama) * (leftNode.myEffSize() + rightNode.myEffSize());
     }
 
     boolean firstTime = true;
