@@ -60,11 +60,44 @@ public class BTM {
         this.LAMBDA = lambda;
         this.LEARNING_RATE_DECAY = learning_rate_decay;
 
+        System.out.printf("%3s %3s %3s %4s %4s %4s %4s ", "e", "s", "eS", "XMap", "XPre", "VMap", "VPre");
+        for (int i = 0; i < CLASS_COUNT; i++) {
+            System.out.printf("%4s ", "XCM");
+        }
+        for (int i = 0; i < CLASS_COUNT; i++) {
+            System.out.printf("%4s ", "XCP");
+        }
+        for (int i = 0; i < CLASS_COUNT; i++) {
+            System.out.printf("%4s ", "VCM");
+        }
+        for (int i = 0; i < CLASS_COUNT; i++) {
+            System.out.printf("%4s ", "VCP");
+        }
+        System.out.printf("\n");
 
         for (int e = 0; e <= EPOCH; e++) {
-            if (this.type == DataSet.TYPE.MULTI_LABEL_CLASSIFICATION)
-                System.out.println("Epoch :" + e + "\nSize: " + size() + " " + eff_size() + "\n" + getMAP_P50_error(X) + "\n" + getMAP_P50_error(V) + "\nEpoch :" + e + "\n-----------------------\n");
-            else if (this.type == DataSet.TYPE.MULTI_CLASS_CLASSIFICATION || this.type == DataSet.TYPE.BINARY_CLASSIFICATION) {
+            if (this.type == DataSet.TYPE.MULTI_LABEL_CLASSIFICATION) {
+                MAPError mapErrorX = getMAP_P50_error(X);
+                MAPError mapErrorV = getMAP_P50_error(V);
+                System.out.printf("%3d %3d %3d %.2f %.2f %.2f %.2f ", e, size(), eff_size(), mapErrorX.getAverageMAP(), mapErrorX.getAveragePrec(), mapErrorV.getAverageMAP(), mapErrorV.getAveragePrec());
+                for (double d : mapErrorX.MAP) {
+                    System.out.printf("%.2f ", d);
+                }
+                for (double d : mapErrorX.precision) {
+                    System.out.printf("%.2f ", d);
+                }
+                for (double d : mapErrorV.MAP) {
+                    System.out.printf("%.2f ", d);
+                }
+                for (double d : mapErrorV.precision) {
+                    System.out.printf("%.2f ", d);
+                }
+                System.out.printf("\n");
+
+                //System.out.println("Epoch :" + e + "\nSize: " + size() + " " + eff_size() + "\n" + getMAP_P50_error(X) + "\n" + getMAP_P50_error(V) + "\nEpoch :" + e + "\n-----------------------\n");
+
+
+            } else if (this.type == DataSet.TYPE.MULTI_CLASS_CLASSIFICATION || this.type == DataSet.TYPE.BINARY_CLASSIFICATION) {
                 ClassificationError Xerror = getClassificationError(X);
                 ClassificationError Verror = getClassificationError(V);
                 System.out.printf("Epoch : %d Size: %d X: %.2f V: %.2f\n", e, size(), Xerror.getAccuracy(), Verror.getAccuracy());
@@ -199,9 +232,6 @@ public class BTM {
 
     //<editor-fold desc="Error calculation">
     public ClassificationError getClassificationError(ArrayList<Instance> instances) {
-        if (type != DataSet.TYPE.BINARY_CLASSIFICATION && type != DataSet.TYPE.MULTI_CLASS_CLASSIFICATION)
-            return null;
-
         ClassificationError classificationError = new ClassificationError(instances.get(0).r.length);
 
         for (Instance instance : instances) {
@@ -249,9 +279,6 @@ public class BTM {
     }
 
     public MAPError getMAP_P50_error(ArrayList<Instance> instances) {
-        if (type != DataSet.TYPE.MULTI_LABEL_CLASSIFICATION)
-            return null;
-
         int CLASS_COUNT = instances.get(0).r.length;
         MAPError MAPError = new MAPError(CLASS_COUNT);
 
@@ -310,6 +337,21 @@ public class BTM {
             }
             s += String.format("\nPrecission Average : %.3f", sumprecision / precision.length);
             return s;
+        }
+
+        public double getAverageMAP() {
+            double r = 0;
+            for (double d : MAP)
+                r += d;
+            return r / MAP.length;
+        }
+
+
+        public double getAveragePrec() {
+            double r = 0;
+            for (double d : precision)
+                r += d;
+            return r / precision.length;
         }
     }
 

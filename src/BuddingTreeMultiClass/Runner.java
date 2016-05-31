@@ -2,6 +2,8 @@ package BuddingTreeMultiClass;
 
 
 import BuddingTreeMultiClass.readers.DataSet;
+import BuddingTreeMultiClass.readers.FlickerDataSet;
+import BuddingTreeMultiClass.readers.FlickerReader;
 import BuddingTreeMultiClass.readers.MSDReader;
 
 import java.io.IOException;
@@ -11,7 +13,7 @@ public class Runner {
     public static int similar_count = 5;
 
     public static void main(String[] args) throws IOException {
-        DataSet dataSet = MSDReader.getSoundOnly();
+        DataSet dataSet = MSDReader.getLyricsOnly();
         System.out.println("File read");
         double learning_rate = 0.5;
         int epoch = 100;
